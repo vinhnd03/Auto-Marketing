@@ -27,8 +27,15 @@ import { TermsPage, PrivacyPage } from "./pages/legal";
 import ListComponent from "./components/pricing/DashBoardComponent";
 import PaymentResultComponent from "./components/pricing/PaymentResultComponent";
 import AdminLayout from "./components/layout/AdminLayout";
-import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDashboard from "./components/admin/AdminDashboard";
 import RevenueManagement from "./pages/admin/RevenueManagement";
+
+// import AdminLayout from "./pages/admin/AdminLayout";
+// import AdminDashboard from "./pages/admin/AdminDashboard";
+import ListCustomerComponent from "./components/admin/ListCustomerComponent";
+import ListCustomerByDateComponent from "./components/admin/ListCustomerByDateComponent";
+import NewCustomerStatisticsComponent from "./components/admin/NewCustomerStatisticsComponent";
+import TrendPage from "./components/admin/TrendAnalysis";
 
 
 
@@ -94,39 +101,40 @@ function App() {
                         }
                     >
                         <Route index element={<AdminDashboard/>}/>
-                        {/*<Route path="users" element={<UserManagement />} />*/}
+                        <Route path="users" element={<ListCustomerComponent/>}/>
+                        <Route path="users/new" element={<ListCustomerByDateComponent/>}/>
+                        <Route path="customers/trends" element={<TrendPage/>}/>
+                        <Route path="customers/statistics" element={<NewCustomerStatisticsComponent/>}/>
                         <Route path="revenue" element={<RevenueManagement/>}/>
-                        {/*<Route path="campaigns" element={<CampaignManagement />} />*/}
-                        {/*<Route path="settings" element={<SystemSettings />} />*/}
                     </Route>
-        </Routes>
-      </AppLayout>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: "#363636",
-            color: "#fff",
-          },
-          success: {
-            duration: 3000,
-            style: {
-              background: "#10B981",
-              color: "#fff",
-            },
-          },
-          error: {
-            duration: 4000,
-            style: {
-              background: "#EF4444",
-              color: "#fff",
-            },
-          },
-        }}
-      />
-    </Router>
-  );
+                </Routes>
+            </AppLayout>
+            <Toaster
+                position="top-right"
+                toastOptions={{
+                    duration: 4000,
+                    style: {
+                        background: "#363636",
+                        color: "#fff",
+                    },
+                    success: {
+                        duration: 3000,
+                        style: {
+                            background: "#10B981",
+                            color: "#fff",
+                        },
+                    },
+                    error: {
+                        duration: 4000,
+                        style: {
+                            background: "#EF4444",
+                            color: "#fff",
+                        },
+                    },
+                }}
+            />
+        </Router>
+    );
 }
 
 export default App;

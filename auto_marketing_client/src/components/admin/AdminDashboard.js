@@ -11,11 +11,8 @@ import {
     CheckCircle,
     Package,
 } from "lucide-react";
-import { useState } from "react";
-
 
 const AdminDashboard = () => {
-    const [filter, setFilter] = useState({ type: "month" });
     const stats = [
         {
             name: "Tổng người dùng",
@@ -28,7 +25,7 @@ const AdminDashboard = () => {
         },
         {
             name: "Doanh thu tháng",
-            value: "₫152.5Tr",
+            value: "₫152.5M",
             change: "+8.2%",
             changeType: "increase",
             icon: DollarSign,
@@ -231,10 +228,8 @@ const AdminDashboard = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-pink-400 bg-clip-text text-transparent">
-                        Admin Dashboard
-                    </h1>
-                    <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+                    <p className="text-gray-600">Tổng quan hệ thống MarketingAuto</p>
                 </div>
                 <div className="flex items-center space-x-2 bg-red-100 text-red-800 px-3 py-1 rounded-full">
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -448,20 +443,33 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-            {/* Revenue & Packages Charts */}
-            {/*<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">*/}
-            {/*    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">*/}
-            {/*        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">*/}
-            {/*            <h2 className="font-bold text-lg text-gray-800">📈 Doanh thu</h2>*/}
-            {/*            <TimeFilter onFilterChange={setFilter} />*/}
-            {/*        </div>*/}
-            {/*        <RevenueLineChart selectedTimeType={filter.type} />*/}
-            {/*    </div>*/}
-
-            {/*    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">*/}
-            {/*        <PackageCharts />*/}
-            {/*    </div>*/}
-            {/*</div>*/}
+            {/* Revenue Chart Placeholder */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                        Doanh thu theo thời gian
+                    </h2>
+                    <div className="flex space-x-2">
+                        <button className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-md">
+                            7 ngày
+                        </button>
+                        <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
+                            30 ngày
+                        </button>
+                        <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
+                            90 ngày
+                        </button>
+                    </div>
+                </div>
+                <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                        <TrendingUp className="mx-auto text-gray-400 mb-2" size={32} />
+                        <p className="text-gray-500">
+                            Biểu đồ doanh thu sẽ được hiển thị ở đây
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
