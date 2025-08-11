@@ -18,8 +18,11 @@ import {
   MoreHorizontal,
   Edit3,
   Send,
+  Table,
 } from "lucide-react";
-
+import SchedulePostCalendar from "../../components/publish/SchedulePostCalendar";
+import ScheduledPostsList from "../../components/publish/ScheduledPostsList";
+import dayjs from "dayjs";
 const WorkspaceDetailPage = () => {
   const { workspaceId } = useParams();
   const [activeTab, setActiveTab] = useState("overview");
@@ -330,6 +333,56 @@ const WorkspaceDetailPage = () => {
     }
   };
 
+  //bình
+  // Lọc danh sách bài viết đã xác nhận (mock)
+// Ở đây mình giả sử confirmed = status === "active" và posts > 0
+// Lấy danh sách nội dung khả dụng (content) từ campaign đầu tiên làm ví dụ
+  const availableContents = initialWorkspace.campaigns[0].topicsList.map(topic => ({
+    id: topic.id.toString(), // id dưới dạng string vì select value là string
+    title: topic.title,
+    content: topic.description,
+  }));
+  // Dạng thời gian ở đây là string để SchedulePostCalendar convert sang dayjs
+  const [confirmedPosts, setConfirmedPosts] = useState([]);
+
+// Hàm nhận dữ liệu post mới từ component con
+  const handleScheduleSubmit = (posts) => {
+    console.log("Posts mới được lên lịch:", posts);
+    setConfirmedPosts(posts);
+    // Ở đây bạn có thể gọi API lưu lên server hoặc xử lý tiếp
+  };
+
+
+  const initialPosts = [
+  {
+    id: 1,
+    content: "Bài viết 1",
+    time: dayjs().add(1, "day").toISOString(),
+    platform: "Facebook",
+    status: "pending",
+  },
+  {
+    id: 2,
+    content: "Bài viết 2",
+    time: dayjs().add(2, "day").toISOString(),
+    platform: "Instagram",
+    status: "posted",
+  },
+  // Thêm bài viết mẫu...
+];
+  const [posts, setPosts] = useState(initialPosts);
+// Xử lý chỉnh sửa bài đăng
+  const handleEditPost = (updatedPost) => {
+    setPosts((prev) =>
+      prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
+    );
+  };
+
+  // Xử lý xóa bài đăng
+  const handleDeletePost = (deletedPost) => {
+    setPosts((prev) => prev.filter((p) => p.id !== deletedPost.id));
+  };
+  
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -436,6 +489,11 @@ const WorkspaceDetailPage = () => {
                     id: "publish",
                     label: "Đăng bài",
                     icon: <Send size={16} />,
+                  },
+                  {
+                      id: "publishedManager",
+                    label: "Quản lý bài",
+                    icon: <Table size={16} />,
                   },
                   {
                     id: "analytics",
@@ -805,17 +863,24 @@ const WorkspaceDetailPage = () => {
                   onUpdateCampaigns={handleUpdateCampaigns}
                 />
               */}
+
               {activeTab === "publish" && (
-                <div className="text-center py-12">
-                  <Send size={48} className="text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Social Media Publisher
-                  </h3>
-                  <p className="text-gray-600">
-                    Tính năng publish content đang được phát triển
-                  </p>
-                </div>
+                <SchedulePostCalendar
+                  confirmedPosts={confirmedPosts}
+                  availableContents={availableContents}
+                  onSubmit={handleScheduleSubmit}
+                />
               )}
+
+              {
+                activeTab === "publishedManager" && (
+                  <ScheduledPostsList
+                    posts={posts}
+    onEdit={handleEditPost}
+    onDelete={handleDeletePost}
+                  />
+                )
+              }
 
               {activeTab === "analytics" && (
                 <div className="text-center py-12">
