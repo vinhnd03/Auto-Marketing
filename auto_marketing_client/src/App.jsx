@@ -1,14 +1,14 @@
 import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useLocation,
+    BrowserRouter as Router,
+    Routes,
+    Route,
+    useLocation,
 } from "react-router-dom";
-import React, { useState, useEffect } from "react";
-import { Toaster } from "react-hot-toast";
+import React, {useState, useEffect} from "react";
+import {Toaster} from "react-hot-toast";
 
 // Import components and pages using new structure
-import { Navbar, Footer, Preloader } from "./components";
+import {Navbar, Footer, Preloader} from "./components";
 
 import {
   Home,
@@ -26,6 +26,9 @@ import {
 import { TermsPage, PrivacyPage } from "./pages/legal";
 import ListComponent from "./components/pricing/DashBoardComponent";
 import PaymentResultComponent from "./components/pricing/PaymentResultComponent";
+import AdminLayout from "./components/layout/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import RevenueManagement from "./pages/admin/RevenueManagement";
 
 
 
@@ -39,28 +42,28 @@ const AppLayout = ({ children }) => {
     "/forgot-password",
     "/terms",
     "/privacy",
-  ].includes(location.pathname);
+  ].includes(location.pathname) || location.pathname.startsWith("/admin");
 
-  return (
-    <>
-      {!isAuthPage && <Navbar />}
-      <div className={!isAuthPage ? "flex-grow" : ""}>{children}</div>
-      {!isAuthPage && <Footer />}
-    </>
-  );
+    return (
+        <>
+            {!isAuthPage && <Navbar/>}
+            <div className={!isAuthPage ? "flex-grow" : ""}>{children}</div>
+            {!isAuthPage && <Footer/>}
+        </>
+    );
 };
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 1200);
-  }, []);
-  if (loading) return <Preloader />;
-  return (
-    <Router>
-      <AppLayout>
-        <Routes>
-          <Route path="/" element={<Home />} />
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        setTimeout(() => setLoading(false), 1200);
+    }, []);
+    if (loading) return <Preloader/>;
+    return (
+        <Router>
+            <AppLayout>
+                <Routes>
+                    <Route path="/" element={<Home/>}/>
 
           {/* Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -68,9 +71,9 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />          
           <Route path="/reset-password" element={<ResetPasswordPage />} />          
 
-          {/* Legal Routes */}
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
+                    {/* Legal Routes */}
+                    <Route path="/terms" element={<TermsPage/>}/>
+                    <Route path="/privacy" element={<PrivacyPage/>}/>
 
           <Route path="/pricing" element={<ListComponent />} />
           <Route path="/payment-result" element={<PaymentResultComponent/>}/>
@@ -83,6 +86,19 @@ function App() {
             path="/workspaces/:workspaceId"
             element={<WorkspaceDetailPage />}
           />
+          {/* Admin Routes */}
+                    <Route
+                        path="/admin"
+                        element={
+                            <AdminLayout/>
+                        }
+                    >
+                        <Route index element={<AdminDashboard/>}/>
+                        {/*<Route path="users" element={<UserManagement />} />*/}
+                        <Route path="revenue" element={<RevenueManagement/>}/>
+                        {/*<Route path="campaigns" element={<CampaignManagement />} />*/}
+                        {/*<Route path="settings" element={<SystemSettings />} />*/}
+                    </Route>
         </Routes>
       </AppLayout>
       <Toaster
