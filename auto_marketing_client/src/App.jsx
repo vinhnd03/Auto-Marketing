@@ -1,19 +1,20 @@
 import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useLocation,
+    BrowserRouter as Router,
+    Routes,
+    Route,
+    useLocation,
 } from "react-router-dom";
-import React, { useState, useEffect } from "react";
-import { Toaster } from "react-hot-toast";
+import React, {useState, useEffect} from "react";
+import {Toaster} from "react-hot-toast";
 
 // Import components and pages using new structure
-import { Navbar, Footer, Preloader } from "./components";
+import {Navbar, Footer, Preloader} from "./components";
 
 import {
   Home,
   LoginPage,
   RegisterPage,
+  ForgotPasswordPage,
   ResetPasswordPage,
   CampaignManager,
   Profile,
@@ -23,6 +24,20 @@ import {
 } from "./pages";
 
 import { TermsPage, PrivacyPage } from "./pages/legal";
+import ListComponent from "./components/pricing/DashBoardComponent";
+import PaymentResultComponent from "./components/pricing/PaymentResultComponent";
+import AdminLayout from "./components/layout/AdminLayout";
+import AdminDashboard from "./components/admin/AdminDashboard";
+import RevenueManagement from "./pages/admin/RevenueManagement";
+
+// import AdminLayout from "./pages/admin/AdminLayout";
+// import AdminDashboard from "./pages/admin/AdminDashboard";
+import ListCustomerComponent from "./components/admin/ListCustomerComponent";
+import ListCustomerByDateComponent from "./components/admin/ListCustomerByDateComponent";
+import NewCustomerStatisticsComponent from "./components/admin/NewCustomerStatisticsComponent";
+import TrendPage from "./components/admin/TrendAnalysis";
+
+
 
 // Component để xác định có hiển thị Navbar/Footer không
 const AppLayout = ({ children }) => {
@@ -31,40 +46,44 @@ const AppLayout = ({ children }) => {
     "/login",
     "/register",
     "/reset-password",
+    "/forgot-password",
     "/terms",
     "/privacy",
-  ].includes(location.pathname);
+  ].includes(location.pathname) || location.pathname.startsWith("/admin");
 
-  return (
-    <>
-      {!isAuthPage && <Navbar />}
-      <div className={!isAuthPage ? "flex-grow" : ""}>{children}</div>
-      {!isAuthPage && <Footer />}
-    </>
-  );
+    return (
+        <>
+            {!isAuthPage && <Navbar/>}
+            <div className={!isAuthPage ? "flex-grow" : ""}>{children}</div>
+            {!isAuthPage && <Footer/>}
+        </>
+    );
 };
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 1200);
-  }, []);
-  if (loading) return <Preloader />;
-  return (
-    <Router>
-      <AppLayout>
-        <Routes>
-          <Route path="/" element={<Home />} />
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        setTimeout(() => setLoading(false), 1200);
+    }, []);
+    if (loading) return <Preloader/>;
+    return (
+        <Router>
+            <AppLayout>
+                <Routes>
+                    <Route path="/" element={<Home/>}/>
 
           {/* Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />          
+          <Route path="/reset-password" element={<ResetPasswordPage />} />          
 
-          {/* Legal Routes */}
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
+                    {/* Legal Routes */}
+                    <Route path="/terms" element={<TermsPage/>}/>
+                    <Route path="/privacy" element={<PrivacyPage/>}/>
 
+          <Route path="/pricing" element={<ListComponent />} />
+          <Route path="/payment-result" element={<PaymentResultComponent/>}/>
           {/* Application Routes */}
           <Route path="/campaign-manager" element={<CampaignManager />} />
           <Route path="/profile" element={<Profile />} />
@@ -74,34 +93,48 @@ function App() {
             path="/workspaces/:workspaceId"
             element={<WorkspaceDetailPage />}
           />
-        </Routes>
-      </AppLayout>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: "#363636",
-            color: "#fff",
-          },
-          success: {
-            duration: 3000,
-            style: {
-              background: "#10B981",
-              color: "#fff",
-            },
-          },
-          error: {
-            duration: 4000,
-            style: {
-              background: "#EF4444",
-              color: "#fff",
-            },
-          },
-        }}
-      />
-    </Router>
-  );
+          {/* Admin Routes */}
+                    <Route
+                        path="/admin"
+                        element={
+                            <AdminLayout/>
+                        }
+                    >
+                        <Route index element={<AdminDashboard/>}/>
+                        <Route path="users" element={<ListCustomerComponent/>}/>
+                        <Route path="users/new" element={<ListCustomerByDateComponent/>}/>
+                        <Route path="customers/trends" element={<TrendPage/>}/>
+                        <Route path="customers/statistics" element={<NewCustomerStatisticsComponent/>}/>
+                        <Route path="revenue" element={<RevenueManagement/>}/>
+                    </Route>
+                </Routes>
+            </AppLayout>
+            <Toaster
+                position="top-right"
+                toastOptions={{
+                    duration: 4000,
+                    style: {
+                        background: "#363636",
+                        color: "#fff",
+                    },
+                    success: {
+                        duration: 3000,
+                        style: {
+                            background: "#10B981",
+                            color: "#fff",
+                        },
+                    },
+                    error: {
+                        duration: 4000,
+                        style: {
+                            background: "#EF4444",
+                            color: "#fff",
+                        },
+                    },
+                }}
+            />
+        </Router>
+    );
 }
 
 export default App;

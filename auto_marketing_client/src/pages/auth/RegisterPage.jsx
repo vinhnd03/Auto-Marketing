@@ -17,11 +17,11 @@ import * as Yup from "yup";
 
 // Validation schema
 const registerSchema = Yup.object({
-  firstName: Yup.string()
+  lastName: Yup.string()
     .min(2, "Họ phải có ít nhất 2 ký tự")
     .max(50, "Họ không được quá 50 ký tự")
     .required("Vui lòng nhập họ"),
-  lastName: Yup.string()
+  firstName: Yup.string()
     .min(2, "Tên phải có ít nhất 2 ký tự")
     .max(50, "Tên không được quá 50 ký tự")
     .required("Vui lòng nhập tên"),
@@ -55,8 +55,8 @@ const RegisterPage = () => {
   const navigate = useNavigate();
 
   const initialValues = {
-    firstName: "",
     lastName: "",
+    firstName: "",
     email: "",
     phone: "",
     password: "",
@@ -68,8 +68,8 @@ const RegisterPage = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const userData = {
-        firstName: values.firstName,
         lastName: values.lastName,
+        firstName: values.firstName,
         email: values.email,
         phone: values.phone,
         password: values.password,
@@ -131,7 +131,7 @@ const RegisterPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label
-                      htmlFor="firstName"
+                      htmlFor="lastName"
                       className="block text-sm font-medium text-gray-700 mb-2"
                     >
                       Họ
@@ -142,11 +142,11 @@ const RegisterPage = () => {
                         size={20}
                       />
                       <Field
-                        id="firstName"
-                        name="firstName"
+                        id="lastName"
+                        name="lastName"
                         type="text"
                         className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.firstName && touched.firstName
+                          errors.lastName && touched.lastName
                             ? "border-red-500"
                             : "border-gray-300"
                         }`}
@@ -154,31 +154,31 @@ const RegisterPage = () => {
                       />
                     </div>
                     <ErrorMessage
-                      name="firstName"
+                      name="lastName"
                       component="div"
                       className="mt-1 text-sm text-red-600"
                     />
                   </div>
                   <div>
                     <label
-                      htmlFor="lastName"
+                      htmlFor="firstName"
                       className="block text-sm font-medium text-gray-700 mb-2"
                     >
                       Tên
                     </label>
                     <Field
-                      id="lastName"
-                      name="lastName"
+                      id="firstName"
+                      name="firstName"
                       type="text"
                       className={`w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.lastName && touched.lastName
+                        errors.firstName && touched.firstName
                           ? "border-red-500"
                           : "border-gray-300"
                       }`}
                       placeholder="Tên"
                     />
                     <ErrorMessage
-                      name="lastName"
+                      name="firstName"
                       component="div"
                       className="mt-1 text-sm text-red-600"
                     />

@@ -23,28 +23,50 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  // const login = async (email, password) => {
+  //   try {
+  //     // Mô phỏng API call
+  //     await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  //     // Mô phỏng validation
+  //     if (email === "admin@example.com" && password === "123456") {
+  //       const userData = {
+  //         id: 1,
+  //         email: email,
+  //         firstName: "Admin",
+  //         lastName: "User",
+  //         avatar: null,
+  //       };
+
+  //       setUser(userData);
+  //       localStorage.setItem("auto_marketing_user", JSON.stringify(userData));
+
+  //       return { success: true, user: userData };
+  //     } else {
+  //       return { success: false, error: "Email hoặc mật khẩu không đúng" };
+  //     }
+  //   } catch (error) {
+  //     return { success: false, error: "Có lỗi xảy ra khi đăng nhập" };
+  //   }
+  // };
+
   const login = async (email, password) => {
     try {
       // Mô phỏng API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Mô phỏng validation
-      if (email === "admin@example.com" && password === "123456") {
-        const userData = {
-          id: 1,
-          email: email,
-          firstName: "Admin",
-          lastName: "User",
-          avatar: null,
-        };
+      const savedUser = localStorage.getItem("auto_marketing_user");
+      if(!savedUser) return {success: false, error: "Tài khoản không tồn tại"};
 
-        setUser(userData);
-        localStorage.setItem("auto_marketing_user", JSON.stringify(userData));
+      const parseUser = JSON.parse(savedUser);
 
-        return { success: true, user: userData };
-      } else {
-        return { success: false, error: "Email hoặc mật khẩu không đúng" };
+      if(email === parseUser.email && password === parseUser.password){
+          setUser(parseUser);
+          return {success: true, user: parseUser};
+      }else{
+        return {success: false, error: "Email hoặc mật khẩu không đúng"}
       }
+
     } catch (error) {
       return { success: false, error: "Có lỗi xảy ra khi đăng nhập" };
     }
@@ -61,7 +83,9 @@ export const AuthProvider = ({ children }) => {
         firstName: userData.firstName,
         lastName: userData.lastName,
         phone: userData.phone,
-        avatar: null,
+        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+        isNew: true,
+        password: userData.password
       };
 
       setUser(newUser);
@@ -75,8 +99,19 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("auto_marketing_user");
+    // localStorage.removeItem("auto_marketing_user");
   };
+
+  const changePassword = async (token,  newPassword) => {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      
+      return {success: true, message: "Đổi mật khẩu thành công"}
+    } catch (error) {
+      return {success: false, error: "Có lỗi xảy ra khi lưu mật khẩu mới"}
+    }
+  }
 
   const updateProfile = async (profileData) => {
     try {
@@ -93,6 +128,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const isLogin = () => {
+    return !!user;
+  }
+
   const value = {
     user,
     login,
@@ -100,6 +139,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateProfile,
     loading,
+    changePassword,
+    isLogin
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

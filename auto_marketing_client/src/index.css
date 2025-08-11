@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Ẩn icon mắt mặc định trong input password (Edge/Chrome) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none;
+}
+
+/* Ẩn scrollbar trong sidebar admin */
+.no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+}
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE, Edge */
+    scrollbar-width: none;     /* Firefox */
+}

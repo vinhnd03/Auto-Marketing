@@ -167,7 +167,7 @@ const LoginPage = () => {
                     </label>
                   </div>
                   <Link
-                    to="/reset-password"
+                    to="/forgot-password"
                     className="text-sm text-blue-600 hover:text-blue-700"
                   >
                     Quên mật khẩu?
