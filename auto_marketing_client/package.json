@@ -22,7 +22,8 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4",
     "xlsx": "^0.18.5",
-    "yup": "^1.7.0"
+    "yup": "^1.7.0",
+    "react-apexcharts": "^1.7.0"
   },
   "scripts": {
     "start": "react-scripts start",
