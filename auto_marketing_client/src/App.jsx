@@ -14,6 +14,7 @@ import {
   Home,
   LoginPage,
   RegisterPage,
+  ForgotPasswordPage,
   ResetPasswordPage,
   CampaignManager,
   Profile,
@@ -31,6 +32,7 @@ const AppLayout = ({ children }) => {
     "/login",
     "/register",
     "/reset-password",
+    "/forgot-password",
     "/terms",
     "/privacy",
   ].includes(location.pathname);
@@ -59,7 +61,8 @@ function App() {
           {/* Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />          
+          <Route path="/reset-password" element={<ResetPasswordPage />} />          
 
           {/* Legal Routes */}
           <Route path="/terms" element={<TermsPage />} />

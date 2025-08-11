@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import SelectSocialNetwork from "./../../components/modal/SelectSocialNetwork";
 import {
   Plus,
   Folder,
@@ -22,6 +24,7 @@ import {
   Check,
   X,
 } from "lucide-react";
+import SelectPagesModal from "../../components/modal/SelectPagesModal";
 
 const WorkspacePage = () => {
   const [workspaces, setWorkspaces] = useState([
@@ -77,6 +80,18 @@ const WorkspacePage = () => {
     industry: "",
     targetAudience: "",
   });
+
+  const { user } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSelectPageModalOpen, setIsSelectPageModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (user?.isNew) {
+      setIsModalOpen(true);
+    } else {
+      setIsModalOpen(false);
+    }
+  }, []);
 
   // Templates for workspace creation
   const workspaceTemplates = [
@@ -253,6 +268,24 @@ const WorkspacePage = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-6">
+          {/* Modal */}
+          {isModalOpen && (
+            <SelectSocialNetwork
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onOpenPagesSelect={() => {
+                setIsSelectPageModalOpen(true)
+                setIsModalOpen(false)
+              }}
+            />
+          )}
+
+          {isSelectPageModalOpen && (
+            <SelectPagesModal
+              isOpen={isSelectPageModalOpen}
+              onClose={() => setIsSelectPageModalOpen(false)}
+            />
+          )}
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>

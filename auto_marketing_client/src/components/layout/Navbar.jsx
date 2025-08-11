@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 import {
   Bars3Icon,
   XMarkIcon,
@@ -16,16 +17,20 @@ export default function Navbar() {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
+  const {user, logout, isLogin} = useAuth();
+
   // Mock user data - sau này sẽ lấy từ context/API
-  const user = {
-    name: "Nguyễn Văn A",
-    email: "nguyen.van.a@email.com",
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-  };
+  // const user = {
+  //   name: "Nguyễn Văn A",
+  //   email: "nguyen.van.a@email.com",
+  //   avatar:
+  //     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+  // };
+
 
   // Đóng dropdown khi click bên ngoài
   useEffect(() => {
+
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
@@ -43,11 +48,13 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
+    logout();
     setIsLoggedIn(false);
     setDropdownOpen(false);
     // Navigate back to home after logout
     navigate("/");
     // Thêm logic logout khác ở đây
+   
   };
 
   const navLinks = [
@@ -56,7 +63,8 @@ export default function Navbar() {
     { path: "/pricing", label: "Bảng giá" },
     { path: "/contact", label: "Liên hệ" },
     // Chỉ hiển thị Workspace khi đã đăng nhập
-    ...(isLoggedIn ? [{ path: "/workspace", label: "Workspace" }] : []),
+    // ...(isLoggedIn ? [{ path: "/workspace", label: "Workspace" }] : []),
+    ...(isLogin() ? [{ path: "/workspace", label: "Workspace" }] : []),
   ];
 
   return (
@@ -105,14 +113,15 @@ export default function Navbar() {
           {/* Buttons hoặc User Avatar */}
           <div className="flex space-x-6 items-center">
             {/* Button test để chuyển đổi trạng thái đăng nhập - xóa sau này */}
-            <button
+            {/* <button
               onClick={() => (isLoggedIn ? handleLogout() : handleLogin())}
               className="text-xs bg-gray-200 px-2 py-1 rounded"
             >
               {isLoggedIn ? "Logout Test" : "Login Test"}
-            </button>
+            </button> */}
 
-            {isLoggedIn ? (
+            {/* {isLoggedIn ? ( */}
+            {isLogin() ? (
               /* Avatar và Dropdown Menu */
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -125,7 +134,8 @@ export default function Navbar() {
                     className="w-8 h-8 rounded-full object-cover border-2 border-blue-500"
                   />
                   <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                    {user.name}
+                    {/* {user.name} */}
+                    {user.lastName + " " + user.firstName}
                   </span>
                   <ChevronDownIcon
                     className={`w-4 h-4 text-gray-400 transition-transform ${
@@ -218,7 +228,8 @@ export default function Navbar() {
           </nav>
 
           {/* Button Row hoặc User Info */}
-          {isLoggedIn ? (
+          {/* {isLoggedIn ? ( */}
+          {isLogin() ? (
             /* User info và menu khi đã đăng nhập */
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex items-center space-x-3 mb-4">
