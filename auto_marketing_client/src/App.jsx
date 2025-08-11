@@ -23,6 +23,10 @@ import {
 } from "./pages";
 
 import { TermsPage, PrivacyPage } from "./pages/legal";
+import ListComponent from "./components/pricing/DashBoardComponent";
+import PaymentResultComponent from "./components/pricing/PaymentResultComponent";
+
+
 
 // Component để xác định có hiển thị Navbar/Footer không
 const AppLayout = ({ children }) => {
@@ -65,6 +69,8 @@ function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
 
+          <Route path="/pricing" element={<ListComponent />} />
+          <Route path="/payment-result" element={<PaymentResultComponent/>}/>
           {/* Application Routes */}
           <Route path="/campaign-manager" element={<CampaignManager />} />
           <Route path="/profile" element={<Profile />} />
