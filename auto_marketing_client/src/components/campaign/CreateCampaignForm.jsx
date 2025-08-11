@@ -1,11 +1,10 @@
 import React, { useState } from "react";
+import * as XLSX from "xlsx";
 import {
   FileText,
   Type,
   Calendar,
   Flag,
-  Target,
-  Users,
   CheckCircle,
   ArrowLeft,
   ArrowRight,
@@ -15,39 +14,23 @@ import {
 
 export default function CreateCampaignForm({ onSubmit, onCancel }) {
   const [currentStep, setCurrentStep] = useState(1);
-  const [dataSourceMethod, setDataSourceMethod] = useState(null); // null, 'manual', 'upload', 'ai'
+  const [dataSourceMethod, setDataSourceMethod] = useState(null); // 'manual' hoặc 'upload'
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [previewData, setPreviewData] = useState([]);
   const [form, setForm] = useState({
     name: "",
     description: "",
     startDate: "",
     endDate: "",
     status: "Sắp bắt đầu",
-    campaignContent: "", // For manual input or AI generation
+    campaignContent: "",
   });
 
   const statuses = ["Sắp bắt đầu", "Đang hoạt động", "Đã kết thúc"];
 
   const steps = [
-    {
-      id: 1,
-      title: "Thông tin cơ bản",
-      icon: <Target className="w-5 h-5" />,
-    },
-    {
-      id: 2,
-      title: "Nguồn dữ liệu",
-      icon: <FileText className="w-5 h-5" />,
-    },
-    {
-      id: 3,
-      title: "Cài đặt chiến dịch",
-      icon: <Users className="w-5 h-5" />,
-    },
-    {
-      id: 4,
-      title: "Xác nhận",
-      icon: <CheckCircle className="w-5 h-5" />,
-    },
+    { id: 1, title: "Nguồn dữ liệu", icon: <FileText className="w-5 h-5" /> },
+    { id: 2, title: "Xác nhận", icon: <CheckCircle className="w-5 h-5" /> },
   ];
 
   const handleChange = (e) => {
@@ -55,8 +38,72 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadedFile(file);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: "array", cellDates: true });
+
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+
+        // Bật cellDates: true + raw: false
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+          cellDates: true,
+          raw: false,
+        });
+
+        setPreviewData(jsonData);
+
+        if (jsonData.length > 0) {
+          const firstRow = jsonData[0];
+          setForm((prev) => ({
+            ...prev,
+            name: firstRow["Tiêu đề chiến dịch"] || "",
+            description: firstRow["Mô tả chiến dịch"] || "",
+            campaignContent: firstRow["Nội dung chiến dịch"] || "",
+            startDate: firstRow["Ngày bắt đầu"]
+              ? formatExcelDate(firstRow["Ngày bắt đầu"])
+              : "",
+            endDate: firstRow["Ngày kết thúc"]
+              ? formatExcelDate(firstRow["Ngày kết thúc"])
+              : "",
+            file: file,
+          }));
+        }
+      } catch (error) {
+        console.error("Lỗi khi đọc file Excel:", error);
+        alert("Không thể đọc file Excel. Vui lòng kiểm tra lại.");
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+    e.target.value = "";
+  };
+
+  // Hàm convert ngày Excel về yyyy-mm-dd
+  const formatExcelDate = (excelDate) => {
+    if (typeof excelDate === "number") {
+      // Excel date serial -> JS Date
+      const date = new Date((excelDate - 25569) * 86400 * 1000);
+      // Trả về dạng dd/MM/yyyy
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+    // Nếu đã là string (ví dụ "03/03/2024") thì giữ nguyên
+    return excelDate;
+  };
+
   const handleNext = () => {
-    if (currentStep < 4) {
+    if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -87,16 +134,15 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
             Tạo chiến dịch Marketing mới
           </h2>
           <p className="text-gray-600 text-sm mt-1">
-            Tạo chiến dịch marketing với AI để tự động sinh topics và nội dung
+            Chọn phương thức nhập dữ liệu và thiết lập chiến dịch
           </p>
         </div>
       </div>
 
-      {/* Progress Steps */}
+      {/* Steps */}
       <div className="flex items-center justify-between mb-8 px-4">
         {steps.map((step, index) => (
           <div key={step.id} className="flex items-center">
-            {/* Step Circle */}
             <div
               className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${
                 currentStep >= step.id
@@ -112,9 +158,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
                 step.icon
               )}
             </div>
-
-            {/* Step Label */}
-            <div className="ml-3 flex flex-col">
+            <div className="ml-3">
               <span
                 className={`text-sm font-medium ${
                   currentStep >= step.id ? "text-gray-800" : "text-gray-400"
@@ -123,8 +167,6 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
                 {step.title}
               </span>
             </div>
-
-            {/* Connector Line */}
             {index < steps.length - 1 && (
               <div
                 className={`flex-1 h-0.5 mx-4 transition-all duration-300 ${
@@ -136,472 +178,287 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
         ))}
       </div>
 
-      {/* Step Content */}
-      <div className="space-y-6">
-        {/* Step 1: Basic Information */}
-        {currentStep === 1 && (
-          <>
-            <div className="text-center py-8">
-              <Target className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Thông tin cơ bản
-              </h3>
-              <p className="text-gray-600 max-w-md mx-auto">
-                Nhập thông tin cơ bản cho chiến dịch marketing của bạn
-              </p>
-            </div>
+      {/* Step 1 */}
+      {currentStep === 1 && (
+        <>
+          {!dataSourceMethod && (
+            <div className="max-w-2xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button
+                  onClick={() => setDataSourceMethod("manual")}
+                  className="border-2 border-blue-200 rounded-xl p-6 bg-blue-50 hover:border-blue-300 transition-colors text-left"
+                >
+                  <div className="text-center">
+                    <FileText className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+                    <h4 className="font-semibold text-gray-800 mb-2">
+                      Nhập thủ công
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      Nhập đầy đủ thông tin chiến dịch
+                    </p>
+                  </div>
+                </button>
 
-            <form
-              onSubmit={handleSubmit}
-              className="max-w-2xl mx-auto space-y-6"
-            >
-              {/* Campaign Name */}
+                <button
+                  onClick={() => setDataSourceMethod("upload")}
+                  className="border-2 border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-colors text-left"
+                >
+                  <div className="text-center">
+                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h4 className="font-semibold text-gray-800 mb-2">
+                      Upload file
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      Tải lên file phân tích hoặc brief
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+          {/* Manual */}
+          {dataSourceMethod === "manual" && (
+            <div className="max-w-2xl mx-auto space-y-6">
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                  <Type size={16} className="text-blue-500" />
-                  Tên chiến dịch <span className="text-red-500">*</span>
+                  <Type size={16} className="text-blue-500" /> Tên chiến dịch
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="name"
-                  type="text"
                   value={form.name}
                   onChange={handleChange}
                   required
                   placeholder="VD: Summer Sale 2024"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                  className="w-full border rounded-lg px-4 py-3"
                 />
               </div>
-
-              {/* Campaign Description */}
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                  <FileText size={16} className="text-blue-500" />
-                  Mô tả chiến dịch <span className="text-red-500">*</span>
+                  <FileText size={16} className="text-blue-500" /> Mô tả
+                  <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   name="description"
                   value={form.description}
                   onChange={handleChange}
-                  rows={4}
-                  required
-                  placeholder="Mô tả mục tiêu và nội dung chính của chiến dịch..."
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"
+                  rows={3}
+                  className="w-full border rounded-lg px-4 py-3"
                 />
               </div>
-            </form>
-          </>
-        )}
-
-        {/* Step 2: Data Source */}
-        {currentStep === 2 && (
-          <>
-            {/* If no method selected, show options */}
-            {!dataSourceMethod && (
-              <>
-                <div className="text-center py-8">
-                  <FileText className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                    Nguồn dữ liệu
-                  </h3>
-                  <p className="text-gray-600 max-w-md mx-auto">
-                    Chọn cách thức nhập dữ liệu cho chiến dịch
-                  </p>
-                </div>
-
-                <div className="max-w-2xl mx-auto">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Manual Input Option */}
-                    <button
-                      onClick={() => setDataSourceMethod("manual")}
-                      className="border-2 border-blue-200 rounded-xl p-6 bg-blue-50 hover:border-blue-300 transition-colors text-left"
-                    >
-                      <div className="text-center">
-                        <FileText className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-                        <h4 className="font-semibold text-gray-800 mb-2">
-                          Nhập thủ công
-                        </h4>
-                        <p className="text-gray-600 text-sm">
-                          Nhập thông tin trực tiếp vào form
-                        </p>
-                      </div>
-                    </button>
-
-                    {/* Upload File Option */}
-                    <button
-                      onClick={() => setDataSourceMethod("upload")}
-                      className="border-2 border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-colors text-left"
-                    >
-                      <div className="text-center">
-                        <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <h4 className="font-semibold text-gray-800 mb-2">
-                          Upload file
-                        </h4>
-                        <p className="text-gray-600 text-sm">
-                          Upload file phần tích thị trường hoặc brief
-                        </p>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Manual Input Form */}
-            {dataSourceMethod === "manual" && (
-              <>
-                <div className="text-center py-6">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                    Nguồn dữ liệu cho chiến dịch
-                  </h3>
-                </div>
-
-                <div className="max-w-2xl mx-auto space-y-6">
-                  {/* Data Source Selection - Only show selected method */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Chọn nguồn dữ liệu
-                    </label>
-                    <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-blue-500" />
-                        <div>
-                          <h4 className="font-medium text-gray-800">
-                            Nhập thủ công
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            Nhập nội dung và ý tưởng cho chiến dịch
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Campaign Content Input */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nội dung chiến dịch{" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      name="campaignContent"
-                      value={form.campaignContent}
-                      onChange={handleChange}
-                      rows={6}
-                      placeholder="Nhập ý tưởng, nội dung, thông tin sản phẩm/dịch vụ, đối tượng mục tiêu..."
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"
-                    />
-                    <p className="text-sm text-gray-500 mt-2">
-                      AI sẽ sử dụng thông tin này để tạo ra các topics và nội
-                      dung cho chiến dịch
-                    </p>
-                  </div>
-
-                  {/* Back to selection */}
-                  <div className="flex justify-start">
-                    <button
-                      type="button"
-                      onClick={() => setDataSourceMethod(null)}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      ← Chọn phương thức khác
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Upload File Form */}
-            {dataSourceMethod === "upload" && (
-              <>
-                <div className="text-center py-6">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                    Nguồn dữ liệu cho chiến dịch
-                  </h3>
-                </div>
-
-                <div className="max-w-2xl mx-auto space-y-6">
-                  {/* Data Source Selection - Only show selected method */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Chọn nguồn dữ liệu
-                    </label>
-                    <div className="border border-green-200 rounded-lg p-4 bg-green-50">
-                      <div className="flex items-center gap-3">
-                        <Upload className="w-5 h-5 text-green-500" />
-                        <div>
-                          <h4 className="font-medium text-gray-800">
-                            Upload file
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            Upload file phần tích thị trường hoặc brief
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* File Upload Area */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Upload file
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h4 className="text-lg font-medium text-gray-700 mb-2">
-                        Kéo thả file vào đây
-                      </h4>
-                      <p className="text-gray-500 mb-4">hoặc</p>
-                      <label className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors">
-                        <span>Chọn file</span>
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept=".pdf,.doc,.docx,.txt"
-                        />
-                      </label>
-                      <p className="text-sm text-gray-500 mt-3">
-                        Hỗ trợ: PDF, DOC, DOCX, TXT (Tối đa 10MB)
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Campaign Content Input */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nội dung chiến dịch{" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      name="campaignContent"
-                      value={form.campaignContent}
-                      onChange={handleChange}
-                      rows={6}
-                      placeholder="Nhập ý tưởng, nội dung, thông tin sản phẩm/dịch vụ, đối tượng mục tiêu..."
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"
-                    />
-                    <p className="text-sm text-gray-500 mt-2">
-                      AI sẽ sử dụng thông tin này để tạo ra các topics và nội
-                      dung cho chiến dịch
-                    </p>
-                  </div>
-
-                  {/* Back to selection */}
-                  <div className="flex justify-start">
-                    <button
-                      type="button"
-                      onClick={() => setDataSourceMethod(null)}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      ← Chọn phương thức khác
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </>
-        )}
-
-        {/* Step 3: Campaign Settings */}
-        {currentStep === 3 && (
-          <>
-            <div className="text-center py-8">
-              <Users className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Cài đặt chiến dịch
-              </h3>
-              <p className="text-gray-600 max-w-md mx-auto">
-                Thiết lập thời gian và trạng thái chiến dịch
-              </p>
-            </div>
-
-            <form
-              onSubmit={handleSubmit}
-              className="max-w-2xl mx-auto space-y-6"
-            >
-              {/* Date Range */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Nội dung chiến dịch <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  name="campaignContent"
+                  value={form.campaignContent}
+                  onChange={handleChange}
+                  rows={5}
+                  className="w-full border rounded-lg px-4 py-3"
+                />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                    <Calendar size={16} className="text-blue-500" />
-                    Ngày bắt đầu <span className="text-red-500">*</span>
+                    <Calendar size={16} className="text-blue-500" /> Ngày bắt
+                    đầu
                   </label>
                   <input
-                    name="startDate"
                     type="date"
+                    name="startDate"
                     value={form.startDate}
                     onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-full border rounded-lg px-4 py-3"
                   />
                 </div>
                 <div>
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                    <Calendar size={16} className="text-blue-500" />
-                    Ngày kết thúc <span className="text-red-500">*</span>
+                    <Calendar size={16} className="text-blue-500" /> Ngày kết
+                    thúc
                   </label>
                   <input
-                    name="endDate"
                     type="date"
+                    name="endDate"
                     value={form.endDate}
                     onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    className="w-full border rounded-lg px-4 py-3"
                   />
                 </div>
               </div>
-
-              {/* Status */}
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                  <Flag size={16} className="text-blue-500" />
-                  Trạng thái
+                  <Flag size={16} className="text-blue-500" /> Trạng thái
                 </label>
                 <select
                   name="status"
                   value={form.status}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                  className="w-full border rounded-lg px-4 py-3"
                 >
-                  {statuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
+                  {statuses.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
                     </option>
                   ))}
                 </select>
               </div>
-            </form>
-          </>
-        )}
-
-        {/* Step 4: Confirmation */}
-        {currentStep === 4 && (
-          <>
-            <div className="text-center py-8">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Xác nhận thông tin
-              </h3>
-              <p className="text-gray-600 max-w-md mx-auto">
-                Kiểm tra lại thông tin trước khi tạo chiến dịch
-              </p>
+              <button
+                type="button"
+                onClick={() => setDataSourceMethod(null)}
+                className="text-blue-600 hover:underline text-sm"
+              >
+                ← Chọn phương thức khác
+              </button>
             </div>
+          )}
+          {/* Upload */}
+          {dataSourceMethod === "upload" && (
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                  <Upload size={16} className="text-blue-500" /> Tải tệp Excel
+                  <span className="text-red-500">*</span>
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition">
+                  <input
+                    type="file"
+                    accept=".xlsx, .xls"
+                    onChange={handleFileUpload} // dùng hàm đã viết
+                    className="hidden"
+                    id="excelUpload"
+                  />
 
-            <div className="max-w-2xl mx-auto">
+                  <label
+                    htmlFor="excelUpload"
+                    className="cursor-pointer flex flex-col items-center justify-center"
+                  >
+                    <Upload size={32} className="text-blue-500 mb-2" />
+                    <span className="text-sm text-gray-600">
+                      Nhấn để chọn tệp hoặc kéo thả vào đây
+                    </span>
+                    <span className="text-xs text-gray-400 mt-1">
+                      Hỗ trợ định dạng: .xlsx, .xls
+                    </span>
+                  </label>
+                  {uploadedFile && (
+                    <p className="mt-3 text-sm text-green-600 font-medium">
+                      Đã chọn: {uploadedFile.name}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDataSourceMethod(null)}
+                className="text-blue-600 hover:underline text-sm"
+              >
+                ← Chọn phương thức khác
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Step 2 - Xác nhận */}
+      {currentStep === 2 && (
+        <>
+          {dataSourceMethod === "manual" && (
+            <div className="max-w-2xl mx-auto space-y-4">
               <div className="bg-gray-50 rounded-xl p-6 space-y-4">
                 <div>
-                  <span className="text-sm font-medium text-gray-600">
-                    Tên chiến dịch:
-                  </span>
-                  <p className="text-gray-800 font-semibold">
-                    {form.name || "Chưa nhập"}
-                  </p>
+                  <strong>Tên chiến dịch:</strong> {form.name || "Chưa nhập"}
                 </div>
-
                 <div>
-                  <span className="text-sm font-medium text-gray-600">
-                    Mô tả:
-                  </span>
-                  <p className="text-gray-800">
-                    {form.description || "Chưa nhập"}
-                  </p>
+                  <strong>Mô tả:</strong> {form.description || "Chưa nhập"}
                 </div>
-
                 <div>
-                  <span className="text-sm font-medium text-gray-600">
-                    Nguồn dữ liệu:
-                  </span>
-                  <p className="text-gray-800 font-semibold">
-                    {dataSourceMethod === "manual"
-                      ? "Nhập thủ công"
-                      : dataSourceMethod === "upload"
-                      ? "Upload file"
-                      : "Chưa chọn"}
-                  </p>
+                  <strong>Nội dung:</strong>{" "}
+                  {form.campaignContent || "Chưa nhập"}
                 </div>
-
                 <div>
-                  <span className="text-sm font-medium text-gray-600">
-                    Nội dung chiến dịch:
-                  </span>
-                  <p className="text-gray-800">
-                    {form.campaignContent || "Chưa nhập"}
-                  </p>
+                  <strong>Ngày bắt đầu:</strong> {form.startDate || "Chưa chọn"}
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">
-                      Ngày bắt đầu:
-                    </span>
-                    <p className="text-gray-800 font-semibold">
-                      {form.startDate || "Chưa chọn"}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">
-                      Ngày kết thúc:
-                    </span>
-                    <p className="text-gray-800 font-semibold">
-                      {form.endDate || "Chưa chọn"}
-                    </p>
-                  </div>
-                </div>
-
                 <div>
-                  <span className="text-sm font-medium text-gray-600">
-                    Trạng thái:
-                  </span>
-                  <p className="text-gray-800 font-semibold">{form.status}</p>
+                  <strong>Ngày kết thúc:</strong> {form.endDate || "Chưa chọn"}
+                </div>
+                <div>
+                  <strong>Trạng thái:</strong> {form.status}
                 </div>
               </div>
             </div>
-          </>
-        )}
+          )}
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between items-center pt-8 border-t border-gray-200">
+          {dataSourceMethod === "upload" && previewData.length > 0 && (
+            <table className="table-auto border-collapse border border-gray-300 w-full">
+              <thead>
+                <tr>
+                  {Object.keys(previewData[0]).map((key) => (
+                    <th
+                      key={key}
+                      className="border border-gray-300 p-2 bg-gray-100"
+                    >
+                      {key}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {previewData.map((row, idx) => (
+                  <tr key={idx}>
+                    {Object.values(row).map((value, i) => (
+                      <td key={i} className="border border-gray-300 p-2">
+                        {value}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
+      )}
+
+      {/* Buttons */}
+      <div className="flex justify-between items-center pt-8 border-t">
+        <button
+          type="button"
+          onClick={currentStep === 1 ? onCancel : handlePrev}
+          className="flex items-center gap-2 px-6 py-3 rounded-lg border"
+        >
+          <ArrowLeft size={18} />
+          {currentStep === 1 ? "Hủy" : "Quay lại"}
+        </button>
+
+        {currentStep < steps.length ? (
           <button
             type="button"
-            onClick={currentStep === 1 ? onCancel : handlePrev}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+            onClick={handleNext}
+            disabled={
+              !dataSourceMethod ||
+              (dataSourceMethod === "manual" &&
+                (!form.name ||
+                  !form.description ||
+                  !form.campaignContent ||
+                  !form.startDate ||
+                  !form.endDate))
+            }
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg disabled:bg-gray-400"
           >
-            <ArrowLeft size={18} />
-            {currentStep === 1 ? "Hủy" : "Quay lại"}
+            Tiếp tục
+            <ArrowRight size={18} />
           </button>
-
-          {currentStep < 4 ? (
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={
-                (currentStep === 1 && (!form.name || !form.description)) ||
-                (currentStep === 2 &&
-                  (!dataSourceMethod || !form.campaignContent)) ||
-                (currentStep === 3 && (!form.startDate || !form.endDate))
-              }
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              Tiếp tục
-              <ArrowRight size={18} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={
-                !form.name ||
-                !form.description ||
-                !form.campaignContent ||
-                !form.startDate ||
-                !form.endDate
-              }
-              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              <Save size={18} />
-              Lưu chiến dịch
-            </button>
-          )}
-        </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg"
+          >
+            <Save size={18} />
+            Lưu chiến dịch
+          </button>
+        )}
       </div>
     </div>
   );
