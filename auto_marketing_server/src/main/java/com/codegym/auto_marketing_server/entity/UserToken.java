@@ -19,4 +19,7 @@ public class UserToken {
     private LocalDateTime expires_at;
 
     //User
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

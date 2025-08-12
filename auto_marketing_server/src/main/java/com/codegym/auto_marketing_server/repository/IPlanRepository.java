@@ -1,0 +1,7 @@
+package com.codegym.auto_marketing_server.repository;
+
+import com.codegym.auto_marketing_server.entity.Plan;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface IPlanRepository extends JpaRepository<Plan, Long> {
+}
