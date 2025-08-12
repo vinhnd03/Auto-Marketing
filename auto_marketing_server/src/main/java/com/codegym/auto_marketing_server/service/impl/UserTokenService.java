@@ -1,4 +1,4 @@
-package com.codegym.auto_marketing_server.repository.impl;
+package com.codegym.auto_marketing_server.service.impl;
 
 import com.codegym.auto_marketing_server.repository.IUserTokenRepository;
 import com.codegym.auto_marketing_server.service.IUserTokenService;
