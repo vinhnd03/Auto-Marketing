@@ -101,7 +101,7 @@ function App() {
                         }
                     >
                         <Route index element={<AdminDashboard/>}/>
-                        <Route path="users" element={<ListCustomerComponent/>}/>
+                        <Route path="users/list" element={<ListCustomerComponent/>}/>
                         <Route path="users/new" element={<ListCustomerByDateComponent/>}/>
                         <Route path="customers/trends" element={<TrendPage/>}/>
                         <Route path="customers/statistics" element={<NewCustomerStatisticsComponent/>}/>
