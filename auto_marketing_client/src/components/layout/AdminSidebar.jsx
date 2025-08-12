@@ -37,8 +37,8 @@ const AdminSidebar = () => {
             name: "Quản lý người dùng",
             icon: Users,
             children: [
-                { name: "Tất cả người dùng", href: "/admin/users", icon: Users },
-                { name: "Người dùng mới", href: "/admin/users/new", icon: UserCheck },
+                { name: "Tất cả người dùng", href: "/admin/users/list", icon: Users },
+                { name: "Người dùng mới", href: "/admin/users/new", icon: UserCheck }
                 // { name: "Tài khoản bị khóa", href: "/admin/users/blocked", icon: AlertTriangle },
             ],
         },
@@ -46,7 +46,7 @@ const AdminSidebar = () => {
             name: "Thống kê doanh thu",
             icon: TrendingUp,
             children: [
-                { name: "Tổng quan doanh thu", href: "/admin/revenue" },
+                { name: "Tổng quan doanh thu", href: "/admin/revenue/overview" },
                 { name: "Theo tuần", href: "/admin/revenue/weekly" },
                 { name: "Theo tháng", href: "/admin/revenue/monthly" },
                 { name: "Theo quý", href: "/admin/revenue/quarterly" },

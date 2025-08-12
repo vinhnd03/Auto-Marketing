@@ -106,7 +106,7 @@ function App() {
             <AdminLayout>
               <Routes>
                 <Route index element={<AdminDashboard />} />
-                <Route path="users" element={<ListCustomerComponent />} />
+                <Route path="users/list" element={<ListCustomerComponent />} />
                 <Route
                   path="users/new"
                   element={<ListCustomerByDateComponent />}
@@ -116,7 +116,7 @@ function App() {
                   path="customers/statistics"
                   element={<NewCustomerStatisticsComponent />}
                 />
-                <Route path="revenue" element={<RevenueManagement />} />
+                <Route path="revenue/overview" element={<RevenueManagement />} />
               </Routes>
             </AdminLayout>
           }
@@ -160,6 +160,7 @@ function App() {
                   element={<WorkspaceDetailPage />}
                 />
               </Routes>
+              
             </AppLayout>
           }
         />
