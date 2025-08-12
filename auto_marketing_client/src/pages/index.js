@@ -1,5 +1,7 @@
 // Main Pages
 export { default as Home } from "./Home.jsx";
+export { default as ContactPage } from "./ContactPage.jsx";
+export { default as FeaturesPage } from "./FeaturesPage.jsx";
 
 // Auth Pages
 export * from "./auth";

@@ -335,43 +335,44 @@ const WorkspaceDetailPage = () => {
 
   //bình
   // Lọc danh sách bài viết đã xác nhận (mock)
-// Ở đây mình giả sử confirmed = status === "active" và posts > 0
-// Lấy danh sách nội dung khả dụng (content) từ campaign đầu tiên làm ví dụ
-  const availableContents = initialWorkspace.campaigns[0].topicsList.map(topic => ({
-    id: topic.id.toString(), // id dưới dạng string vì select value là string
-    title: topic.title,
-    content: topic.description,
-  }));
+  // Ở đây mình giả sử confirmed = status === "active" và posts > 0
+  // Lấy danh sách nội dung khả dụng (content) từ campaign đầu tiên làm ví dụ
+  const availableContents = initialWorkspace.campaigns[0].topicsList.map(
+    (topic) => ({
+      id: topic.id.toString(), // id dưới dạng string vì select value là string
+      title: topic.title,
+      content: topic.description,
+    })
+  );
   // Dạng thời gian ở đây là string để SchedulePostCalendar convert sang dayjs
   const [confirmedPosts, setConfirmedPosts] = useState([]);
 
-// Hàm nhận dữ liệu post mới từ component con
+  // Hàm nhận dữ liệu post mới từ component con
   const handleScheduleSubmit = (posts) => {
     console.log("Posts mới được lên lịch:", posts);
     setConfirmedPosts(posts);
     // Ở đây bạn có thể gọi API lưu lên server hoặc xử lý tiếp
   };
 
-
   const initialPosts = [
-  {
-    id: 1,
-    content: "Bài viết 1",
-    time: dayjs().add(1, "day").toISOString(),
-    platform: "Facebook",
-    status: "pending",
-  },
-  {
-    id: 2,
-    content: "Bài viết 2",
-    time: dayjs().add(2, "day").toISOString(),
-    platform: "Instagram",
-    status: "posted",
-  },
-  // Thêm bài viết mẫu...
-];
+    {
+      id: 1,
+      content: "Bài viết 1",
+      time: dayjs().add(1, "day").toISOString(),
+      platform: "Facebook",
+      status: "pending",
+    },
+    {
+      id: 2,
+      content: "Bài viết 2",
+      time: dayjs().add(2, "day").toISOString(),
+      platform: "Instagram",
+      status: "posted",
+    },
+    // Thêm bài viết mẫu...
+  ];
   const [posts, setPosts] = useState(initialPosts);
-// Xử lý chỉnh sửa bài đăng
+  // Xử lý chỉnh sửa bài đăng
   const handleEditPost = (updatedPost) => {
     setPosts((prev) =>
       prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
@@ -382,9 +383,9 @@ const WorkspaceDetailPage = () => {
   const handleDeletePost = (deletedPost) => {
     setPosts((prev) => prev.filter((p) => p.id !== deletedPost.id));
   };
-  
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-6">
           {/* Header */}
@@ -491,7 +492,7 @@ const WorkspaceDetailPage = () => {
                     icon: <Send size={16} />,
                   },
                   {
-                      id: "publishedManager",
+                    id: "publishedManager",
                     label: "Quản lý bài",
                     icon: <Table size={16} />,
                   },
@@ -872,15 +873,13 @@ const WorkspaceDetailPage = () => {
                 />
               )}
 
-              {
-                activeTab === "publishedManager" && (
-                  <ScheduledPostsList
-                    posts={posts}
-    onEdit={handleEditPost}
-    onDelete={handleDeletePost}
-                  />
-                )
-              }
+              {activeTab === "publishedManager" && (
+                <ScheduledPostsList
+                  posts={posts}
+                  onEdit={handleEditPost}
+                  onDelete={handleDeletePost}
+                />
+              )}
 
               {activeTab === "analytics" && (
                 <div className="text-center py-12">

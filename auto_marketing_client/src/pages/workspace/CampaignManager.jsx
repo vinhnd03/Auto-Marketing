@@ -181,7 +181,7 @@ export default function CampaignManager() {
   };
 
   return (
-    <div className="bg-blue-50 min-h-screen pb-20">
+    <div className="bg-blue-50 pb-20">
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="bg-white rounded-xl shadow p-4 sm:p-6 space-y-6">
           {/* Header */}
