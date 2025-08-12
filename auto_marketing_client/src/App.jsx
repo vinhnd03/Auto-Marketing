@@ -26,6 +26,13 @@ import {
   WorkspaceDetailPage,
 } from "./pages";
 
+import AboutPage from "./pages/AboutPage";
+import BlogPage from "./pages/BlogPage";
+import HelpPage from "./pages/HelpPage";
+import FAQPage from "./pages/FAQPage";
+import GuidePage from "./pages/GuidePage";
+import SitemapPage from "./pages/SitemapPage";
+
 import { TermsPage, PrivacyPage } from "./pages/legal";
 import ListComponent from "./components/pricing/DashBoardComponent";
 import PaymentResultComponent from "./components/pricing/PaymentResultComponent";
@@ -122,6 +129,12 @@ function App() {
             <AppLayout>
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/blog" element={<BlogPage />} />
+                <Route path="/help" element={<HelpPage />} />
+                <Route path="/faq" element={<FAQPage />} />
+                <Route path="/guide" element={<GuidePage />} />
+                <Route path="/sitemap" element={<SitemapPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route
