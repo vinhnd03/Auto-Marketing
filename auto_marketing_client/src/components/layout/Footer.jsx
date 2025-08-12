@@ -3,10 +3,7 @@ import { Mail, Phone, MapPin } from "lucide-react"; // Nếu đã cài lucide-re
 
 export default function Footer() {
   return (
-    <footer
-      className="bg-blue-50 text-gray-700 pt-16 pb-10 border-t border-gray-200"
-      data-aos="fade-up"
-    >
+    <footer className="bg-blue-50 text-gray-700 pt-16 pb-10 border-t border-gray-200">
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
         {/* Logo & Description */}
         <div>
