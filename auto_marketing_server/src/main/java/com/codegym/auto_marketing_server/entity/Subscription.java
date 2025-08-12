@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @Table(name = "subscriptions")
 public class Subscription {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private LocalDate startDate;
     private LocalDate endDate;

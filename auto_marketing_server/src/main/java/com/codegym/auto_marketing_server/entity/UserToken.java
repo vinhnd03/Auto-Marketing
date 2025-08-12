@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "user_tokens")
 public class UserToken {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String tokenHash;
     private LocalDateTime expires_at;

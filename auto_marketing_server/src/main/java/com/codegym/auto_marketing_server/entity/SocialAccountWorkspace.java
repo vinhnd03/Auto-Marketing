@@ -22,7 +22,7 @@ public class SocialAccountWorkspace {
     @JoinColumn(name = "social_account_id", nullable = false)
     private SocialAccount socialAccount;
 
-//    @ManyToOne
-//    @JoinColumn(name = "workspace_id", nullable = false)
-//    private Workspace workspace;
+    @ManyToOne
+    @JoinColumn(name = "workspace_id", nullable = false)
+    private Workspace workspace;
 }

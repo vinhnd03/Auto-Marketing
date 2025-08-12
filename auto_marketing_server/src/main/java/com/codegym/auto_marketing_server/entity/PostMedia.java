@@ -24,6 +24,6 @@ public class PostMedia {
     private PostMediaType type = PostMediaType.PIC;
 
     @ManyToOne
-    @Column(name="post_id")
+    @JoinColumn(name="post_id")
     private Post post;
 }

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="scheduled_post")
+@Table(name="scheduled_posts")
 public class ScheduledPost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

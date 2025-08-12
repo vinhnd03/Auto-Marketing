@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="fanpage")
+@Table(name="fanpages")
 public class Fanpage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,4 +25,8 @@ public class Fanpage {
     private String pageName;
     private String avatarUrl;
     private LocalDateTime tokenExpireAt;
+
+    @ManyToOne
+    @JoinColumn(name = "social_account_id")
+    private SocialAccount socialAccount;
 }

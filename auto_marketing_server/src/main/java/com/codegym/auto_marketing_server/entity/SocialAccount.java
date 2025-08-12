@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Table(name = "social_accounts")
 public class SocialAccount {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String platform;
     private String accountName;

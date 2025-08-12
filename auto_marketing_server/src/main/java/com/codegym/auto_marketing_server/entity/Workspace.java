@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="workspace")
+@Table(name="workspaces")
 public class Workspace {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
