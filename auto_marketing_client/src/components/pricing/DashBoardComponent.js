@@ -3,10 +3,80 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 
 const services = [
-    { id: 1, name: "Basic Plan", price: 100000, color: "blue", workspaces: 3, duration: 1 },
-    { id: 2, name: "Pro Plan", price: 200000, color: "purple", workspaces: 10, duration: 3 },
-    { id: 3, name: "Premium Plan", price: 300000, color: "orange", workspaces: 30, duration: 12 },
+    {
+        id: 1,
+        name: "Starter",
+        price: 99000,
+        color: "green",
+        workspaces: 1,
+        max_social_account: 1,
+        duration: 1,
+        icon: (
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <path
+                    d="M32 4L20 28H44L32 4Z"
+                    fill="#20C997"
+                />
+                <path
+                    d="M20 28L44 28L32 60L20 28Z"
+                    fill="#17A2B8"
+                />
+            </svg>
+        ),
+    },
+    {
+        id: 2,
+        name: "Growth",
+        price: 249000,
+        color: "blue",
+        workspaces: 3,
+        max_social_account: 3,
+        duration: 3,
+        icon: (
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="32" r="12" stroke="#339AF0" strokeWidth="4" />
+                <line x1="32" y1="4" x2="32" y2="20" stroke="#74C0FC" strokeWidth="3" />
+                <line x1="32" y1="44" x2="32" y2="60" stroke="#74C0FC" strokeWidth="3" />
+                <line x1="4" y1="32" x2="20" y2="32" stroke="#74C0FC" strokeWidth="3" />
+                <line x1="44" y1="32" x2="60" y2="32" stroke="#74C0FC" strokeWidth="3" />
+            </svg>
+        ),
+    },
+    {
+        id: 3,
+        name: "Professional",
+        price: 399000,
+        color: "purple",
+        workspaces: 6,
+        max_social_account: 6,
+        duration: 6,
+        icon: (
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <path
+                    d="M32 12C40 4 56 8 56 20C56 32 32 56 32 56C32 56 8 32 8 20C8 8 24 4 32 12Z"
+                    fill="#845EF7"
+                    stroke="#7048E8"
+                    strokeWidth="3"
+                />
+            </svg>
+        ),
+    },
 ];
+
+const getGradient = (color) => {
+    switch (color) {
+        case "blue":
+            return "from-blue-400 to-blue-600";
+        case "green":
+            return "from-green-400 to-green-600";
+        case "purple":
+            return "from-purple-400 to-purple-700";
+        case "orange":
+            return "from-orange-400 to-orange-600";
+        default:
+            return "from-gray-400 to-gray-500";
+    }
+};
 
 const ListComponent = () => {
     const [loadingId, setLoadingId] = useState(null);
@@ -35,91 +105,78 @@ const ListComponent = () => {
         }
     };
 
-    const getGradient = (color) => {
-        switch (color) {
-            case "blue":
-                return "from-blue-500 to-blue-600";
-            case "green":
-                return "from-green-500 to-green-600";
-            case "purple":
-                return "from-purple-500 to-purple-600";
-            case "orange":
-                return "from-orange-500 to-orange-600";
-            default:
-                return "from-gray-400 to-gray-500";
-        }
-    };
-
     return (
-        <section className="bg-[#f7faff] py-24" id="pricing">
-            <div className="container mx-auto px-6 text-center max-w-5xl">
-                <h1 className="text-4xl font-bold mb-14 text-gray-900">
-                    Dịch vụ của chúng tôi
+        <section className="bg-gradient-to-b from-cyan-50 to-cyan-100 py-24" id="pricing">
+            <div className="container mx-auto px-6 text-center max-w-6xl">
+                <h1 className="text-4xl font-bold mb-6 text-purple-800">
+                    Giảm bớt 80% thời gian quản lý nhàm chán
                 </h1>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <p className="mb-16 text-lg text-purple-700 max-w-3xl mx-auto">
+                    Quên đi Excel và giấy bút thủ công. Trải nghiệm việc quản lý nhiều tài khoản social media một cách dễ dàng và tự động với PostLab.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                     {services.map((service) => {
                         const isSelected = selectedPlan === service.id;
                         return (
                             <div
                                 key={service.id}
                                 onClick={() => setSelectedPlan(service.id)}
-                                className={`cursor-pointer p-8 rounded-3xl border transition duration-300 shadow-md flex flex-col items-center ${
+                                className={`cursor-pointer p-8 rounded-3xl border transition duration-300 shadow-md flex flex-col items-center bg-white ${
                                     isSelected
-                                        ? "bg-blue-100 border-blue-600 shadow-lg scale-105"
-                                        : "bg-white border-gray-200 hover:border-blue-300 hover:shadow"
+                                        ? "border-purple-700 shadow-lg scale-105"
+                                        : "border-gray-200 hover:border-purple-400 hover:shadow-lg"
                                 }`}
                             >
-                                {/* Avatar */}
-                                <div
-                                    className={`w-20 h-20 bg-gradient-to-r ${getGradient(
-                                        service.color
-                                    )} rounded-full flex items-center justify-center text-white text-xl font-bold shadow-md mb-6`}
-                                >
-                                    {service.name.charAt(0)}
-                                </div>
+                                {/* Icon */}
+                                <div className="mb-6 select-none">{service.icon}</div>
 
                                 {/* Name */}
-                                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                                <h2
+                                    className={`text-2xl font-bold mb-3 ${
+                                        isSelected ? "text-purple-700" : "text-gray-900"
+                                    }`}
+                                >
                                     {service.name}
                                 </h2>
 
                                 {/* Price */}
-                                <p className="text-3xl font-extrabold text-blue-600 mb-6">
-                                    {service.price.toLocaleString()} VND
+                                <p className="text-3xl font-extrabold text-purple-600 mb-4">
+                                    {service.price.toLocaleString("vi-VN")} VND
                                 </p>
 
                                 {/* Extra info */}
-                                <ul className="text-gray-700 mb-6 space-y-3 text-left w-full max-w-xs mx-auto">
+                                <ul className="text-gray-700 mb-8 space-y-3 text-left w-full max-w-xs mx-auto">
                                     <li className="flex items-center gap-2">
-                                        📂 Số workspace:{" "}
-                                        <span className="font-medium text-gray-800">
-                      {service.workspaces}
-                    </span>
+                                        📂 <span className="font-medium">Số workspace:</span>{" "}
+                                        <span>{service.workspaces}</span>
                                     </li>
                                     <li className="flex items-center gap-2">
-                                        ⏳ Thời gian:{" "}
-                                        <span className="font-medium text-gray-800">
-                      {service.duration} tháng
-                    </span>
+                                        🧑‍🤝‍🧑 <span className="font-medium">Số tài khoản MXH:</span>{" "}
+                                        <span>{service.max_social_account}</span>
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        ⏳ <span className="font-medium">Thời gian:</span>{" "}
+                                        <span>{service.duration} tháng</span>
                                     </li>
                                 </ul>
 
                                 {isSelected && (
-                                    <div className="text-sm font-medium text-blue-700 mt-2 mb-4">
+                                    <div className="text-sm font-medium text-purple-700 mb-4">
                                         ✅ Gói đã chọn
                                     </div>
                                 )}
 
                                 <button
                                     onClick={(e) => {
-                                        e.stopPropagation(); // tránh click cha chọn gói
+                                        e.stopPropagation();
                                         handleBuy(service);
                                     }}
                                     disabled={loadingId === service.id}
                                     className={`mt-auto w-full px-6 py-3 rounded-lg font-semibold transition ${
                                         isSelected
-                                            ? "bg-blue-600 text-white hover:bg-blue-700"
-                                            : "bg-white border border-blue-600 text-blue-600 hover:bg-blue-50"
+                                            ? "bg-purple-700 text-white hover:bg-purple-800"
+                                            : "bg-white border border-purple-700 text-purple-700 hover:bg-purple-100"
                                     } disabled:opacity-60 disabled:cursor-not-allowed`}
                                 >
                                     {loadingId === service.id
