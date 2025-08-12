@@ -87,52 +87,70 @@ function App() {
     setTimeout(() => setLoading(false), 1200);
   }, []);
   if (loading) return <Preloader />;
+
   return (
     <Router>
       <ScrollToTop />
-      <AppLayout>
-        <Routes>
-          <Route path="/" element={<Home />} />
+      <Routes>
+        {/* Admin Routes - Separate layout */}
+        <Route
+          path="/admin/*"
+          element={
+            <AdminLayout>
+              <Routes>
+                <Route index element={<AdminDashboard />} />
+                <Route path="users" element={<ListCustomerComponent />} />
+                <Route
+                  path="users/new"
+                  element={<ListCustomerByDateComponent />}
+                />
+                <Route path="customers/trends" element={<TrendPage />} />
+                <Route
+                  path="customers/statistics"
+                  element={<NewCustomerStatisticsComponent />}
+                />
+                <Route path="revenue" element={<RevenueManagement />} />
+              </Routes>
+            </AdminLayout>
+          }
+        />
 
-          {/* Auth Routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-          {/* Legal Routes */}
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-
-          {/* Contact Route */}
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/features" element={<FeaturesPage />} />
-
-          <Route path="/pricing" element={<ListComponent />} />
-          <Route path="/payment-result" element={<PaymentResultComponent />} />
-          {/* Application Routes */}
-          <Route path="/campaign-manager" element={<CampaignManager />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/workspace" element={<WorkspacePage />} />
-          <Route
-            path="/workspaces/:workspaceId"
-            element={<WorkspaceDetailPage />}
-          />
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="users" element={<ListCustomerComponent />} />
-            <Route path="users/new" element={<ListCustomerByDateComponent />} />
-            <Route path="customers/trends" element={<TrendPage />} />
-            <Route
-              path="customers/statistics"
-              element={<NewCustomerStatisticsComponent />}
-            />
-            <Route path="revenue" element={<RevenueManagement />} />
-          </Route>
-        </Routes>
-      </AppLayout>
+        {/* Regular Routes with AppLayout */}
+        <Route
+          path="/*"
+          element={
+            <AppLayout>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route
+                  path="/forgot-password"
+                  element={<ForgotPasswordPage />}
+                />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/features" element={<FeaturesPage />} />
+                <Route path="/pricing" element={<ListComponent />} />
+                <Route
+                  path="/payment-result"
+                  element={<PaymentResultComponent />}
+                />
+                <Route path="/campaign-manager" element={<CampaignManager />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/workspace" element={<WorkspacePage />} />
+                <Route
+                  path="/workspaces/:workspaceId"
+                  element={<WorkspaceDetailPage />}
+                />
+              </Routes>
+            </AppLayout>
+          }
+        />
+      </Routes>
       <Toaster
         position="top-right"
         toastOptions={{

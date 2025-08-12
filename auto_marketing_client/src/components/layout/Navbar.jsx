@@ -16,7 +16,7 @@ export default function Navbar() {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  const {user, logout, isLogin} = useAuth();
+  const { user, logout, isLogin } = useAuth();
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -34,7 +34,6 @@ export default function Navbar() {
   //     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
   // };
 
-
   // Đóng dropdown khi click bên ngoài
   useEffect(() => {
     function handleClickOutside(event) {
@@ -44,7 +43,7 @@ export default function Navbar() {
     }
 
     function handleEscapeKey(event) {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         closeMenu();
         setDropdownOpen(false);
       }
@@ -52,7 +51,7 @@ export default function Navbar() {
 
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscapeKey);
-    
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscapeKey);
@@ -65,7 +64,6 @@ export default function Navbar() {
     // Navigate back to home after logout
     navigate("/");
     // Thêm logic logout khác ở đây
-   
   };
 
   const navLinks = [
@@ -216,152 +214,162 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu */}
-      <div className={`md:hidden fixed inset-0 z-50 bg-black transition-opacity duration-300 ease-in-out ${
-        menuOpen ? 'bg-opacity-50 pointer-events-auto' : 'bg-opacity-0 pointer-events-none'
-      } flex justify-end`}>
+      <div
+        className={`md:hidden fixed inset-0 z-50 bg-black transition-opacity duration-300 ease-in-out ${
+          menuOpen
+            ? "bg-opacity-50 pointer-events-auto"
+            : "bg-opacity-0 pointer-events-none"
+        } flex justify-end`}
+      >
         <button
           className="absolute inset-0 w-full h-full"
           onClick={closeMenu}
           aria-label="Close mobile menu"
         />
-        <nav 
+        <nav
           className={`relative h-full w-80 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
-            menuOpen ? 'translate-x-0' : 'translate-x-full'
-          }`} 
+            menuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
           aria-label="Main navigation"
         >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-lg px-2 py-1 rounded">
-                  AM
-                </div>
-                <span className="text-xl font-bold text-gray-800">AutoMarketing</span>
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center space-x-3">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-lg px-2 py-1 rounded">
+                AM
               </div>
-              <button 
-                onClick={closeMenu}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <XMarkIcon className="w-6 h-6 text-gray-700" />
-              </button>
+              <span className="text-xl font-bold text-gray-800">
+                AutoMarketing
+              </span>
             </div>
+            <button
+              onClick={closeMenu}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <XMarkIcon className="w-6 h-6 text-gray-700" />
+            </button>
+          </div>
 
-            {/* Navigation Links */}
-            <div className="px-6 py-4">
-              <nav className="space-y-1">
-                {navLinks.map((link) => (
-                  <NavLink
-                    key={link.path}
-                    to={link.path}
-                    onClick={closeMenu}
-                    className={({ isActive }) =>
-                      `block px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
-                        isActive
-                          ? "bg-blue-50 text-blue-600 border-l-4 border-blue-600"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                      }`
-                    }
-                  >
-                    {link.label}
-                  </NavLink>
-                ))}
-              </nav>
-            </div>
+          {/* Navigation Links */}
+          <div className="px-6 py-4">
+            <nav className="space-y-1">
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  onClick={closeMenu}
+                  className={({ isActive }) =>
+                    `block px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
+                      isActive
+                        ? "bg-blue-50 text-blue-600 border-l-4 border-blue-600"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+                    }`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
 
-            {/* User Section */}
-            {isLogin() ? (
-              <div className="px-6 py-4 border-t border-gray-200">
-                {/* User Info */}
-                <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl mb-4">
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-blue-500"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
-                      {user.lastName + " " + user.firstName}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                  </div>
-                </div>
-
-                {/* User Menu */}
-                <div className="space-y-1">
-                  <Link
-                    to="/profile"
-                    onClick={closeMenu}
-                    className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 rounded-lg transition-colors"
-                  >
-                    <UserIcon className="w-5 h-5 mr-3 text-gray-400" />
-                    Hồ sơ cá nhân
-                  </Link>
-
-                  <Link
-                    to="/settings"
-                    onClick={closeMenu}
-                    className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 rounded-lg transition-colors"
-                  >
-                    <Cog6ToothIcon className="w-5 h-5 mr-3 text-gray-400" />
-                    Cài đặt
-                  </Link>
-
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      closeMenu();
-                    }}
-                    className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <ArrowRightEndOnRectangleIcon className="w-5 h-5 mr-3" />
-                    Đăng xuất
-                  </button>
+          {/* User Section */}
+          {isLogin() ? (
+            <div className="px-6 py-4 border-t border-gray-200">
+              {/* User Info */}
+              <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl mb-4">
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-blue-500"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {user.lastName + " " + user.firstName}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
                 </div>
               </div>
-            ) : (
-              /* Login/Signup Section */
-              <div className="px-6 py-4 border-t border-gray-200">
-                <div className="space-y-3">
-                  <Link
-                    to="/login"
-                    onClick={closeMenu}
-                    className="block w-full text-center py-3 px-4 text-base font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-colors"
-                  >
-                    Đăng nhập
-                  </Link>
-                  <Link
-                    to="/register"
-                    onClick={closeMenu}
-                    className="block w-full text-center py-3 px-4 text-base font-medium text-white rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-200"
-                  >
-                    Đăng ký ngay
-                  </Link>
-                </div>
-              </div>
-            )}
 
-            {/* Footer Info */}
-            <div className="absolute bottom-0 left-0 right-0 px-6 py-4 bg-gray-50 border-t border-gray-200">
-              <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
-                <span className="flex items-center">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2" aria-hidden="true">
-                  </span>
-                  1900 123 456
-                </span>
-                <span className="flex items-center">
-                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-2" aria-hidden="true">
-                  </span>
-                  123 Lê Lợi, Q.1, TP.HCM
-                </span>
-              </div>
-              <div className="text-center mt-2">
-                <p className="text-xs text-gray-400">
-                  © 2025 AutoMarketing. Tất cả quyền được bảo lưu.
-                </p>
+              {/* User Menu */}
+              <div className="space-y-1">
+                <Link
+                  to="/profile"
+                  onClick={closeMenu}
+                  className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 rounded-lg transition-colors"
+                >
+                  <UserIcon className="w-5 h-5 mr-3 text-gray-400" />
+                  Hồ sơ cá nhân
+                </Link>
+
+                <Link
+                  to="/settings"
+                  onClick={closeMenu}
+                  className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 rounded-lg transition-colors"
+                >
+                  <Cog6ToothIcon className="w-5 h-5 mr-3 text-gray-400" />
+                  Cài đặt
+                </Link>
+
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    closeMenu();
+                  }}
+                  className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <ArrowRightEndOnRectangleIcon className="w-5 h-5 mr-3" />
+                  Đăng xuất
+                </button>
               </div>
             </div>
-          </nav>
-        </div>
+          ) : (
+            /* Login/Signup Section */
+            <div className="px-6 py-4 border-t border-gray-200">
+              <div className="space-y-3">
+                <Link
+                  to="/login"
+                  onClick={closeMenu}
+                  className="block w-full text-center py-3 px-4 text-base font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-colors"
+                >
+                  Đăng nhập
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={closeMenu}
+                  className="block w-full text-center py-3 px-4 text-base font-medium text-white rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-200"
+                >
+                  Đăng ký ngay
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Footer Info */}
+          <div className="absolute bottom-0 left-0 right-0 px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
+              <span className="flex items-center">
+                <span
+                  className="w-2 h-2 bg-blue-500 rounded-full mr-2"
+                  aria-hidden="true"
+                ></span>
+                1900 123 456
+              </span>
+              <span className="flex items-center">
+                <span
+                  className="w-2 h-2 bg-purple-500 rounded-full mr-2"
+                  aria-hidden="true"
+                ></span>
+                123 Lê Lợi, Q.1, TP.HCM
+              </span>
+            </div>
+            <div className="text-center mt-2">
+              <p className="text-xs text-gray-400">
+                © 2025 AutoMarketing. Tất cả quyền được bảo lưu.
+              </p>
+            </div>
+          </div>
+        </nav>
+      </div>
     </header>
   );
 }

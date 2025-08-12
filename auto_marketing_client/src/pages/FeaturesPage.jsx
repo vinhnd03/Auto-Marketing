@@ -1,16 +1,16 @@
 import React from "react";
-import { 
-  Zap, 
-  Target, 
-  BarChart3, 
-  Users, 
-  Clock, 
+import {
+  Zap,
+  Target,
+  BarChart3,
+  Users,
+  Clock,
   Shield,
   Globe,
   Brain,
   Rocket,
   Heart,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
 
 const FeaturesPage = () => {
@@ -18,39 +18,45 @@ const FeaturesPage = () => {
     {
       icon: <Brain className="w-8 h-8" />,
       title: "AI Tự động tạo nội dung",
-      description: "Tạo ra nội dung marketing chất lượng cao với AI tiên tiến, tiết kiệm thời gian và tăng hiệu quả.",
-      color: "purple"
+      description:
+        "Tạo ra nội dung marketing chất lượng cao với AI tiên tiến, tiết kiệm thời gian và tăng hiệu quả.",
+      color: "purple",
     },
     {
       icon: <Target className="w-8 h-8" />,
       title: "Nhắm mục tiêu chính xác",
-      description: "Phân tích khách hàng và nhắm mục tiêu chính xác để tối ưu hóa ROI cho chiến dịch marketing.",
-      color: "blue"
+      description:
+        "Phân tích khách hàng và nhắm mục tiêu chính xác để tối ưu hóa ROI cho chiến dịch marketing.",
+      color: "blue",
     },
     {
       icon: <BarChart3 className="w-8 h-8" />,
       title: "Phân tích thống kê",
-      description: "Theo dõi và phân tích hiệu suất chiến dịch với dashboard trực quan và báo cáo chi tiết.",
-      color: "green"
+      description:
+        "Theo dõi và phân tích hiệu suất chiến dịch với dashboard trực quan và báo cáo chi tiết.",
+      color: "green",
     },
     {
       icon: <Clock className="w-8 h-8" />,
       title: "Lên lịch tự động",
-      description: "Tự động hóa việc đăng bài và quản lý lịch marketing trên nhiều nền tảng mạng xã hội.",
-      color: "orange"
+      description:
+        "Tự động hóa việc đăng bài và quản lý lịch marketing trên nhiều nền tảng mạng xã hội.",
+      color: "orange",
     },
     {
       icon: <Users className="w-8 h-8" />,
       title: "Quản lý đội nhóm",
-      description: "Cộng tác hiệu quả với team, phân quyền và theo dõi tiến độ công việc một cách dễ dàng.",
-      color: "pink"
+      description:
+        "Cộng tác hiệu quả với team, phân quyền và theo dõi tiến độ công việc một cách dễ dàng.",
+      color: "pink",
     },
     {
       icon: <Shield className="w-8 h-8" />,
       title: "Bảo mật cao",
-      description: "Đảm bảo an toàn dữ liệu khách hàng với mã hóa SSL và các biện pháp bảo mật tiên tiến.",
-      color: "red"
-    }
+      description:
+        "Đảm bảo an toàn dữ liệu khách hàng với mã hóa SSL và các biện pháp bảo mật tiên tiến.",
+      color: "red",
+    },
   ];
 
   const platforms = [
@@ -59,7 +65,7 @@ const FeaturesPage = () => {
     { name: "LinkedIn", logo: "💼" },
     { name: "Twitter", logo: "🐦" },
     { name: "TikTok", logo: "🎵" },
-    { name: "YouTube", logo: "📺" }
+    { name: "YouTube", logo: "📺" },
   ];
 
   const benefits = [
@@ -68,17 +74,17 @@ const FeaturesPage = () => {
     "Tự động hóa 90% công việc lặp đi lặp lại",
     "Hỗ trợ 24/7 từ đội ngũ chuyên nghiệp",
     "Tích hợp với 50+ nền tảng phổ biến",
-    "Báo cáo chi tiết và phân tích sâu"
+    "Báo cáo chi tiết và phân tích sâu",
   ];
 
   const getColorClasses = (color) => {
     const colors = {
       purple: "bg-purple-500",
-      blue: "bg-blue-500", 
+      blue: "bg-blue-500",
       green: "bg-green-500",
       orange: "bg-orange-500",
       pink: "bg-pink-500",
-      red: "bg-red-500"
+      red: "bg-red-500",
     };
     return colors[color] || colors.blue;
   };
@@ -91,12 +97,13 @@ const FeaturesPage = () => {
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Tính năng
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              {" "}Đột phá
+              {" "}
+              Đột phá
             </span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Khám phá những tính năng mạnh mẽ giúp doanh nghiệp của bạn tự động hóa marketing 
-            và đạt được kết quả vượt ngoài mong đợi.
+            Khám phá những tính năng mạnh mẽ giúp doanh nghiệp của bạn tự động
+            hóa marketing và đạt được kết quả vượt ngoài mong đợi.
           </p>
           <div className="flex justify-center">
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-1 rounded-2xl">
@@ -118,7 +125,8 @@ const FeaturesPage = () => {
               Tính năng nổi bật
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Những công cụ mạnh mẽ được thiết kế để tối ưu hóa chiến lược marketing của bạn
+              Những công cụ mạnh mẽ được thiết kế để tối ưu hóa chiến lược
+              marketing của bạn
             </p>
           </div>
 
@@ -128,7 +136,11 @@ const FeaturesPage = () => {
                 key={feature.title}
                 className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 hover:shadow-2xl transition-all duration-300 group"
               >
-                <div className={`w-16 h-16 ${getColorClasses(feature.color)} rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform`}>
+                <div
+                  className={`w-16 h-16 ${getColorClasses(
+                    feature.color
+                  )} rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform`}
+                >
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">
@@ -180,10 +192,10 @@ const FeaturesPage = () => {
                 Tại sao chọn AutoMarketing?
               </h2>
               <p className="text-xl text-gray-600 mb-8">
-                Chúng tôi mang đến giải pháp toàn diện giúp doanh nghiệp của bạn 
+                Chúng tôi mang đến giải pháp toàn diện giúp doanh nghiệp của bạn
                 phát triển bền vững trong thời đại số.
               </p>
-              
+
               <div className="space-y-4">
                 {benefits.map((benefit) => (
                   <div key={benefit} className="flex items-start space-x-3">
@@ -231,9 +243,10 @@ const FeaturesPage = () => {
             Sẵn sàng bắt đầu?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Gia nhập hàng nghìn doanh nghiệp đã tin tưởng AutoMarketing để phát triển kinh doanh
+            Gia nhập hàng nghìn doanh nghiệp đã tin tưởng AutoMarketing để phát
+            triển kinh doanh
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="/register"

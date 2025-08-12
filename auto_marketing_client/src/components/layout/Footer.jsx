@@ -4,7 +4,7 @@ import { Mail, Phone, MapPin } from "lucide-react"; // Nếu đã cài lucide-re
 export default function Footer() {
   return (
     <footer className="bg-blue-50 text-gray-700 pt-16 pb-10 border-t border-gray-200">
-      <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
         {/* Logo & Description */}
         <div>
           <h3 className="text-3xl font-extrabold text-blue-600 mb-4">
@@ -50,9 +50,9 @@ export default function Footer() {
               <Phone className="w-4 h-4 text-blue-600" />
               <span>1900 123 456</span>
             </li>
-            <li className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-blue-600" />
-              <span>123 Lê Lợi, Q.1, TP.HCM</span>
+            <li className="flex items-start gap-2">
+              <MapPin className="w-4 h-4 text-blue-600 mt-0.5" />
+              <span>295 Nguyễn Tất Thành, Thanh Bình, Hải Châu, Đà Nẵng</span>
             </li>
           </ul>
         </div>

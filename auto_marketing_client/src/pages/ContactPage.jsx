@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Clock, 
-  Send, 
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Clock,
+  Send,
   MessageSquare,
   Users,
   Headphones,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -19,7 +19,7 @@ const ContactPage = () => {
     phone: "",
     subject: "",
     message: "",
-    type: "general" // general, support, sales, partnership
+    type: "general", // general, support, sales, partnership
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,29 +30,29 @@ const ContactPage = () => {
       title: "Email",
       info: "support@automarketing.vn",
       subInfo: "Chúng tôi sẽ phản hồi trong vòng 24h",
-      color: "blue"
+      color: "blue",
     },
     {
       icon: <Phone className="w-6 h-6" />,
       title: "Điện thoại",
       info: "1900 123 456",
       subInfo: "Thứ 2 - Chủ nhật: 8:00 - 22:00",
-      color: "green"
+      color: "green",
     },
     {
       icon: <MapPin className="w-6 h-6" />,
       title: "Địa chỉ",
-      info: "123 Lê Lợi, Quận 1",
-      subInfo: "TP. Hồ Chí Minh, Việt Nam",
-      color: "purple"
+      info: "295 Nguyễn Tất Thành, Thanh Bình",
+      subInfo: "Hải Châu, Đà Nẵng, Việt Nam",
+      color: "purple",
     },
     {
       icon: <Clock className="w-6 h-6" />,
       title: "Giờ làm việc",
       info: "Thứ 2 - Thứ 6: 9:00 - 18:00",
       subInfo: "Thứ 7 - Chủ nhật: 9:00 - 17:00",
-      color: "orange"
-    }
+      color: "orange",
+    },
   ];
 
   const inquiryTypes = [
@@ -60,41 +60,45 @@ const ContactPage = () => {
       value: "general",
       label: "Thông tin chung",
       icon: <MessageSquare className="w-5 h-5" />,
-      description: "Câu hỏi về sản phẩm, dịch vụ"
+      description: "Câu hỏi về sản phẩm, dịch vụ",
     },
     {
       value: "support",
       label: "Hỗ trợ kỹ thuật",
       icon: <Headphones className="w-5 h-5" />,
-      description: "Báo lỗi, hướng dẫn sử dụng"
+      description: "Báo lỗi, hướng dẫn sử dụng",
     },
     {
       value: "sales",
       label: "Tư vấn bán hàng",
       icon: <Users className="w-5 h-5" />,
-      description: "Báo giá, tư vấn gói dịch vụ"
+      description: "Báo giá, tư vấn gói dịch vụ",
     },
     {
       value: "partnership",
       label: "Hợp tác đối tác",
       icon: <CheckCircle className="w-5 h-5" />,
-      description: "Đề xuất hợp tác kinh doanh"
-    }
+      description: "Đề xuất hợp tác kinh doanh",
+    },
   ];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validation
-    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.message.trim()
+    ) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc!");
       return;
     }
@@ -110,18 +114,21 @@ const ContactPage = () => {
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast.success("Gửi tin nhắn thành công! Chúng tôi sẽ liên hệ lại sớm nhất.", {
-        duration: 4000,
-        style: {
-          background: '#10B981',
-          color: '#fff',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          padding: '16px 24px'
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      toast.success(
+        "Gửi tin nhắn thành công! Chúng tôi sẽ liên hệ lại sớm nhất.",
+        {
+          duration: 4000,
+          style: {
+            background: "#10B981",
+            color: "#fff",
+            fontSize: "16px",
+            fontWeight: "bold",
+            padding: "16px 24px",
+          },
         }
-      });
+      );
 
       // Reset form
       setFormData({
@@ -130,11 +137,10 @@ const ContactPage = () => {
         phone: "",
         subject: "",
         message: "",
-        type: "general"
+        type: "general",
       });
-
     } catch (error) {
-      console.error('Contact form submission error:', error);
+      console.error("Contact form submission error:", error);
       toast.error("Có lỗi xảy ra! Vui lòng thử lại sau.");
     } finally {
       setIsSubmitting(false);
@@ -144,9 +150,9 @@ const ContactPage = () => {
   const getColorClasses = (color) => {
     const colors = {
       blue: "bg-blue-100 text-blue-600",
-      green: "bg-green-100 text-green-600", 
+      green: "bg-green-100 text-green-600",
       purple: "bg-purple-100 text-purple-600",
-      orange: "bg-orange-100 text-orange-600"
+      orange: "bg-orange-100 text-orange-600",
     };
     return colors[color] || colors.blue;
   };
@@ -160,7 +166,8 @@ const ContactPage = () => {
             Liên hệ với chúng tôi
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Chúng tôi luôn sẵn sàng hỗ trợ bạn. Hãy để lại thông tin và chúng tôi sẽ liên hệ lại trong thời gian sớm nhất.
+            Chúng tôi luôn sẵn sàng hỗ trợ bạn. Hãy để lại thông tin và chúng
+            tôi sẽ liên hệ lại trong thời gian sớm nhất.
           </p>
         </div>
 
@@ -172,7 +179,8 @@ const ContactPage = () => {
                 Gửi tin nhắn cho chúng tôi
               </h2>
               <p className="text-gray-600">
-                Điền thông tin bên dưới và chúng tôi sẽ phản hồi sớm nhất có thể.
+                Điền thông tin bên dưới và chúng tôi sẽ phản hồi sớm nhất có
+                thể.
               </p>
             </div>
 
@@ -203,12 +211,22 @@ const ContactPage = () => {
                           className="sr-only"
                         />
                         <div className="flex items-start space-x-3">
-                          <div className={`p-2 rounded-lg ${formData.type === type.value ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                          <div
+                            className={`p-2 rounded-lg ${
+                              formData.type === type.value
+                                ? "bg-blue-500 text-white"
+                                : "bg-gray-100 text-gray-600"
+                            }`}
+                          >
                             {type.icon}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{type.label}</p>
-                            <p className="text-sm text-gray-500">{type.description}</p>
+                            <p className="font-medium text-gray-900">
+                              {type.label}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {type.description}
+                            </p>
                           </div>
                         </div>
                       </label>
@@ -220,7 +238,10 @@ const ContactPage = () => {
               {/* Name and Email */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Họ và tên <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -235,7 +256,10 @@ const ContactPage = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Email <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -254,7 +278,10 @@ const ContactPage = () => {
               {/* Phone and Subject */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Số điện thoại
                   </label>
                   <input
@@ -268,7 +295,10 @@ const ContactPage = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="subject"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Tiêu đề
                   </label>
                   <input
@@ -285,7 +315,10 @@ const ContactPage = () => {
 
               {/* Message */}
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Nội dung tin nhắn <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -335,7 +368,11 @@ const ContactPage = () => {
                   className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300"
                 >
                   <div className="flex items-start space-x-4">
-                    <div className={`p-3 rounded-lg ${getColorClasses(info.color)}`}>
+                    <div
+                      className={`p-3 rounded-lg ${getColorClasses(
+                        info.color
+                      )}`}
+                    >
                       {info.icon}
                     </div>
                     <div className="flex-1">
@@ -345,9 +382,7 @@ const ContactPage = () => {
                       <p className="text-gray-900 font-medium mb-1">
                         {info.info}
                       </p>
-                      <p className="text-gray-600 text-sm">
-                        {info.subInfo}
-                      </p>
+                      <p className="text-gray-600 text-sm">{info.subInfo}</p>
                     </div>
                   </div>
                 </div>
@@ -359,15 +394,20 @@ const ContactPage = () => {
               <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
                 <h3 className="text-xl font-semibold mb-2">Vị trí văn phòng</h3>
                 <p className="text-blue-100">
-                  Hãy đến thăm chúng tôi tại văn phòng chính ở trung tâm thành phố
+                  295 Nguyễn Tất Thành, Thanh Bình, Hải Châu, Đà Nẵng
                 </p>
               </div>
-              <div className="h-64 bg-gray-200 flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600">Bản đồ sẽ được tích hợp</p>
-                  <p className="text-sm text-gray-500">123 Lê Lợi, Quận 1, TP.HCM</p>
-                </div>
+              <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3834.094682108857!2d108.21392247570935!3d16.06192998461446!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314219c2c1e2e4a1%3A0x8c8b2b7b7b7b7b7b!2s295%20Nguy%E1%BB%85n%20T%E1%BA%A5t%20Th%C3%A0nh%2C%20Thanh%20B%C3%ACnh%2C%20H%E1%BA%A3i%20Ch%C3%A2u%2C%20%C4%90%C3%A0%20N%E1%BA%B5ng%2C%20Vi%E1%BB%87t%20Nam!5e0!3m2!1svi!2s!4v1692691234567!5m2!1svi!2s"
+                  width="100%"
+                  height="256"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Vị trí AutoMarketing - 295 Nguyễn Tất Thành, Đà Nẵng"
+                ></iframe>
               </div>
             </div>
 
@@ -382,7 +422,8 @@ const ContactPage = () => {
                     Thời gian phản hồi là bao lâu?
                   </h4>
                   <p className="text-gray-600 text-sm">
-                    Chúng tôi cam kết phản hồi trong vòng 24 giờ cho tất cả yêu cầu.
+                    Chúng tôi cam kết phản hồi trong vòng 24 giờ cho tất cả yêu
+                    cầu.
                   </p>
                 </div>
                 <div>
@@ -390,7 +431,8 @@ const ContactPage = () => {
                     Tôi có thể hẹn lịch tư vấn trực tiếp không?
                   </h4>
                   <p className="text-gray-600 text-sm">
-                    Có, hãy chọn "Tư vấn bán hàng" và để lại thông tin để đặt lịch hẹn.
+                    Có, hãy chọn "Tư vấn bán hàng" và để lại thông tin để đặt
+                    lịch hẹn.
                   </p>
                 </div>
                 <div>
@@ -398,7 +440,8 @@ const ContactPage = () => {
                     Có hỗ trợ ngoài giờ làm việc không?
                   </h4>
                   <p className="text-gray-600 text-sm">
-                    Có, chúng tôi có hỗ trợ 24/7 qua email cho các vấn đề khẩn cấp.
+                    Có, chúng tôi có hỗ trợ 24/7 qua email cho các vấn đề khẩn
+                    cấp.
                   </p>
                 </div>
               </div>
@@ -413,7 +456,8 @@ const ContactPage = () => {
               Bạn cần hỗ trợ ngay lập tức?
             </h2>
             <p className="text-blue-100 text-lg mb-6 max-w-2xl mx-auto">
-              Đội ngũ chuyên viên của chúng tôi luôn sẵn sàng hỗ trợ bạn qua điện thoại hoặc email
+              Đội ngũ chuyên viên của chúng tôi luôn sẵn sàng hỗ trợ bạn qua
+              điện thoại hoặc email
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
