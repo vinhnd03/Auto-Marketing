@@ -14,12 +14,13 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="topics")
+@Table(name = "topics")
 public class Topic {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+    @Column(columnDefinition = "TEXT")
     private String description;
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
@@ -30,6 +31,6 @@ public class Topic {
     private LocalDate updatedAt;
 
     @ManyToOne
-    @JoinColumn(name="campaign_id")
+    @JoinColumn(name = "campaign_id")
     private Campaign campaign;
 }
