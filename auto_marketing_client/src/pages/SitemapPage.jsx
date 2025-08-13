@@ -13,86 +13,191 @@ export default function SitemapPage() {
       category: "Trang chính",
       icon: "🏠",
       links: [
-        { title: "Trang chủ", url: "/", description: "Landing page chính của AutoMarketing" },
-        { title: "Về chúng tôi", url: "/about", description: "Thông tin về công ty và đội ngũ" },
-        { title: "Tính năng", url: "/features", description: "Chi tiết các tính năng của platform" },
-        { title: "Bảng giá", url: "/pricing", description: "Các gói dịch vụ và định giá" },
-        { title: "Liên hệ", url: "/contact", description: "Thông tin liên hệ và form tư vấn" }
-      ]
+        {
+          title: "Trang chủ",
+          url: "/",
+          description: "Landing page chính của AutoMarketing",
+        },
+        {
+          title: "Về chúng tôi",
+          url: "/about",
+          description: "Thông tin về công ty và đội ngũ",
+        },
+        {
+          title: "Tính năng",
+          url: "/features",
+          description: "Chi tiết các tính năng của platform",
+        },
+        {
+          title: "Bảng giá",
+          url: "/pricing",
+          description: "Các gói dịch vụ và định giá",
+        },
+        {
+          title: "Liên hệ",
+          url: "/contact",
+          description: "Thông tin liên hệ và form tư vấn",
+        },
+      ],
     },
     {
       category: "Tài khoản & Xác thực",
       icon: "👤",
       links: [
-        { title: "Đăng nhập", url: "/login", description: "Đăng nhập vào tài khoản" },
-        { title: "Đăng ký", url: "/register", description: "Tạo tài khoản mới" },
-        { title: "Quên mật khẩu", url: "/forgot-password", description: "Khôi phục mật khẩu" },
-        { title: "Đặt lại mật khẩu", url: "/reset-password", description: "Tạo mật khẩu mới" }
-      ]
+        {
+          title: "Đăng nhập",
+          url: "/login",
+          description: "Đăng nhập vào tài khoản",
+        },
+        {
+          title: "Đăng ký",
+          url: "/register",
+          description: "Tạo tài khoản mới",
+        },
+        {
+          title: "Quên mật khẩu",
+          url: "/forgot-password",
+          description: "Khôi phục mật khẩu",
+        },
+        {
+          title: "Đặt lại mật khẩu",
+          url: "/reset-password",
+          description: "Tạo mật khẩu mới",
+        },
+      ],
     },
     {
       category: "Hỗ trợ & Tài liệu",
       icon: "📚",
       links: [
-        { title: "Trung tâm trợ giúp", url: "/help", description: "Tài liệu hỗ trợ và hướng dẫn" },
-        { title: "Câu hỏi thường gặp", url: "/faq", description: "Câu trả lời cho các thắc mắc phổ biến" },
-        { title: "Hướng dẫn sử dụng", url: "/guide", description: "Tutorial chi tiết sử dụng platform" },
-        { title: "Blog", url: "/blog", description: "Bài viết và insights về marketing" }
-      ]
+        {
+          title: "Trung tâm trợ giúp",
+          url: "/help",
+          description: "Tài liệu hỗ trợ và hướng dẫn",
+        },
+        {
+          title: "Câu hỏi thường gặp",
+          url: "/faq",
+          description: "Câu trả lời cho các thắc mắc phổ biến",
+        },
+        {
+          title: "Hướng dẫn sử dụng",
+          url: "/guide",
+          description: "Tutorial chi tiết sử dụng platform",
+        },
+        {
+          title: "Blog",
+          url: "/blog",
+          description: "Bài viết và insights về marketing",
+        },
+      ],
     },
     {
       category: "Workspace & Quản lý",
       icon: "💼",
       links: [
-        { title: "Workspace", url: "/workspace", description: "Quản lý workspace và projects" },
-        { title: "Campaign Manager", url: "/campaign-manager", description: "Tạo và quản lý campaigns" },
+        {
+          title: "Workspace",
+          url: "/workspace",
+          description: "Quản lý workspace và projects",
+        },
+        {
+          title: "Campaign Manager",
+          url: "/campaign-manager",
+          description: "Tạo và quản lý campaigns",
+        },
         { title: "Profile", url: "/profile", description: "Thông tin cá nhân" },
-        { title: "Cài đặt", url: "/settings", description: "Cấu hình tài khoản và preferences" }
-      ]
+        {
+          title: "Cài đặt",
+          url: "/settings",
+          description: "Cấu hình tài khoản và preferences",
+        },
+      ],
     },
     {
       category: "Thanh toán",
       icon: "💳",
       links: [
-        { title: "Kết quả thanh toán", url: "/payment-result", description: "Xác nhận kết quả giao dịch" }
-      ]
+        {
+          title: "Kết quả thanh toán",
+          url: "/payment-result",
+          description: "Xác nhận kết quả giao dịch",
+        },
+      ],
     },
     {
       category: "Pháp lý",
       icon: "⚖️",
       links: [
-        { title: "Điều khoản sử dụng", url: "/terms", description: "Các điều khoản và điều kiện sử dụng" },
-        { title: "Chính sách bảo mật", url: "/privacy", description: "Chính sách xử lý dữ liệu cá nhân" }
-      ]
+        {
+          title: "Điều khoản sử dụng",
+          url: "/terms",
+          description: "Các điều khoản và điều kiện sử dụng",
+        },
+        {
+          title: "Chính sách bảo mật",
+          url: "/privacy",
+          description: "Chính sách xử lý dữ liệu cá nhân",
+        },
+      ],
     },
     {
       category: "Quản trị (Admin)",
       icon: "🛡️",
       links: [
-        { title: "Admin Dashboard", url: "/admin", description: "Trang tổng quan quản trị" },
-        { title: "Quản lý người dùng", url: "/admin/users", description: "Danh sách và quản lý users" },
-        { title: "Người dùng mới", url: "/admin/users/new", description: "Thống kê người dùng mới" },
-        { title: "Xu hướng khách hàng", url: "/admin/customers/trends", description: "Phân tích xu hướng" },
-        { title: "Thống kê khách hàng", url: "/admin/customers/statistics", description: "Báo cáo chi tiết" },
-        { title: "Quản lý doanh thu", url: "/admin/revenue", description: "Theo dõi và quản lý doanh thu" }
-      ]
-    }
+        {
+          title: "Admin Dashboard",
+          url: "/admin",
+          description: "Trang tổng quan quản trị",
+        },
+        {
+          title: "Quản lý người dùng",
+          url: "/admin/users",
+          description: "Danh sách và quản lý users",
+        },
+        {
+          title: "Người dùng mới",
+          url: "/admin/users/new",
+          description: "Thống kê người dùng mới",
+        },
+        {
+          title: "Xu hướng khách hàng",
+          url: "/admin/customers/trends",
+          description: "Phân tích xu hướng",
+        },
+        {
+          title: "Thống kê khách hàng",
+          url: "/admin/customers/statistics",
+          description: "Báo cáo chi tiết",
+        },
+        {
+          title: "Quản lý doanh thu",
+          url: "/admin/revenue",
+          description: "Theo dõi và quản lý doanh thu",
+        },
+      ],
+    },
   ];
 
-  const totalPages = siteStructure.reduce((total, category) => total + category.links.length, 0);
+  const totalPages = siteStructure.reduce(
+    (total, category) => total + category.links.length,
+    0
+  );
 
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 to-purple-600 text-white py-20" data-aos="fade-up">
+      <section
+        className="bg-gradient-to-br from-blue-600 to-purple-600 text-white py-20"
+        data-aos="fade-up"
+      >
         <div className="container mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Sitemap
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">Sitemap</h1>
           <p className="text-xl max-w-2xl mx-auto mb-8">
-            Tổng quan về cấu trúc và tất cả trang web trong hệ thống AutoMarketing
+            Tổng quan về cấu trúc và tất cả trang web trong hệ thống
+            AutoMarketing
           </p>
-          
+
           <div className="flex flex-wrap justify-center gap-8 text-center">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
               <div className="text-2xl font-bold">{totalPages}</div>
@@ -125,8 +230,12 @@ export default function SitemapPage() {
                     {category.icon}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{category.category}</h2>
-                    <p className="text-gray-600 text-sm">{category.links.length} trang</p>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {category.category}
+                    </h2>
+                    <p className="text-gray-600 text-sm">
+                      {category.links.length} trang
+                    </p>
                   </div>
                 </div>
 
@@ -144,11 +253,11 @@ export default function SitemapPage() {
                         </h3>
                         <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0 ml-2" />
                       </div>
-                      
+
                       <p className="text-gray-600 text-sm leading-relaxed mb-3">
                         {link.description}
                       </p>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-blue-600 text-xs font-mono bg-blue-50 px-2 py-1 rounded">
                           {link.url}
@@ -173,30 +282,42 @@ export default function SitemapPage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-6">
               Thông tin cho Search Engine
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
               <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="font-semibold text-gray-900 mb-3">🤖 Robots.txt</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  🤖 Robots.txt
+                </h3>
                 <p className="text-gray-600 text-sm">
                   Hướng dẫn crawling cho search engine bots
                 </p>
-                <a href="/robots.txt" className="text-blue-600 text-sm hover:underline mt-2 inline-block">
+                <a
+                  href="/robots.txt"
+                  className="text-blue-600 text-sm hover:underline mt-2 inline-block"
+                >
                   Xem robots.txt
                 </a>
               </div>
-              
+
               <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="font-semibold text-gray-900 mb-3">🗺️ XML Sitemap</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  🗺️ XML Sitemap
+                </h3>
                 <p className="text-gray-600 text-sm">
                   Sitemap XML cho Google Search Console
                 </p>
-                <a href="/sitemap.xml" className="text-blue-600 text-sm hover:underline mt-2 inline-block">
+                <a
+                  href="/sitemap.xml"
+                  className="text-blue-600 text-sm hover:underline mt-2 inline-block"
+                >
                   Xem sitemap.xml
                 </a>
               </div>
-              
+
               <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="font-semibold text-gray-900 mb-3">📊 Analytics</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  📊 Analytics
+                </h3>
                 <p className="text-gray-600 text-sm">
                   Tracking code cho Google Analytics
                 </p>
@@ -211,10 +332,10 @@ export default function SitemapPage() {
                 Cần hỗ trợ điều hướng?
               </h3>
               <p className="text-gray-600 mb-6">
-                Nếu bạn không tìm thấy trang mình cần, hãy sử dụng tính năng tìm kiếm 
-                hoặc liên hệ với team support của chúng tôi.
+                Nếu bạn không tìm thấy trang mình cần, hãy sử dụng tính năng tìm
+                kiếm hoặc liên hệ với team support của chúng tôi.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
                   href="/help"
