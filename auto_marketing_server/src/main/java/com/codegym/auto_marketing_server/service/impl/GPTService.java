@@ -109,7 +109,7 @@ public class GPTService implements IGPTService {
             requestDTO.setModel(GPT_MODEL);
             requestDTO.setMax_tokens(calculateTokensForWordCount(request.getTargetWordCount()));
             requestDTO.setTemperature(0.7);
-            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, buildLongFormSystemPrompt()), new GPTMessage(USER_ROLE, prompt)));
+            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, buildLongFormSystemPrompt(request)), new GPTMessage(USER_ROLE, prompt)));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String content = responseDTO.getChoices().get(0).getMessage().getContent();
@@ -174,76 +174,193 @@ public class GPTService implements IGPTService {
         }
     }
 
-    private String buildLongFormSystemPrompt() {
+    private String buildLongFormSystemPrompt(ContentGenerationRequestDTO request) {
         StringBuilder systemPrompt = new StringBuilder();
+
         systemPrompt.append("Bạn là một chuyên gia viết nội dung marketing người Việt Nam với 15 năm kinh nghiệm. ");
         systemPrompt.append("Bạn chuyên viết các bài viết dài, chi tiết và có chiều sâu cho thị trường Việt Nam. ");
-        systemPrompt.append("QUAN TRỌNG: Chỉ viết bằng tiếng Việt thuần túy, tự nhiên như người Việt. Phong cách viết của bạn tự nhiên, chuyên nghiệp và phù hợp với văn hóa Việt.");
+        systemPrompt.append("Phong cách viết của bạn tự nhiên, chuyên nghiệp và phù hợp với văn hóa Việt. ");
+
+        if (request.getContentType() != null) {
+            switch (request.getContentType()) {
+                case "long_article" ->
+                        systemPrompt.append("Hãy viết như một nhà báo chuyên nghiệp về kinh doanh và công nghệ. ");
+                case "blog_post" -> systemPrompt.append("Hãy viết như một blogger có ảnh hưởng trong ngành. ");
+                case "detailed_guide" ->
+                        systemPrompt.append("Hãy viết như một chuyên gia tư vấn với kinh nghiệm thực tế. ");
+                case "white_paper" ->
+                        systemPrompt.append("Hãy viết như một nghiên cứu viên với phong cách học thuật nhưng dễ hiểu. ");
+                case "case_study" ->
+                        systemPrompt.append("Hãy viết như một nhà phân tích kinh doanh với dữ liệu cụ thể. ");
+                default -> systemPrompt.append("Hãy viết với phong cách phù hợp với loại nội dung được yêu cầu. ");
+            }
+        }
+
+        systemPrompt.append("QUAN TRỌNG: Chỉ viết bằng tiếng Việt thuần túy, tự nhiên như người Việt. ");
+
         return systemPrompt.toString();
     }
 
     private String buildLongFormContentPrompt(Topic topic, ContentGenerationRequestDTO request) {
         StringBuilder prompt = new StringBuilder();
+
         prompt.append("NHIỆM VỤ: Viết bài ").append(mapContentTypeToVietnamese(request.getContentType()));
         prompt.append(" dài và chi tiết bằng TIẾNG VIỆT\n\n");
+
         prompt.append("THÔNG TIN CHỦ ĐỀ:\n");
         prompt.append("• Chủ đề: ").append(topic.getName()).append("\n");
-        prompt.append(DESCRIPTION_PREFIX).append(topic.getDescription()).append("\n\n");
+        prompt.append("• Mô tả: ").append(topic.getDescription()).append("\n\n");
 
         if (request.getTargetWordCount() != null) {
-            prompt.append("• Độ dài mục tiêu: ").append(request.getTargetWordCount()).append(" từ\n");
+            prompt.append("YÊU CẦU ĐỘ DÀI:\n");
+            prompt.append("• Độ dài mục tiêu: ").append(request.getTargetWordCount()).append(" từ (±10%)\n");
+            prompt.append("• Đây là bài viết dài, cần nội dung chuyên sâu và chi tiết\n\n");
         }
+
+        prompt.append("YÊU CẦU NỘI DUNG:\n");
+        prompt.append("• Tone: ").append(mapToneToVietnamese(request.getTone())).append("\n");
+        prompt.append("• Loại nội dung: ").append(mapContentTypeToVietnamese(request.getContentType())).append("\n");
+
+        if (Boolean.TRUE.equals(request.getIncludeSections())) {
+            prompt.append("• Chia thành các phần rõ ràng với tiêu đề phụ\n");
+        }
+        if (Boolean.TRUE.equals(request.getIncludeIntroConclusion())) {
+            prompt.append("• Bao gồm phần mở đầu và kết luận chi tiết\n");
+        }
+        if (Boolean.TRUE.equals(request.getIncludeBulletPoints())) {
+            prompt.append("• Sử dụng bullet points và danh sách có cấu trúc\n");
+        }
+        if (Boolean.TRUE.equals(request.getIncludeStatistics())) {
+            prompt.append("• Bao gồm số liệu và thống kê thuyết phục\n");
+        }
+        if (Boolean.TRUE.equals(request.getIncludeCaseStudies())) {
+            prompt.append("• Bao gồm ví dụ thực tế hoặc case study cụ thể\n");
+        }
+        if (Boolean.TRUE.equals(request.getIncludeCallToAction())) {
+            prompt.append("• Kết thúc với call-to-action mạnh mẽ\n");
+        }
+
+        prompt.append("\nCẤU TRÚC BÁI VIẾT DÀI:\n");
+        prompt.append("1. Tiêu đề hấp dẫn với emoji\n");
+        prompt.append("2. Mở đầu thu hút (150-200 từ)\n");
+        prompt.append("3. Nội dung chính chia thành 4-6 phần:\n");
+        prompt.append("   - Phần 1: Bối cảnh và vấn đề\n");
+        prompt.append("   - Phần 2: Phân tích chi tiết\n");
+        prompt.append("   - Phần 3: Giải pháp/Phương pháp\n");
+        prompt.append("   - Phần 4: Lợi ích và kết quả\n");
+        prompt.append("   - Phần 5: Hướng dẫn thực hiện (nếu có)\n");
+        prompt.append("   - Phần 6: Xu hướng tương lai\n");
+        prompt.append("4. Kết luận tổng kết và call-to-action\n");
+        prompt.append("5. Hashtags phù hợp\n\n");
+
+        if (request.getAdditionalInstructions() != null && !request.getAdditionalInstructions().trim().isEmpty()) {
+            prompt.append("YÊU CẦU ĐẶC BIỆT:\n");
+            prompt.append("• ").append(request.getAdditionalInstructions()).append("\n\n");
+        }
+
+        prompt.append("LƯU Ý QUAN TRỌNG:\n");
+        prompt.append("• Viết hoàn toàn bằng tiếng Việt tự nhiên\n");
+        prompt.append("• Cung cấp giá trị thực tế cho người đọc\n");
+        prompt.append("• Sử dụng từ ngữ phù hợp với đối tượng mục tiêu\n");
+        prompt.append("• Tạo ra nội dung hấp dẫn và dễ đọc\n");
+        prompt.append("• Sử dụng emoji phù hợp để tăng tính thu hút\n");
+        prompt.append("• Đảm bảo tính chuyên nghiệp và uy tín\n");
 
         return prompt.toString();
     }
 
     private Integer calculateTokensForWordCount(Integer wordCount) {
         if (wordCount == null) return 1500;
-        return Math.min(4000, (int) (wordCount * 1.5) + 500);
+        int estimatedTokens = (int) (wordCount * 1.5);
+        int totalTokens = estimatedTokens + 500;
+        return Math.min(4000, totalTokens);
     }
 
     private String buildVietnameseTopicGenerationPrompt(Campaign campaign, Integer numberOfTopics, String additionalInstruction) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("NHIỆM VỤ: Tạo ").append(numberOfTopics).append(" chủ đề marketing bằng TIẾNG VIỆT\n\n");
+
+        prompt.append("NHIỆM VỤ: Tạo ").append(numberOfTopics).append(" chủ đề marketing bằng TIẾNG VIỆT cho chiến dịch sau:\n\n");
+
         prompt.append("THÔNG TIN CHIẾN DỊCH:\n");
         prompt.append("• Tên chiến dịch: ").append(campaign.getName()).append("\n");
-        prompt.append(DESCRIPTION_PREFIX).append(campaign.getDescription()).append("\n\n");
+        prompt.append("• Mô tả: ").append(campaign.getDescription()).append("\n\n");
 
         if (additionalInstruction != null && !additionalInstruction.trim().isEmpty()) {
-            prompt.append("YÊU CẦU ĐẶC BIỆT: ").append(additionalInstruction).append("\n\n");
+            prompt.append("YÊU CẦU ĐẶC BIỆT:\n");
+            prompt.append("• ").append(additionalInstruction).append("\n\n");
         }
 
-        prompt.append("ĐỊNH DẠNG TRẢ VỀ JSON:\n");
+        prompt.append("🇻🇳 YÊU CẦU CHO CHỦ ĐỀ:\n");
+        prompt.append("• Viết hoàn toàn bằng tiếng Việt\n");
+        prompt.append("• Phù hợp với văn hóa và thị trường Việt Nam\n");
+        prompt.append("• Dễ hiểu, gần gũi với người Việt\n");
+        prompt.append("• Có tính ứng dụng thực tế cao\n");
+        prompt.append("• Trending và thu hút\n");
+        prompt.append("• Phù hợp với mạng xã hội Việt Nam\n\n");
+
+        prompt.append("ĐỊNH DẠNG TRẢ VỀ (CHÍNH XÁC):\n");
         prompt.append("{\n");
         prompt.append("  \"topics\": [\n");
         prompt.append("    {\n");
-        prompt.append("      \"name\": \"Tên chủ đề tiếng Việt\",\n");
-        prompt.append("      \"description\": \"Mô tả chi tiết bằng tiếng Việt\"\n");
+        prompt.append("      \"name\": \"Tên chủ đề tiếng Việt ngắn gọn và hấp dẫn\",\n");
+        prompt.append("      \"description\": \"Mô tả chi tiết bằng tiếng Việt về cách triển khai chủ đề, bao gồm key message và phương pháp tiếp cận\"\n");
         prompt.append("    }\n");
         prompt.append("  ]\n");
-        prompt.append("}\n");
+        prompt.append("}\n\n");
+
+        prompt.append("LƯU Ý QUAN TRỌNG:\n");
+        prompt.append("- CHỈ sử dụng tiếng Việt cho name và description\n");
+        prompt.append("- Không dịch máy, hãy viết tự nhiên như người Việt\n");
+        prompt.append("- Tên chủ đề không quá 60 ký tự\n");
+        prompt.append("- Mô tả chi tiết 100-200 ký tự\n");
+        prompt.append("- Đảm bảo JSON format chính xác\n");
 
         return prompt.toString();
     }
 
     private String buildVietnameseContentGenerationPrompt(Topic topic, String tone, String contentType, String additionalInstructions) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("NHIỆM VỤ: Tạo nội dung ").append(mapContentTypeToVietnamese(contentType)).append(" bằng TIẾNG VIỆT\n\n");
+
+        String vietnameseTone = mapToneToVietnamese(tone);
+        String vietnameseContentType = mapContentTypeToVietnamese(contentType);
+
+        prompt.append("NHIỆM VỤ: Tạo nội dung ").append(vietnameseContentType).append(" bằng TIẾNG VIỆT\n\n");
+
         prompt.append("THÔNG TIN CHỦ ĐỀ:\n");
         prompt.append("• Chủ đề: ").append(topic.getName()).append("\n");
-        prompt.append(DESCRIPTION_PREFIX).append(topic.getDescription()).append("\n");
-        prompt.append("• Tone: ").append(mapToneToVietnamese(tone)).append("\n\n");
+        prompt.append("• Mô tả: ").append(topic.getDescription()).append("\n");
+        prompt.append("• Tone: ").append(vietnameseTone).append("\n");
+        prompt.append("• Loại nội dung: ").append(vietnameseContentType).append("\n\n");
 
         if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
-            prompt.append("YÊU CẦU ĐẶC BIỆT: ").append(additionalInstructions).append("\n\n");
+            prompt.append("YÊU CẦU ĐẶC BIỆT:\n");
+            prompt.append("• ").append(additionalInstructions).append("\n\n");
         }
-        prompt.append("• BẮT BUỘC: Kết thúc bài viết bằng ít nhất 3 hashtag, mỗi hashtag một dòng, bắt đầu bằng ký tự #. Không bỏ qua phần hashtag.\n");
-        prompt.append("YÊU CẦU: Viết hoàn toàn bằng tiếng Việt, tự nhiên và hấp dẫn\n");
+
+        prompt.append("🇻🇳 YÊU CẦU NỘI DUNG:\n");
+        prompt.append("• Viết hoàn toàn bằng tiếng Việt tự nhiên\n");
+        prompt.append("• Hook mạnh mẽ để thu hút người đọc\n");
+        prompt.append("• Thông điệp rõ ràng và có giá trị\n");
+        prompt.append("• Call-to-action cụ thể bằng tiếng Việt\n");
+        prompt.append("• Sử dụng emoji phù hợp\n");
+        prompt.append("• Hashtags tiếng Việt và tiếng Anh phù hợp\n");
+        prompt.append("• Phong cách giao tiếp thân thiện với người Việt\n");
+        prompt.append("• Độ dài: 200-400 từ cho nội dung chất lượng\n\n");
+
+        prompt.append("GỢI Ý CẤU TRÚC:\n");
+        prompt.append("1. Hook thu hút (emoji + câu mở đầu ấn tượng)\n");
+        prompt.append("2. Nội dung chính (giá trị + lợi ích)\n");
+        prompt.append("3. Call-to-action rõ ràng\n");
+        prompt.append("4. Hashtags phù hợp\n\n");
+
+        prompt.append("QUAN TRỌNG: Viết như một người Việt đang nói chuyện, không dịch máy!");
+
         return prompt.toString();
     }
 
     private String mapToneToVietnamese(String tone) {
         if (tone == null) return "chuyên nghiệp và thân thiện";
+
         return switch (tone.toLowerCase()) {
             case "professional" -> "chuyên nghiệp và uy tín";
             case "casual" -> "thân thiện và gần gũi";
@@ -270,25 +387,6 @@ public class GPTService implements IGPTService {
             case "email" -> "email marketing";
             default -> DEFAULT_SOCIAL_POST;
         };
-    }
-
-    /**
-     * Tách các hashtag từ nội dung AI trả về. Chỉ lấy các dòng cuối bắt đầu bằng '#'.
-     */
-    private String extractHashtags(String content) {
-        if (content == null || content.isEmpty()) return "";
-        String[] lines = content.split("\n");
-        StringBuilder hashtags = new StringBuilder();
-        for (int i = lines.length - 1; i >= 0; i--) {
-            String line = lines[i].trim();
-            if (line.startsWith("#")) {
-                hashtags.insert(0, line + "\n");
-            } else if (!line.isEmpty()) {
-                // Nếu gặp dòng không phải hashtag, dừng lại (chỉ lấy các hashtag cuối cùng)
-                break;
-            }
-        }
-        return hashtags.toString().trim();
     }
 }
 

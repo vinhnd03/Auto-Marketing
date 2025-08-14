@@ -25,7 +25,7 @@ public class Post {
     private String title;
 
     @Column(columnDefinition = "TEXT")
-    private String content;
+    private String content; 
 
     private String hashtag;
     private Boolean generatedByAI;

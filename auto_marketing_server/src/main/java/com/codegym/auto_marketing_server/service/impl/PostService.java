@@ -49,7 +49,7 @@ public class PostService implements IPostService {
 
                 // Generate multiple posts if requested
                 for (int i = 0; i < request.getNumberOfPosts(); i++) {
-                    log.info("🎨 Generating post {} of {} for topic: {}",
+                    log.info("Generating post {} of {} for topic: {}",
                             i + 1, request.getNumberOfPosts(), topic.getName());
 
                     String gptResponse = gptService.generateLongFormContent(topic, request).get();
@@ -61,7 +61,7 @@ public class PostService implements IPostService {
                 // Save all generated posts
                 List<Post> savedPosts = postRepository.saveAll(generatedPosts);
 
-                log.info("✅ Successfully generated {} AI posts for topic: {}",
+                log.info("Successfully generated {} AI posts for topic: {}",
                         savedPosts.size(), topic.getName());
 
                 return savedPosts.stream()
@@ -69,7 +69,7 @@ public class PostService implements IPostService {
                         .toList();
 
             } catch (Exception e) {
-                log.error("❌ Error generating AI content: {}", e.getMessage(), e);
+                log.error("Error generating AI content: {}", e.getMessage(), e);
                 throw new RuntimeException("Failed to generate AI content: " + e.getMessage(), e);
             }
         });
@@ -195,9 +195,10 @@ public class PostService implements IPostService {
     private String extractHashtags(String content) {
         if (content == null) return "";
 
+        // Preserve Vietnamese characters in hashtags
         return content.lines()
                 .filter(line -> line.contains("#"))
-                .map(line -> line.replaceAll("[^#\\w\\s]", ""))
+                .map(line -> line.replaceAll("[^#\\p{L}\\p{N} ]", ""))
                 .collect(Collectors.joining(" "))
                 .trim();
     }
