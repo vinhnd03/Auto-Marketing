@@ -39,4 +39,7 @@ public class TopicGenerationRequestDTO {
             maxLength = 500
     )
     private String additionalInstructions;
+
+    private String creativityLevel;  // "conservative", "balanced", "creative"
+    private String contentStyle;     // "friendly", "professional", "creative"
 }

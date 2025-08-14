@@ -23,10 +23,12 @@ public class ContentGenerationRequestDTO {
     @Schema(description = "Number of posts to generate", example = "1")
     private Integer numberOfPosts = 1;
 
-    @Schema(description = "Tone of the content", example = "professional", allowableValues = {"professional", "casual", "enthusiastic", "informative", "promotional", "inspirational"})
+    @Schema(description = "Tone of the content", example = "professional", allowableValues = {
+            "professional", "casual", "enthusiastic", "informative", "promotional", "inspirational", "friendly", "urgent", "cheerful"})
     private String tone = "professional";
 
-    @Schema(description = "Type and length of content to generate", example = "social_post", allowableValues = {"social_post", "article", "long_article", "blog_post", "detailed_guide", "white_paper", "case_study", "story", "email", "promotion"})
+    @Schema(description = "Type and length of content to generate", example = "social_post", allowableValues = {
+            "social_post", "article", "long_article", "blog_post", "detailed_guide", "white_paper", "case_study", "story", "email", "promotion", "text_only", "image_text", "mixed"})
     private String contentType = "social_post";
 
     @Min(value = 100, message = "Word count must be at least 100")
@@ -55,13 +57,18 @@ public class ContentGenerationRequestDTO {
     @Schema(description = "Whether to generate image prompts", example = "true")
     private Boolean includeImage = false;
 
+    @Schema(description = "Tự động tạo hashtags", example = "true")
+    private Boolean includeHashtag = true;
+
     @Size(max = 500, message = "Additional instructions cannot exceed 500 characters")
     @Schema(description = "Additional instructions for content generation in Vietnamese", example = "Viết bài chi tiết về AI trong doanh nghiệp Việt Nam. Bao gồm ví dụ thực tế và hướng dẫn cụ thể.")
     private String additionalInstructions;
 
-    @Schema(description = "Target platform for the content", example = "facebook", allowableValues = {"facebook", "instagram", "linkedin", "twitter", "blog", "website", "email"})
+    @Schema(description = "Target platform for the content", example = "facebook", allowableValues = {
+            "facebook", "instagram", "linkedin", "twitter", "blog", "website", "email"})
     private String targetPlatform = "facebook";
 
-    @Schema(description = "Target audience for the content", example = "general", allowableValues = {"general", "business_owners", "young_professionals", "students", "tech_enthusiasts"})
+    @Schema(description = "Target audience for the content", example = "general", allowableValues = {
+            "general", "business_owners", "young_professionals", "students", "tech_enthusiasts"})
     private String targetAudience = "general";
 }

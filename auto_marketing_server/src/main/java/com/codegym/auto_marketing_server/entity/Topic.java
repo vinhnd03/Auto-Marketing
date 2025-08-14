@@ -26,6 +26,7 @@ public class Topic {
     @Column(name = "status")
     private TopicStatus status = TopicStatus.PENDING;
     private Boolean generatedByAI;
+    @Column(name = "ai_prompt", columnDefinition = "TEXT")
     private String aiPrompt;
     private LocalDate createdAt;
     private LocalDate updatedAt;

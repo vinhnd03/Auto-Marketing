@@ -41,20 +41,53 @@ public class TopicService implements ITopicService {
                 Campaign campaign = campaignRepository.findById(request.getCampaignId())
                         .orElseThrow(() -> new RuntimeException("Campaign not found: " + request.getCampaignId()));
 
+                // Chuyển đổi mức độ sáng tạo sang temperature
+                double temperature = switch (request.getCreativityLevel()) {
+                    case "conservative" -> 0.2;
+                    case "balanced" -> 0.7;
+                    case "creative" -> 1.0;
+                    default -> 0.7;
+                };
+
+                // Chuyển đổi phong cách nội dung sang tone
+                String tone = switch (request.getContentStyle()) {
+                    case "friendly" -> "thân thiện, gần gũi, dễ hiểu";
+                    case "professional" -> "chuyên nghiệp, trang trọng, uy tín";
+                    case "creative" -> "sáng tạo, độc đáo, thu hút";
+                    default -> "chuyên nghiệp, thân thiện";
+                };
+
+                // Tạo prompt để lưu lại và truyền cho AI
+                String promptSentToAI = gptService.buildVietnameseTopicGenerationPrompt(
+                        campaign,
+                        request.getNumberOfTopics(),
+                        request.getAdditionalInstructions(),
+                        tone
+                );
+
+                // Gọi GPTService (truyền thêm temperature/tone nếu cần)
                 String gptResponse = gptService.generateTopicsFromCampaign(
                         campaign,
                         request.getNumberOfTopics(),
-                        request.getAdditionalInstructions()
+                        request.getAdditionalInstructions(),
+                        temperature,
+                        tone
                 ).get();
 
-                List<Topic> topics = parseGPTResponseToTopics(gptResponse, campaign);
+                List<Topic> topics = parseGPTResponseToTopics(gptResponse, campaign, promptSentToAI);
                 List<Topic> savedTopics = topicRepository.saveAll(topics);
 
-                log.info("✅ Successfully generated {} AI topics for campaign: {}",
-                        savedTopics.size(), campaign.getName());
+                log.info("✅ Successfully generated {} AI topics for campaign: {}", savedTopics.size(), campaign.getName());
 
                 return savedTopics.stream()
-                        .map(topic -> modelMapper.map(topic, TopicResponseDTO.class))
+                        .map(topic -> {
+                            TopicResponseDTO dto = modelMapper.map(topic, TopicResponseDTO.class);
+                            // Fix campaignId mapping
+                            if (topic.getCampaign() != null) {
+                                dto.setCampaignId(topic.getCampaign().getId());
+                            }
+                            return dto;
+                        })
                         .toList();
 
             } catch (Exception e) {
@@ -67,14 +100,26 @@ public class TopicService implements ITopicService {
     @Override
     public List<TopicResponseDTO> getTopicsByCampaign(Long campaignId) {
         return topicRepository.findByCampaignId(campaignId).stream()
-                .map(topic -> modelMapper.map(topic, TopicResponseDTO.class))
+                .map(topic -> {
+                    TopicResponseDTO dto = modelMapper.map(topic, TopicResponseDTO.class);
+                    if (topic.getCampaign() != null) {
+                        dto.setCampaignId(topic.getCampaign().getId());
+                    }
+                    return dto;
+                })
                 .toList();
     }
 
     @Override
     public List<TopicResponseDTO> getTopicsByCampaignAndStatus(Long campaignId, TopicStatus status) {
         return topicRepository.findByCampaignIdAndStatus(campaignId, status).stream()
-                .map(topic -> modelMapper.map(topic, TopicResponseDTO.class))
+                .map(topic -> {
+                    TopicResponseDTO dto = modelMapper.map(topic, TopicResponseDTO.class);
+                    if (topic.getCampaign() != null) {
+                        dto.setCampaignId(topic.getCampaign().getId());
+                    }
+                    return dto;
+                })
                 .toList();
     }
 
@@ -87,7 +132,11 @@ public class TopicService implements ITopicService {
         Topic savedTopic = topicRepository.save(topic);
         log.info("✅ Topic approved: {}", savedTopic.getName());
 
-        return modelMapper.map(savedTopic, TopicResponseDTO.class);
+        TopicResponseDTO dto = modelMapper.map(savedTopic, TopicResponseDTO.class);
+        if (savedTopic.getCampaign() != null) {
+            dto.setCampaignId(savedTopic.getCampaign().getId());
+        }
+        return dto;
     }
 
     @Override
@@ -99,7 +148,11 @@ public class TopicService implements ITopicService {
         Topic savedTopic = topicRepository.save(topic);
         log.info("❌ Topic rejected: {}", savedTopic.getName());
 
-        return modelMapper.map(savedTopic, TopicResponseDTO.class);
+        TopicResponseDTO dto = modelMapper.map(savedTopic, TopicResponseDTO.class);
+        if (savedTopic.getCampaign() != null) {
+            dto.setCampaignId(savedTopic.getCampaign().getId());
+        }
+        return dto;
     }
 
     @Override
@@ -113,7 +166,8 @@ public class TopicService implements ITopicService {
         return topicRepository.save(topic);
     }
 
-    private List<Topic> parseGPTResponseToTopics(String gptResponse, Campaign campaign) {
+    // Hàm này truyền thêm promptSentToAI để set aiPrompt cho từng topic
+    private List<Topic> parseGPTResponseToTopics(String gptResponse, Campaign campaign, String promptSentToAI) {
         List<Topic> topics = new ArrayList<>();
 
         try {
@@ -127,6 +181,7 @@ public class TopicService implements ITopicService {
                     topic.setDescription(topicNode.get("description").asText());
                     topic.setStatus(TopicStatus.PENDING);
                     topic.setGeneratedByAI(true);
+                    topic.setAiPrompt(promptSentToAI); // fix: set prompt
                     topic.setCreatedAt(LocalDate.now());
                     topic.setUpdatedAt(LocalDate.now());
                     topic.setCampaign(campaign);
@@ -137,13 +192,14 @@ public class TopicService implements ITopicService {
 
         } catch (JsonProcessingException e) {
             log.warn("Failed to parse JSON, trying manual parsing: {}", e.getMessage());
-            topics = parseGPTResponseManually(gptResponse, campaign);
+            topics = parseGPTResponseManually(gptResponse, campaign, promptSentToAI);
         }
 
         return topics;
     }
 
-    private List<Topic> parseGPTResponseManually(String response, Campaign campaign) {
+    // Sửa luôn hàm thủ công để set aiPrompt/campaign
+    private List<Topic> parseGPTResponseManually(String response, Campaign campaign, String promptSentToAI) {
         List<Topic> topics = new ArrayList<>();
 
         String[] lines = response.split("\n");
@@ -161,6 +217,7 @@ public class TopicService implements ITopicService {
                 currentTopic.setName(line.replaceAll("\\*", "").trim());
                 currentTopic.setStatus(TopicStatus.PENDING);
                 currentTopic.setGeneratedByAI(true);
+                currentTopic.setAiPrompt(promptSentToAI); // fix: set prompt
                 currentTopic.setCreatedAt(LocalDate.now());
                 currentTopic.setUpdatedAt(LocalDate.now());
                 currentTopic.setCampaign(campaign);

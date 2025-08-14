@@ -47,31 +47,32 @@ public class GPTService implements IGPTService {
     }
 
     @Override
-    public CompletableFuture<String> generateTopicsFromCampaign(Campaign campaign, Integer numberOfTopics, String additionalInstructions) {
+    public CompletableFuture<String> generateTopicsFromCampaign(Campaign campaign, Integer numberOfTopics, String additionalInstructions, double temperature, String tone) {
         try {
-            log.info("🇻🇳 Generating {} Vietnamese topics for campaign '{}'", numberOfTopics, campaign.getName());
+            log.info("🇻🇳 Generating {} Vietnamese topics for campaign '{}', creativity temperature {}, tone '{}'", numberOfTopics, campaign.getName(), temperature, tone);
 
-            String prompt = buildVietnameseTopicGenerationPrompt(campaign, numberOfTopics, additionalInstructions);
+            String prompt = buildVietnameseTopicGenerationPrompt(campaign, numberOfTopics, additionalInstructions, tone);
 
             GPTRequestDTO requestDTO = new GPTRequestDTO();
             requestDTO.setModel(GPT_MODEL);
             requestDTO.setMax_tokens(1500);
-            requestDTO.setTemperature(0.7);
-            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, "Bạn là một chuyên gia marketing người Việt Nam với 10 năm kinh nghiệm. " + "Bạn hiểu rõ thị trường Việt Nam, văn hóa, ngôn ngữ và hành vi tiêu dùng. " + "Hãy tạo các chủ đề marketing bằng tiếng Việt thuần túy, phù hợp với người Việt. " + "QUAN TRỌNG: Chỉ trả lời bằng tiếng Việt, không dùng tiếng Anh."), new GPTMessage(USER_ROLE, prompt)));
+            requestDTO.setTemperature(temperature); // dùng giá trị truyền vào từ UI
+            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, "Bạn là một chuyên gia marketing người Việt Nam với 10 năm kinh nghiệm. Bạn hiểu rõ thị trường Việt Nam, văn hóa, ngôn ngữ và hành vi tiêu dùng. Hãy tạo các chủ đề marketing bằng tiếng Việt thuần túy, phù hợp với người Việt. QUAN TRỌNG: Chỉ trả lời bằng tiếng Việt, không dùng tiếng Anh."), new GPTMessage(USER_ROLE, prompt)));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String content = responseDTO.getChoices().get(0).getMessage().getContent();
 
+            // Xử lý loại bỏ code block nếu AI trả về có ```json ... ```
             if (content != null) {
                 content = content.trim();
                 if (content.startsWith("```json")) {
-                    content = content.substring(7).trim(); // bỏ ```json
+                    content = content.substring(7).trim();
                 }
                 if (content.startsWith("```")) {
-                    content = content.substring(3).trim(); // bỏ ```
+                    content = content.substring(3).trim();
                 }
                 if (content.endsWith("```")) {
-                    content = content.substring(0, content.length() - 3).trim(); // bỏ cuối ```
+                    content = content.substring(0, content.length() - 3).trim();
                 }
             }
 
@@ -87,17 +88,17 @@ public class GPTService implements IGPTService {
     }
 
     @Override
-    public CompletableFuture<String> generateContentFromTopic(Topic topic, String tone, String contentType, String additionalInstructions) {
+    public CompletableFuture<String> generateContentFromTopic(Topic topic, String tone, String contentType, String additionalInstructions, Boolean includeHashtag, Boolean includeCallToAction) {
         try {
-            log.info("🇻🇳 Generating Vietnamese {} content for topic '{}'", contentType, topic.getName());
+            log.info("🇻🇳 Generating Vietnamese {} content for topic '{}', tone '{}', hashtag {}, callToAction {}", contentType, topic.getName(), tone, includeHashtag, includeCallToAction);
 
-            String prompt = buildVietnameseContentGenerationPrompt(topic, tone, contentType, additionalInstructions);
+            String prompt = buildVietnameseContentGenerationPrompt(topic, tone, contentType, includeHashtag, includeCallToAction, additionalInstructions);
 
             GPTRequestDTO requestDTO = new GPTRequestDTO();
             requestDTO.setModel(GPT_MODEL);
             requestDTO.setMax_tokens(1200);
             requestDTO.setTemperature(0.8);
-            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, "Bạn là một copywriter chuyên nghiệp người Việt Nam, chuyên tạo nội dung marketing tiếng Việt. " + "Bạn viết theo phong cách người Việt, sử dụng từ ngữ thân thiện, dễ hiểu. " + "QUAN TRỌNG: Chỉ viết bằng tiếng Việt, không dùng tiếng Anh trừ khi cần thiết cho hashtag."), new GPTMessage(USER_ROLE, prompt)));
+            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, "Bạn là một copywriter chuyên nghiệp người Việt Nam, chuyên tạo nội dung marketing tiếng Việt. Bạn viết theo phong cách người Việt, sử dụng từ ngữ thân thiện, dễ hiểu. QUAN TRỌNG: Chỉ viết bằng tiếng Việt, không dùng tiếng Anh trừ khi cần thiết cho hashtag."), new GPTMessage(USER_ROLE, prompt)));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String content = responseDTO.getChoices().get(0).getMessage().getContent();
@@ -112,17 +113,41 @@ public class GPTService implements IGPTService {
     }
 
     @Override
-    public CompletableFuture<String> generateLongFormContent(Topic topic, ContentGenerationRequestDTO request) {
+    public CompletableFuture<String> generateLongFormContent(
+            Topic topic,
+            ContentGenerationRequestDTO request
+    ) {
         try {
-            log.info("🇻🇳 Generating long-form {} content ({} words) for topic '{}'", request.getContentType(), request.getTargetWordCount(), topic.getName());
+            log.info(
+                    "🇻🇳 Generating long-form {} content ({} words) for topic '{}', includeHashtag={}, includeCallToAction={}",
+                    request.getContentType(),
+                    request.getTargetWordCount(),
+                    topic.getName(),
+                    request.getIncludeHashtag(),
+                    request.getIncludeCallToAction()
+            );
 
-            String prompt = buildLongFormContentPrompt(topic, request);
+            String prompt = buildLongFormContentPrompt(
+                    topic,
+                    request.getTone(),
+                    request.getContentType(),
+                    request.getTargetWordCount(),
+                    request.getIncludeBulletPoints(),
+                    request.getIncludeStatistics(),
+                    request.getIncludeCaseStudies(),
+                    request.getIncludeCallToAction(),
+                    request.getIncludeHashtag(),
+                    request.getAdditionalInstructions()
+            );
 
             GPTRequestDTO requestDTO = new GPTRequestDTO();
             requestDTO.setModel(GPT_MODEL);
             requestDTO.setMax_tokens(calculateTokensForWordCount(request.getTargetWordCount()));
             requestDTO.setTemperature(0.7);
-            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, buildLongFormSystemPrompt(request)), new GPTMessage(USER_ROLE, prompt)));
+            requestDTO.setMessages(Arrays.asList(
+                    new GPTMessage(SYSTEM_ROLE, buildLongFormSystemPrompt(request)),
+                    new GPTMessage(USER_ROLE, prompt)
+            ));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String content = responseDTO.getChoices().get(0).getMessage().getContent();
@@ -214,42 +239,56 @@ public class GPTService implements IGPTService {
         return systemPrompt.toString();
     }
 
-    private String buildLongFormContentPrompt(Topic topic, ContentGenerationRequestDTO request) {
+    private String buildLongFormContentPrompt(
+            Topic topic,
+            String tone,
+            String contentType,
+            Integer targetWordCount,
+            Boolean includeBulletPoints,
+            Boolean includeStatistics,
+            Boolean includeCaseStudies,
+            Boolean includeCallToAction,
+            Boolean includeHashtag,
+            String additionalInstructions
+    ) {
         StringBuilder prompt = new StringBuilder();
 
-        prompt.append("NHIỆM VỤ: Viết bài ").append(mapContentTypeToVietnamese(request.getContentType()));
+        prompt.append("NHIỆM VỤ: Viết bài ").append(mapContentTypeToVietnamese(contentType));
         prompt.append(" dài và chi tiết bằng TIẾNG VIỆT, trình bày liền mạch như một câu chuyện hoặc chia sẻ thực tế, không chia phần, không đặt bất kỳ tiêu đề phụ hoặc nhãn nào.\n\n");
 
         prompt.append("THÔNG TIN CHỦ ĐỀ:\n");
         prompt.append("• Chủ đề: ").append(topic.getName()).append("\n");
         prompt.append("• Mô tả: ").append(topic.getDescription()).append("\n\n");
 
-        if (request.getTargetWordCount() != null) {
+        if (targetWordCount != null) {
             prompt.append("YÊU CẦU ĐỘ DÀI:\n");
-            prompt.append("• Độ dài mục tiêu: ").append(request.getTargetWordCount()).append(" từ (±10%)\n");
+            prompt.append("• Độ dài mục tiêu: ").append(targetWordCount).append(" từ (±10%)\n");
             prompt.append("• Đây là bài viết dài, cần nội dung chuyên sâu và chi tiết\n\n");
         }
 
         prompt.append("YÊU CẦU NỘI DUNG:\n");
-        prompt.append("• Tone: ").append(mapToneToVietnamese(request.getTone())).append("\n");
-        prompt.append("• Loại nội dung: ").append(mapContentTypeToVietnamese(request.getContentType())).append("\n");
+        prompt.append("• Tone: ").append(mapToneToVietnamese(tone)).append("\n");
+        prompt.append("• Loại nội dung: ").append(mapContentTypeToVietnamese(contentType)).append("\n");
 
-        if (Boolean.TRUE.equals(request.getIncludeBulletPoints())) {
+        if (Boolean.TRUE.equals(includeBulletPoints)) {
             prompt.append("• Sử dụng bullet points và danh sách có cấu trúc nếu phù hợp, nhưng KHÔNG được dùng tiêu đề phụ hoặc nhãn.\n");
         }
-        if (Boolean.TRUE.equals(request.getIncludeStatistics())) {
+        if (Boolean.TRUE.equals(includeStatistics)) {
             prompt.append("• Bao gồm số liệu và thống kê thuyết phục nếu có thể, đặt tự nhiên trong dòng chảy bài viết.\n");
         }
-        if (Boolean.TRUE.equals(request.getIncludeCaseStudies())) {
+        if (Boolean.TRUE.equals(includeCaseStudies)) {
             prompt.append("• Đưa ra ví dụ thực tế hoặc case study cụ thể, lồng ghép tự nhiên vào nội dung, KHÔNG chia phần.\n");
         }
-        if (Boolean.TRUE.equals(request.getIncludeCallToAction())) {
+        if (Boolean.TRUE.equals(includeCallToAction)) {
             prompt.append("• Kết thúc với call-to-action mạnh mẽ, KHÔNG dùng nhãn 'Kết luận'.\n");
         }
+        if (Boolean.TRUE.equals(includeHashtag)) {
+            prompt.append("• Cuối bài viết tạo 3-5 hashtag liên quan, mỗi hashtag một dòng, bắt đầu bằng ký tự #.\n");
+        }
 
-        if (request.getAdditionalInstructions() != null && !request.getAdditionalInstructions().trim().isEmpty()) {
+        if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
             prompt.append("YÊU CẦU ĐẶC BIỆT:\n");
-            prompt.append("• ").append(request.getAdditionalInstructions()).append("\n\n");
+            prompt.append("• ").append(additionalInstructions).append("\n\n");
         }
 
         prompt.append("LƯU Ý QUAN TRỌNG:\n");
@@ -259,7 +298,6 @@ public class GPTService implements IGPTService {
         prompt.append("• Đưa ra luận điểm, dẫn chứng thực tế, số liệu hoặc ví dụ lồng ghép tự nhiên trong bài.\n");
         prompt.append("• Tạo ra nội dung hấp dẫn, truyền cảm hứng, dễ đọc.\n");
         prompt.append("• Có thể dùng emoji hợp lý xen kẽ, KHÔNG dùng emoji để chia đoạn hoặc làm tiêu đề.\n");
-        prompt.append("• Cuối bài viết tạo 3-5 hashtag liên quan, mỗi hashtag một dòng, bắt đầu bằng ký tự #.\n");
 
         return prompt.toString();
     }
@@ -271,7 +309,7 @@ public class GPTService implements IGPTService {
         return Math.min(4000, totalTokens);
     }
 
-    private String buildVietnameseTopicGenerationPrompt(Campaign campaign, Integer numberOfTopics, String additionalInstruction) {
+    public String buildVietnameseTopicGenerationPrompt(Campaign campaign, Integer numberOfTopics, String additionalInstruction, String tone) {
         StringBuilder prompt = new StringBuilder();
 
         prompt.append("NHIỆM VỤ: Sáng tạo ").append(numberOfTopics).append(" chủ đề marketing thật độc đáo, mới mẻ và ấn tượng bằng TIẾNG VIỆT cho chiến dịch sau:\n\n");
@@ -284,6 +322,8 @@ public class GPTService implements IGPTService {
             prompt.append("YÊU CẦU ĐẶC BIỆT:\n");
             prompt.append("• ").append(additionalInstruction).append("\n\n");
         }
+
+        prompt.append("PHONG CÁCH NỘI DUNG (tone): ").append(mapContentStyleToVietnamese(tone)).append("\n\n");
 
         prompt.append("YÊU CẦU CHO CHỦ ĐỀ:\n");
         prompt.append("• Chủ đề phải thật thu hút, tạo cảm xúc, khơi gợi sự tò mò hoặc truyền cảm hứng mạnh mẽ.\n");
@@ -312,13 +352,23 @@ public class GPTService implements IGPTService {
         return prompt.toString();
     }
 
-    private String buildVietnameseContentGenerationPrompt(Topic topic, String tone, String contentType, String additionalInstructions) {
+    private String mapContentStyleToVietnamese(String style) {
+        if (style == null) return "chuyên nghiệp, thân thiện";
+        return switch (style.toLowerCase()) {
+            case "friendly" -> "gần gũi, dễ hiểu";
+            case "professional" -> "trang trọng, uy tín";
+            case "creative" -> "độc đáo, thu hút";
+            default -> "chuyên nghiệp, thân thiện";
+        };
+    }
+
+    public String buildVietnameseContentGenerationPrompt(Topic topic, String tone, String contentType, Boolean includeHashtag, Boolean includeCallToAction, String additionalInstructions) {
         StringBuilder prompt = new StringBuilder();
 
         String vietnameseTone = mapToneToVietnamese(tone);
         String vietnameseContentType = mapContentTypeToVietnamese(contentType);
 
-        prompt.append("NHIỆM VỤ: Viết một bài đăng Facebook bằng TIẾNG VIỆT về chủ đề dưới đây, liền mạch như một câu chuyện hoặc chia sẻ, truyền cảm hứng, chuyên nghiệp, không chia phần, không đặt tiêu đề phụ, không lạm dụng emoji.\n\n");
+        prompt.append("NHIỆM VỤ: Viết một bài đăng ").append(vietnameseContentType).append(" bằng TIẾNG VIỆT về chủ đề dưới đây, liền mạch như một câu chuyện hoặc chia sẻ, truyền cảm hứng, chuyên nghiệp, không chia phần, không đặt tiêu đề phụ, không lạm dụng emoji.\n\n");
 
         prompt.append("THÔNG TIN CHỦ ĐỀ:\n");
         prompt.append("• Chủ đề: ").append(topic.getName()).append("\n");
@@ -337,14 +387,22 @@ public class GPTService implements IGPTService {
         prompt.append("• Không được bắt đầu dòng hoặc đoạn bằng emoji. Chỉ được sử dụng tối đa 2 emoji trong toàn bài, dùng xen kẽ tự nhiên, KHÔNG dùng icon để dẫn dắt hoặc chia đoạn.\n");
         prompt.append("• Trình bày liền mạch như một câu chuyện, chia sẻ thực tế, truyền cảm hứng cho người đọc.\n");
         prompt.append("• Đưa ra luận điểm, dẫn chứng thực tế, góc nhìn mới mẻ một cách tự nhiên, không tách rời khỏi dòng chảy bài viết.\n");
-        prompt.append("• Kết thúc bằng thông điệp truyền cảm hứng hoặc call-to-action mạnh mẽ, khuyến khích người đọc suy nghĩ/tương tác/hành động.\n");
-        prompt.append("• Cuối bài viết tạo 3-5 hashtag liên quan, mỗi hashtag một dòng, bắt đầu bằng ký tự #.\n");
+
+        if (Boolean.TRUE.equals(includeCallToAction)) {
+            prompt.append("• Kết thúc bằng thông điệp truyền cảm hứng hoặc call-to-action mạnh mẽ, khuyến khích người đọc suy nghĩ/tương tác/hành động.\n");
+        }
+
+        if (Boolean.TRUE.equals(includeHashtag)) {
+            prompt.append("• Cuối bài viết tạo 3-5 hashtag liên quan, mỗi hashtag một dòng, bắt đầu bằng ký tự #.\n");
+        }
+
         prompt.append("• Độ dài: 200-400 từ.\n\n");
 
         prompt.append("Lưu ý: TUYỆT ĐỐI KHÔNG chia phần, không đặt bất kỳ tiêu đề phụ hoặc nhãn nào, không lạm dụng emoji/icon, không bắt đầu dòng với emoji. Viết liền mạch như một bài chia sẻ truyền cảm hứng trên Facebook.");
 
         return prompt.toString();
     }
+
 
     private String mapToneToVietnamese(String tone) {
         if (tone == null) return "chuyên nghiệp và thân thiện";
