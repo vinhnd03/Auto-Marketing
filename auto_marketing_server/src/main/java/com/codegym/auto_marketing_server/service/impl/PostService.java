@@ -129,7 +129,7 @@ public class PostService implements IPostService {
         // Set AI generation metadata
         post.setGeneratedByAI(true);
         post.setAiPrompt(buildPromptSummary(request));
-        post.setAiModel("gpt-3.5-turbo");
+        post.setAiModel(GPTService.GPT_MODEL);
         post.setGenerateTime(LocalDateTime.now());
 
         // Set request parameters

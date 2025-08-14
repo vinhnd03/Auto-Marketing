@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 @ConditionalOnProperty(name = "app.gpt.mock.enabled", havingValue = "false")
 public class GPTService implements IGPTService {
 
-    private static final String GPT_MODEL = "gpt-3.5-turbo";
+    public static final String GPT_MODEL = "gpt-4o";
     private static final String SYSTEM_ROLE = "system";
     private static final String USER_ROLE = "user";
     private static final String DEFAULT_SOCIAL_POST = "bài đăng mạng xã hội";
@@ -61,6 +61,19 @@ public class GPTService implements IGPTService {
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String content = responseDTO.getChoices().get(0).getMessage().getContent();
+
+            if (content != null) {
+                content = content.trim();
+                if (content.startsWith("```json")) {
+                    content = content.substring(7).trim(); // bỏ ```json
+                }
+                if (content.startsWith("```")) {
+                    content = content.substring(3).trim(); // bỏ ```
+                }
+                if (content.endsWith("```")) {
+                    content = content.substring(0, content.length() - 3).trim(); // bỏ cuối ```
+                }
+            }
 
             log.info("Successfully generated Vietnamese topics");
             log.debug("Generated content: {}", content);
@@ -205,7 +218,7 @@ public class GPTService implements IGPTService {
         StringBuilder prompt = new StringBuilder();
 
         prompt.append("NHIỆM VỤ: Viết bài ").append(mapContentTypeToVietnamese(request.getContentType()));
-        prompt.append(" dài và chi tiết bằng TIẾNG VIỆT\n\n");
+        prompt.append(" dài và chi tiết bằng TIẾNG VIỆT, trình bày liền mạch như một câu chuyện hoặc chia sẻ thực tế, không chia phần, không đặt bất kỳ tiêu đề phụ hoặc nhãn nào.\n\n");
 
         prompt.append("THÔNG TIN CHỦ ĐỀ:\n");
         prompt.append("• Chủ đề: ").append(topic.getName()).append("\n");
@@ -221,37 +234,18 @@ public class GPTService implements IGPTService {
         prompt.append("• Tone: ").append(mapToneToVietnamese(request.getTone())).append("\n");
         prompt.append("• Loại nội dung: ").append(mapContentTypeToVietnamese(request.getContentType())).append("\n");
 
-        if (Boolean.TRUE.equals(request.getIncludeSections())) {
-            prompt.append("• Chia thành các phần rõ ràng với tiêu đề phụ\n");
-        }
-        if (Boolean.TRUE.equals(request.getIncludeIntroConclusion())) {
-            prompt.append("• Bao gồm phần mở đầu và kết luận chi tiết\n");
-        }
         if (Boolean.TRUE.equals(request.getIncludeBulletPoints())) {
-            prompt.append("• Sử dụng bullet points và danh sách có cấu trúc\n");
+            prompt.append("• Sử dụng bullet points và danh sách có cấu trúc nếu phù hợp, nhưng KHÔNG được dùng tiêu đề phụ hoặc nhãn.\n");
         }
         if (Boolean.TRUE.equals(request.getIncludeStatistics())) {
-            prompt.append("• Bao gồm số liệu và thống kê thuyết phục\n");
+            prompt.append("• Bao gồm số liệu và thống kê thuyết phục nếu có thể, đặt tự nhiên trong dòng chảy bài viết.\n");
         }
         if (Boolean.TRUE.equals(request.getIncludeCaseStudies())) {
-            prompt.append("• Bao gồm ví dụ thực tế hoặc case study cụ thể\n");
+            prompt.append("• Đưa ra ví dụ thực tế hoặc case study cụ thể, lồng ghép tự nhiên vào nội dung, KHÔNG chia phần.\n");
         }
         if (Boolean.TRUE.equals(request.getIncludeCallToAction())) {
-            prompt.append("• Kết thúc với call-to-action mạnh mẽ\n");
+            prompt.append("• Kết thúc với call-to-action mạnh mẽ, KHÔNG dùng nhãn 'Kết luận'.\n");
         }
-
-        prompt.append("\nCẤU TRÚC BÁI VIẾT DÀI:\n");
-        prompt.append("1. Tiêu đề hấp dẫn với emoji\n");
-        prompt.append("2. Mở đầu thu hút (150-200 từ)\n");
-        prompt.append("3. Nội dung chính chia thành 4-6 phần:\n");
-        prompt.append("   - Phần 1: Bối cảnh và vấn đề\n");
-        prompt.append("   - Phần 2: Phân tích chi tiết\n");
-        prompt.append("   - Phần 3: Giải pháp/Phương pháp\n");
-        prompt.append("   - Phần 4: Lợi ích và kết quả\n");
-        prompt.append("   - Phần 5: Hướng dẫn thực hiện (nếu có)\n");
-        prompt.append("   - Phần 6: Xu hướng tương lai\n");
-        prompt.append("4. Kết luận tổng kết và call-to-action\n");
-        prompt.append("5. Hashtags phù hợp\n\n");
 
         if (request.getAdditionalInstructions() != null && !request.getAdditionalInstructions().trim().isEmpty()) {
             prompt.append("YÊU CẦU ĐẶC BIỆT:\n");
@@ -259,12 +253,13 @@ public class GPTService implements IGPTService {
         }
 
         prompt.append("LƯU Ý QUAN TRỌNG:\n");
-        prompt.append("• Viết hoàn toàn bằng tiếng Việt tự nhiên\n");
-        prompt.append("• Cung cấp giá trị thực tế cho người đọc\n");
-        prompt.append("• Sử dụng từ ngữ phù hợp với đối tượng mục tiêu\n");
-        prompt.append("• Tạo ra nội dung hấp dẫn và dễ đọc\n");
-        prompt.append("• Sử dụng emoji phù hợp để tăng tính thu hút\n");
-        prompt.append("• Đảm bảo tính chuyên nghiệp và uy tín\n");
+        prompt.append("• Viết hoàn toàn bằng tiếng Việt tự nhiên, không dịch máy.\n");
+        prompt.append("• TUYỆT ĐỐI KHÔNG chia phần, không đặt bất kỳ tiêu đề phụ, nhãn, hoặc dùng từ như 'Phần', 'Mở đầu', 'Kết luận', 'Giải pháp', 'Xu hướng',... trong bài viết.\n");
+        prompt.append("• Nếu xuất hiện bất kỳ tiêu đề phụ hoặc từ khoá nào như trên, hãy coi đó là lỗi và tự động viết lại, chỉ trình bày liền mạch như một câu chuyện hoặc chia sẻ.\n");
+        prompt.append("• Đưa ra luận điểm, dẫn chứng thực tế, số liệu hoặc ví dụ lồng ghép tự nhiên trong bài.\n");
+        prompt.append("• Tạo ra nội dung hấp dẫn, truyền cảm hứng, dễ đọc.\n");
+        prompt.append("• Có thể dùng emoji hợp lý xen kẽ, KHÔNG dùng emoji để chia đoạn hoặc làm tiêu đề.\n");
+        prompt.append("• Cuối bài viết tạo 3-5 hashtag liên quan, mỗi hashtag một dòng, bắt đầu bằng ký tự #.\n");
 
         return prompt.toString();
     }
@@ -279,7 +274,7 @@ public class GPTService implements IGPTService {
     private String buildVietnameseTopicGenerationPrompt(Campaign campaign, Integer numberOfTopics, String additionalInstruction) {
         StringBuilder prompt = new StringBuilder();
 
-        prompt.append("NHIỆM VỤ: Tạo ").append(numberOfTopics).append(" chủ đề marketing bằng TIẾNG VIỆT cho chiến dịch sau:\n\n");
+        prompt.append("NHIỆM VỤ: Sáng tạo ").append(numberOfTopics).append(" chủ đề marketing thật độc đáo, mới mẻ và ấn tượng bằng TIẾNG VIỆT cho chiến dịch sau:\n\n");
 
         prompt.append("THÔNG TIN CHIẾN DỊCH:\n");
         prompt.append("• Tên chiến dịch: ").append(campaign.getName()).append("\n");
@@ -290,29 +285,28 @@ public class GPTService implements IGPTService {
             prompt.append("• ").append(additionalInstruction).append("\n\n");
         }
 
-        prompt.append("🇻🇳 YÊU CẦU CHO CHỦ ĐỀ:\n");
-        prompt.append("• Viết hoàn toàn bằng tiếng Việt\n");
-        prompt.append("• Phù hợp với văn hóa và thị trường Việt Nam\n");
-        prompt.append("• Dễ hiểu, gần gũi với người Việt\n");
-        prompt.append("• Có tính ứng dụng thực tế cao\n");
-        prompt.append("• Trending và thu hút\n");
-        prompt.append("• Phù hợp với mạng xã hội Việt Nam\n\n");
+        prompt.append("YÊU CẦU CHO CHỦ ĐỀ:\n");
+        prompt.append("• Chủ đề phải thật thu hút, tạo cảm xúc, khơi gợi sự tò mò hoặc truyền cảm hứng mạnh mẽ.\n");
+        prompt.append("• Đưa ra góc nhìn mới lạ, sáng tạo, khác biệt so với thông thường.\n");
+        prompt.append("• Nội dung phù hợp với xu hướng hiện tại, ứng dụng cao trên mạng xã hội Việt Nam.\n");
+        prompt.append("• Tên chủ đề PHẢI NGẮN GỌN, súc tích, dễ nhớ, nổi bật, tối đa 45 ký tự. Có thể dùng phép ẩn dụ, chơi chữ, câu hỏi mở.\n");
+        prompt.append("• Mô tả chủ đề thật súc tích, truyền động lực, kích thích hành động hoặc tương tác.\n");
+        prompt.append("• Viết tự nhiên như người Việt, không dịch máy, không rập khuôn.\n\n");
 
         prompt.append("ĐỊNH DẠNG TRẢ VỀ (CHÍNH XÁC):\n");
         prompt.append("{\n");
         prompt.append("  \"topics\": [\n");
         prompt.append("    {\n");
-        prompt.append("      \"name\": \"Tên chủ đề tiếng Việt ngắn gọn và hấp dẫn\",\n");
-        prompt.append("      \"description\": \"Mô tả chi tiết bằng tiếng Việt về cách triển khai chủ đề, bao gồm key message và phương pháp tiếp cận\"\n");
+        prompt.append("      \"name\": \"Tên chủ đề tiếng Việt ngắn gọn, nổi bật, tối đa 45 ký tự\",\n");
+        prompt.append("      \"description\": \"Mô tả chi tiết, truyền cảm hứng, súc tích, 100-200 ký tự, giúp người đọc muốn tìm hiểu hoặc tương tác\"\n");
         prompt.append("    }\n");
         prompt.append("  ]\n");
         prompt.append("}\n\n");
 
         prompt.append("LƯU Ý QUAN TRỌNG:\n");
         prompt.append("- CHỈ sử dụng tiếng Việt cho name và description\n");
-        prompt.append("- Không dịch máy, hãy viết tự nhiên như người Việt\n");
-        prompt.append("- Tên chủ đề không quá 60 ký tự\n");
-        prompt.append("- Mô tả chi tiết 100-200 ký tự\n");
+        prompt.append("- Đảm bảo chủ đề nổi bật, khác biệt, gây ấn tượng, thu hút tương tác\n");
+        prompt.append("- Tên chủ đề phải NGẮN GỌN, tối đa 45 ký tự. Nếu vượt quá, hãy tự động rút gọn lại.\n");
         prompt.append("- Đảm bảo JSON format chính xác\n");
 
         return prompt.toString();
@@ -324,7 +318,7 @@ public class GPTService implements IGPTService {
         String vietnameseTone = mapToneToVietnamese(tone);
         String vietnameseContentType = mapContentTypeToVietnamese(contentType);
 
-        prompt.append("NHIỆM VỤ: Tạo nội dung ").append(vietnameseContentType).append(" bằng TIẾNG VIỆT\n\n");
+        prompt.append("NHIỆM VỤ: Viết một bài đăng Facebook bằng TIẾNG VIỆT về chủ đề dưới đây, liền mạch như một câu chuyện hoặc chia sẻ, truyền cảm hứng, chuyên nghiệp, không chia phần, không đặt tiêu đề phụ, không lạm dụng emoji.\n\n");
 
         prompt.append("THÔNG TIN CHỦ ĐỀ:\n");
         prompt.append("• Chủ đề: ").append(topic.getName()).append("\n");
@@ -333,27 +327,21 @@ public class GPTService implements IGPTService {
         prompt.append("• Loại nội dung: ").append(vietnameseContentType).append("\n\n");
 
         if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
-            prompt.append("YÊU CẦU ĐẶC BIỆT:\n");
+            prompt.append("YÊU CẦU BỔ SUNG:\n");
             prompt.append("• ").append(additionalInstructions).append("\n\n");
         }
 
-        prompt.append("🇻🇳 YÊU CẦU NỘI DUNG:\n");
-        prompt.append("• Viết hoàn toàn bằng tiếng Việt tự nhiên\n");
-        prompt.append("• Hook mạnh mẽ để thu hút người đọc\n");
-        prompt.append("• Thông điệp rõ ràng và có giá trị\n");
-        prompt.append("• Call-to-action cụ thể bằng tiếng Việt\n");
-        prompt.append("• Sử dụng emoji phù hợp\n");
-        prompt.append("• Hashtags tiếng Việt và tiếng Anh phù hợp\n");
-        prompt.append("• Phong cách giao tiếp thân thiện với người Việt\n");
-        prompt.append("• Độ dài: 200-400 từ cho nội dung chất lượng\n\n");
+        prompt.append("YÊU CẦU:\n");
+        prompt.append("• Viết hoàn toàn bằng tiếng Việt tự nhiên, không dịch máy.\n");
+        prompt.append("• TUYỆT ĐỐI KHÔNG được chia nội dung thành các phần, KHÔNG đặt tiêu đề phụ, KHÔNG dùng bất kỳ từ nào như 'Phần', 'Mở đầu', 'Kết luận', 'Giải pháp',... hoặc bất kỳ tiêu đề nào trong bài viết.\n");
+        prompt.append("• Không được bắt đầu dòng hoặc đoạn bằng emoji. Chỉ được sử dụng tối đa 2 emoji trong toàn bài, dùng xen kẽ tự nhiên, KHÔNG dùng icon để dẫn dắt hoặc chia đoạn.\n");
+        prompt.append("• Trình bày liền mạch như một câu chuyện, chia sẻ thực tế, truyền cảm hứng cho người đọc.\n");
+        prompt.append("• Đưa ra luận điểm, dẫn chứng thực tế, góc nhìn mới mẻ một cách tự nhiên, không tách rời khỏi dòng chảy bài viết.\n");
+        prompt.append("• Kết thúc bằng thông điệp truyền cảm hứng hoặc call-to-action mạnh mẽ, khuyến khích người đọc suy nghĩ/tương tác/hành động.\n");
+        prompt.append("• Cuối bài viết tạo 3-5 hashtag liên quan, mỗi hashtag một dòng, bắt đầu bằng ký tự #.\n");
+        prompt.append("• Độ dài: 200-400 từ.\n\n");
 
-        prompt.append("GỢI Ý CẤU TRÚC:\n");
-        prompt.append("1. Hook thu hút (emoji + câu mở đầu ấn tượng)\n");
-        prompt.append("2. Nội dung chính (giá trị + lợi ích)\n");
-        prompt.append("3. Call-to-action rõ ràng\n");
-        prompt.append("4. Hashtags phù hợp\n\n");
-
-        prompt.append("QUAN TRỌNG: Viết như một người Việt đang nói chuyện, không dịch máy!");
+        prompt.append("Lưu ý: TUYỆT ĐỐI KHÔNG chia phần, không đặt bất kỳ tiêu đề phụ hoặc nhãn nào, không lạm dụng emoji/icon, không bắt đầu dòng với emoji. Viết liền mạch như một bài chia sẻ truyền cảm hứng trên Facebook.");
 
         return prompt.toString();
     }
