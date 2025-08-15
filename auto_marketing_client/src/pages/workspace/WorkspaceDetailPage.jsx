@@ -26,6 +26,8 @@ import { getAllCampaigns } from "../../service/campaign_service";
 import {
   generateTopicsWithAI,
   approveTopic,
+  deleteTopic,
+  deleteTopicsByCampaignAndStatus,
 } from "../../service/topic_service";
 import dayjs from "dayjs";
 const WorkspaceDetailPage = () => {
@@ -597,12 +599,9 @@ const WorkspaceDetailPage = () => {
     });
   };
 
-  // Save approved topics to database
   const handleSaveApprovedTopics = async () => {
     if (approvedTopics.size === 0) {
-      toast.error("Vui lòng chọn ít nhất 1 topic để lưu!", {
-        duration: 3000,
-      });
+      toast.error("Vui lòng chọn ít nhất 1 topic để lưu!", { duration: 3000 });
       return;
     }
 
@@ -612,74 +611,48 @@ const WorkspaceDetailPage = () => {
     );
 
     try {
+      // 1. Lưu các topic được chọn
       const approvedTopicsList = Array.from(approvedTopics);
-      console.log("💾 Saving approved topics:", approvedTopicsList);
-
-      // Debug: Check topic structure
       const topicsToApprove = approvedTopicsList
-        .map((topicId) => {
-          const topic = findTopicById(topicId);
-          console.log("🔍 Topic found:", topic);
-          return topic;
-        })
+        .map((topicId) => findTopicById(topicId))
         .filter((topic) => topic != null);
 
-      console.log("📋 Topics to approve:", topicsToApprove);
-
-      // Call API to approve each topic
       const approvePromises = topicsToApprove.map(async (topic) => {
-        try {
-          // Dùng topic.id (số nguyên) để gọi API
-          if (!topic.id) {
-            console.error("❌ No id found for topic:", topic);
-            return null;
-          }
-          const result = await approveTopic(topic.id);
-          return result;
-        } catch (error) {
-          console.error("❌ Error approving topic:", topic.id, error);
+        if (!topic.id) {
+          console.error("❌ No id found for topic:", topic);
           return null;
         }
+        return await approveTopic(topic.id);
       });
 
-      const approvedResults = await Promise.all(approvePromises);
-      const successCount = approvedResults.filter(
-        (result) => result !== null
-      ).length;
+      await Promise.all(approvePromises);
+
+      // 2. Xóa tất cả topic PENDING của campaign (gọi API xóa hàng loạt)
+      if (topicsToApprove.length > 0) {
+        const campaignId = topicsToApprove[0].campaignId;
+        await deleteTopicsByCampaignAndStatus(campaignId, "PENDING");
+      }
+
+      // 3. Reload lại data workspace/campaigns nếu cần (hoặc filter lại local)
+      setWorkspace((prevWorkspace) => {
+        const updatedCampaigns = prevWorkspace.campaigns.map((campaign) => ({
+          ...campaign,
+          topicsList: campaign.topicsList
+            ? campaign.topicsList.filter((t) => t.status === "APPROVED")
+            : [],
+        }));
+        return { ...prevWorkspace, campaigns: updatedCampaigns };
+      });
 
       toast.dismiss(loadingToast);
-
-      if (successCount > 0) {
-        toast.success(
-          `🎉 Đã lưu thành công ${successCount} topics vào database!`,
-          {
-            duration: 4000,
-          }
-        );
-
-        // Hide the AI topics section after saving
-        setNewlyCreatedTopics([]);
-        setApprovedTopics(new Set());
-
-        // Optionally refresh workspace data here
-        // await refreshWorkspaceData();
-      } else {
-        toast.error("Không thể lưu topics. Vui lòng thử lại.");
-      }
+      toast.success(`🎉 Đã lưu thành công và xóa các topic chưa chọn!`, {
+        duration: 4000,
+      });
+      setNewlyCreatedTopics([]);
+      setApprovedTopics(new Set());
     } catch (error) {
-      console.error("❌ Error saving topics:", error);
       toast.dismiss(loadingToast);
-
-      let errorMessage = "Không thể lưu topics. Vui lòng thử lại.";
-      if (error.message.includes("timeout")) {
-        errorMessage = "Lưu topics mất quá nhiều thời gian. Vui lòng thử lại.";
-      } else if (error.message.includes("Network Error")) {
-        errorMessage = "Không thể kết nối đến server.";
-      }
-
-      toast.error(errorMessage, {
-        duration: 5000,
-      });
+      toast.error("Không thể lưu hoặc xóa topics. Vui lòng thử lại.");
     } finally {
       setSavingTopics(false);
     }

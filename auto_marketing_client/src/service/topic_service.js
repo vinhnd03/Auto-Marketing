@@ -122,3 +122,27 @@ export async function rejectTopic(topicId) {
     throw error;
   }
 }
+
+export async function deleteTopic(topicId) {
+  try {
+    const response = await apiClient.delete(`/topics/${topicId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Delete all topics by campaign and status
+ * @param {number} campaignId - Campaign ID
+ * @param {string} status - Topic status (PENDING/APPROVED/REJECTED)
+ * @returns {Promise<void>}
+ */
+export async function deleteTopicsByCampaignAndStatus(campaignId, status) {
+  try {
+    // status nên là 'PENDING'
+    await apiClient.delete(`/topics/campaign/${campaignId}/status/${status}`);
+  } catch (error) {
+    throw error;
+  }
+}
