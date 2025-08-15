@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -22,6 +22,11 @@ import {
 } from "lucide-react";
 import SchedulePostCalendar from "../../components/publish/SchedulePostCalendar";
 import ScheduledPostsList from "../../components/publish/ScheduledPostsList";
+import { getAllCampaigns } from "../../service/campaign_service";
+import {
+  generateTopicsWithAI,
+  approveTopic,
+} from "../../service/topic_service";
 import dayjs from "dayjs";
 const WorkspaceDetailPage = () => {
   const { workspaceId } = useParams();
@@ -30,6 +35,66 @@ const WorkspaceDetailPage = () => {
   const [newlyCreatedTopics, setNewlyCreatedTopics] = useState([]);
   const [showContentGenerator, setShowContentGenerator] = useState(false);
   const [selectedTopicForContent, setSelectedTopicForContent] = useState(null);
+  const [autoGeneratingTopics, setAutoGeneratingTopics] = useState(false);
+  const [approvedTopics, setApprovedTopics] = useState(new Set()); // Track approved topics
+  const [savingTopics, setSavingTopics] = useState(false); // Track saving state
+
+  // API campaigns state
+  const [apiCampaigns, setApiCampaigns] = useState([]);
+  const [loadingCampaigns, setLoadingCampaigns] = useState(false);
+  const [campaignsError, setCampaignsError] = useState(null);
+
+  // Fetch campaigns from API
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
+
+  const fetchCampaigns = async () => {
+    setLoadingCampaigns(true);
+    setCampaignsError(null);
+    try {
+      console.log("🔄 Fetching campaigns for workspace...");
+      const campaignsData = await getAllCampaigns();
+      console.log("✅ Campaigns loaded for workspace:", campaignsData);
+      setApiCampaigns(campaignsData);
+    } catch (err) {
+      console.error("❌ Error fetching campaigns for workspace:", err);
+      setCampaignsError("Không thể tải danh sách chiến dịch từ API");
+
+      // Fallback to mock data for development
+      if (process.env.NODE_ENV === "development") {
+        console.warn("🔄 Using mock data as fallback");
+        setApiCampaigns([
+          {
+            id: 1,
+            name: "Chiến dịch Tuyển sinh Khóa mới 2024",
+            description:
+              "Chiến dịch marketing tổng thể để tuyển sinh cho các khóa học lập trình mới năm 2024. Mục tiêu: 1000 học viên mới.",
+            createdAt: "2024-01-15",
+            updatedAt: "2024-01-15",
+            status: "ACTIVE",
+            startDate: "2024-02-01",
+            endDate: "2024-04-30",
+          },
+          {
+            id: 2,
+            name: "Black Friday Sale Campaign",
+            description:
+              "Chiến dịch khuyến mãi lớn dịp Black Friday cho tất cả các khóa học online. Giảm giá lên đến 70%.",
+            createdAt: "2024-01-20",
+            updatedAt: "2024-01-20",
+            status: "DRAFT",
+            startDate: "2024-11-20",
+            endDate: "2024-11-30",
+          },
+        ]);
+      } else {
+        setApiCampaigns([]);
+      }
+    } finally {
+      setLoadingCampaigns(false);
+    }
+  };
 
   // Mock data - trong thực tế sẽ lấy từ API dựa trên workspaceId
   const initialWorkspace = {
@@ -118,28 +183,49 @@ const WorkspaceDetailPage = () => {
 
   // Function để cập nhật campaigns
   const handleUpdateCampaigns = (updatedCampaigns) => {
+    setApiCampaigns(updatedCampaigns);
+    // Also update workspace for compatibility with other features
     setWorkspace((prevWorkspace) => ({
       ...prevWorkspace,
       campaigns: updatedCampaigns,
     }));
   };
 
+  // Transform API campaigns to match the expected format
+  const transformedCampaigns = apiCampaigns.map((campaign) => {
+    let displayStatus = "Đã kết thúc";
+    if (campaign.status === "ACTIVE") {
+      displayStatus = "Đang hoạt động";
+    } else if (campaign.status === "DRAFT") {
+      displayStatus = "Sắp bắt đầu";
+    }
+
+    return {
+      ...campaign,
+      // Map API status to display status
+      status: displayStatus,
+      // Add default topics and content if not present
+      topics: campaign.topics || 0,
+      content: campaign.content || 0,
+    };
+  });
+
   const stats = [
     {
       label: "Tổng chiến dịch",
-      value: workspace.campaigns.length,
+      value: apiCampaigns.length,
       color: "blue",
       icon: <Target size={24} />,
     },
     {
       label: "Đang chạy",
-      value: workspace.campaigns.filter((c) => c.status === "active").length,
+      value: apiCampaigns.filter((c) => c.status === "ACTIVE").length,
       color: "green",
       icon: <Play size={24} />,
     },
     {
       label: "Tổng chủ đề",
-      value: workspace.campaigns.reduce((sum, c) => sum + c.topics, 0),
+      value: transformedCampaigns.reduce((sum, c) => sum + c.topics, 0),
       color: "purple",
       icon: <Folder size={24} />,
     },
@@ -162,8 +248,8 @@ const WorkspaceDetailPage = () => {
     {
       title:
         newlyCreatedTopics.length > 0
-          ? "Tạo lại Chủ đề"
-          : "Tạo Chủ đề đầu tiên",
+          ? "Generate thêm Topics"
+          : "Generate Topics đầu tiên",
       description: "AI tạo ra các chủ đề cho campaigns",
       icon: <Wand2 size={24} />,
       color: "from-purple-600 to-purple-700",
@@ -290,6 +376,7 @@ const WorkspaceDetailPage = () => {
 
   const handleHideAITopics = () => {
     setNewlyCreatedTopics([]);
+    setApprovedTopics(new Set()); // Reset approved topics
     toast.success("Đã ẩn section AI Topics!", {
       duration: 2000,
       style: {
@@ -297,6 +384,170 @@ const WorkspaceDetailPage = () => {
         color: "white",
       },
     });
+  };
+
+  // Function để tự động generate thêm topics
+  const handleAutoGenerateMoreTopics = async () => {
+    try {
+      setAutoGeneratingTopics(true);
+
+      // Tìm campaign đầu tiên có sẵn để generate topics
+      const activeCampaign =
+        apiCampaigns.find((campaign) => campaign.status === "ACTIVE") ||
+        apiCampaigns[0];
+
+      if (!activeCampaign) {
+        toast.error("Không tìm thấy campaign để tạo topics");
+        return;
+      }
+
+      // Toast thông báo bắt đầu
+      toast.loading("🔄 Đang generate thêm topics...", {
+        id: "auto-generate",
+        duration: 2000,
+      });
+
+      // Cấu hình mặc định cho auto generate
+      const autoGenerateRequest = {
+        campaignId: activeCampaign.id,
+        numberOfTopics: 5, // Mặc định tạo 5 topics
+        creativityLevel: "balanced",
+        contentStyle: "professional",
+        additionalInstructions:
+          "Tạo thêm các topics mới, đa dạng và hấp dẫn hơn",
+      };
+
+      // Gọi API để generate topics
+      const generatedTopics = await generateTopicsWithAI(autoGenerateRequest);
+
+      console.log(
+        "🔍 API returned topics:",
+        generatedTopics.length,
+        generatedTopics
+      );
+      console.log("🔍 First topic structure:", generatedTopics[0]);
+
+      // Transform API response với unique IDs
+      const timestamp = Date.now();
+      const transformedTopics = generatedTopics.map((topic, index) => {
+        console.log(`🔄 Transforming topic ${index}:`, topic);
+        console.log(`🔑 Topic ID: ${topic.id}, Name: ${topic.name}`);
+
+        return {
+          id: `${topic.id}_${timestamp}_${index}`, // Tạo unique ID
+          originalId: topic.id, // Giữ lại original ID từ API
+          title: topic.name || topic.title, // Fallback cho title
+          description: topic.description,
+          category: "AI Generated",
+          campaignId: topic.campaignId,
+          campaignName: activeCampaign.name,
+          posts: 0,
+          pendingPosts: Math.floor(Math.random() * 5) + 1,
+          publishedPosts: 0,
+          engagement: "0",
+          status:
+            topic.status === "PENDING"
+              ? "needs_content"
+              : topic.status.toLowerCase(),
+          aiGenerated: topic.generatedByAI,
+          createdDate: topic.createdAt,
+          platforms: ["Facebook", "Instagram"],
+          targetKeywords: [],
+          aiSettings: {
+            creativity: "balanced",
+            contentStyle: "professional",
+          },
+          aiPrompt: topic.aiPrompt,
+          isNew: true,
+          createdAt: new Date().toISOString().split("T")[0],
+        };
+      });
+
+      console.log(
+        "🔄 Transformed topics:",
+        transformedTopics.length,
+        transformedTopics
+      );
+
+      // Cập nhật workspace trực tiếp
+      const createdTopicIds = transformedTopics.map((topic) => topic.id);
+      console.log("📝 Created topic IDs:", createdTopicIds);
+
+      setWorkspace((prevWorkspace) => {
+        const updatedWorkspace = { ...prevWorkspace };
+
+        // Tìm campaign cần cập nhật
+        const campaignIndex = updatedWorkspace.campaigns.findIndex(
+          (c) => c.id === activeCampaign.id
+        );
+
+        if (campaignIndex !== -1) {
+          if (!updatedWorkspace.campaigns[campaignIndex].topicsList) {
+            updatedWorkspace.campaigns[campaignIndex].topicsList = [];
+          }
+
+          // Xóa các topics cũ có isNew flag trước khi thêm mới
+          const existingTopics = updatedWorkspace.campaigns[
+            campaignIndex
+          ].topicsList.filter((t) => !t.isNew);
+          console.log(
+            "🗑️ Existing topics after cleanup:",
+            existingTopics.length
+          );
+
+          // Thêm tất cả topics mới
+          updatedWorkspace.campaigns[campaignIndex].topicsList = [
+            ...existingTopics,
+            ...transformedTopics,
+          ];
+
+          console.log(
+            "➕ Total topics after adding:",
+            updatedWorkspace.campaigns[campaignIndex].topicsList.length
+          );
+          console.log("🆕 New topics added:", transformedTopics.length);
+
+          // Cập nhật count
+          updatedWorkspace.campaigns[campaignIndex].topics =
+            updatedWorkspace.campaigns[campaignIndex].topicsList.length;
+        }
+
+        return updatedWorkspace;
+      });
+
+      // Set topics mới ngay lập tức
+      setNewlyCreatedTopics(createdTopicIds);
+      setApprovedTopics(new Set()); // Reset approved topics khi generate mới
+      console.log("🎯 Set newlyCreatedTopics:", createdTopicIds);
+      setActiveTab("topics");
+
+      // Chỉ 1 toast duy nhất ở góc phải
+      toast.success(
+        `🎉 Đã tự động generate ${transformedTopics.length} topics mới!`,
+        {
+          id: "auto-generate",
+          duration: 4000,
+          position: "top-right",
+        }
+      );
+    } catch (error) {
+      console.error("Error auto-generating topics:", error);
+
+      let errorMessage = "Không thể generate topics tự động. Vui lòng thử lại.";
+      if (error.message.includes("timeout")) {
+        errorMessage =
+          "AI generation mất quá nhiều thời gian. Vui lòng thử lại.";
+      } else if (error.message.includes("Network Error")) {
+        errorMessage = "Không thể kết nối đến server AI.";
+      }
+
+      toast.error(errorMessage, {
+        id: "auto-generate",
+        duration: 5000,
+      });
+    } finally {
+      setAutoGeneratingTopics(false);
+    }
   };
 
   const handleContentGenerated = (generatedContent) => {
@@ -331,6 +582,119 @@ const WorkspaceDetailPage = () => {
         `Mở AI Content Generator cho topic: ${selectedTopic.title}`
       );
     }
+  };
+
+  // Handle approve single topic
+  const handleApproveTopic = (topicId) => {
+    setApprovedTopics((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(topicId)) {
+        newSet.delete(topicId); // Toggle off if already approved
+      } else {
+        newSet.add(topicId); // Approve topic
+      }
+      return newSet;
+    });
+  };
+
+  // Save approved topics to database
+  const handleSaveApprovedTopics = async () => {
+    if (approvedTopics.size === 0) {
+      toast.error("Vui lòng chọn ít nhất 1 topic để lưu!", {
+        duration: 3000,
+      });
+      return;
+    }
+
+    setSavingTopics(true);
+    const loadingToast = toast.loading(
+      `Đang lưu ${approvedTopics.size} topics...`
+    );
+
+    try {
+      const approvedTopicsList = Array.from(approvedTopics);
+      console.log("💾 Saving approved topics:", approvedTopicsList);
+
+      // Debug: Check topic structure
+      const topicsToApprove = approvedTopicsList
+        .map((topicId) => {
+          const topic = findTopicById(topicId);
+          console.log("🔍 Topic found:", topic);
+          return topic;
+        })
+        .filter((topic) => topic != null);
+
+      console.log("📋 Topics to approve:", topicsToApprove);
+
+      // Call API to approve each topic
+      const approvePromises = topicsToApprove.map(async (topic) => {
+        try {
+          // Dùng topic.id (số nguyên) để gọi API
+          if (!topic.id) {
+            console.error("❌ No id found for topic:", topic);
+            return null;
+          }
+          const result = await approveTopic(topic.id);
+          return result;
+        } catch (error) {
+          console.error("❌ Error approving topic:", topic.id, error);
+          return null;
+        }
+      });
+
+      const approvedResults = await Promise.all(approvePromises);
+      const successCount = approvedResults.filter(
+        (result) => result !== null
+      ).length;
+
+      toast.dismiss(loadingToast);
+
+      if (successCount > 0) {
+        toast.success(
+          `🎉 Đã lưu thành công ${successCount} topics vào database!`,
+          {
+            duration: 4000,
+          }
+        );
+
+        // Hide the AI topics section after saving
+        setNewlyCreatedTopics([]);
+        setApprovedTopics(new Set());
+
+        // Optionally refresh workspace data here
+        // await refreshWorkspaceData();
+      } else {
+        toast.error("Không thể lưu topics. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("❌ Error saving topics:", error);
+      toast.dismiss(loadingToast);
+
+      let errorMessage = "Không thể lưu topics. Vui lòng thử lại.";
+      if (error.message.includes("timeout")) {
+        errorMessage = "Lưu topics mất quá nhiều thời gian. Vui lòng thử lại.";
+      } else if (error.message.includes("Network Error")) {
+        errorMessage = "Không thể kết nối đến server.";
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
+    } finally {
+      setSavingTopics(false);
+    }
+  };
+
+  // Helper function to find topic by ID
+  const findTopicById = (topicId) => {
+    let foundTopic = null;
+    workspace.campaigns.forEach((campaign) => {
+      const topic = campaign.topicsList?.find((t) => t.id === topicId);
+      if (topic) {
+        foundTopic = topic;
+      }
+    });
+    return foundTopic;
   };
 
   //bình
@@ -580,10 +944,45 @@ const WorkspaceDetailPage = () => {
 
               {/* CAMPAIGN CUA ANH KHANH */}
               {activeTab === "campaigns" && (
-                <CampaignTable
-                  campaigns={workspace.campaigns}
-                  onUpdateCampaigns={handleUpdateCampaigns}
-                />
+                <div>
+                  {loadingCampaigns && (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+                      <span className="text-gray-600">
+                        Đang tải chiến dịch...
+                      </span>
+                    </div>
+                  )}
+
+                  {campaignsError && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-center">
+                        <div className="text-red-600 mr-2">⚠️</div>
+                        <div>
+                          <h4 className="font-medium text-red-900">
+                            Lỗi tải dữ liệu
+                          </h4>
+                          <p className="text-red-700 text-sm mt-1">
+                            {campaignsError}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={fetchCampaigns}
+                        className="mt-3 text-sm bg-red-100 text-red-800 px-3 py-1 rounded-lg hover:bg-red-200 transition-colors"
+                      >
+                        🔄 Thử lại
+                      </button>
+                    </div>
+                  )}
+
+                  {!loadingCampaigns && (
+                    <CampaignTable
+                      campaigns={transformedCampaigns}
+                      onUpdateCampaigns={handleUpdateCampaigns}
+                    />
+                  )}
+                </div>
               )}
 
               {activeTab === "topics" && (
@@ -592,15 +991,41 @@ const WorkspaceDetailPage = () => {
                     <h3 className="text-lg font-semibold text-gray-900">
                       🎯 Topics trong workspace
                     </h3>
-                    {newlyCreatedTopics.length > 0 && (
+                    <div className="flex space-x-3">
+                      {/* Nút để mở form tùy chỉnh */}
                       <button
                         onClick={() => setShowTopicGenerator(true)}
-                        className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded-lg font-medium hover:from-purple-700 hover:to-purple-800 transition-all flex items-center"
+                        className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg font-medium hover:from-green-700 hover:to-green-800 transition-all flex items-center"
                       >
-                        <Wand2 size={16} className="mr-2" />
-                        🔄 Tạo lại Chủ đề
+                        <Settings size={16} className="mr-2" />
+                        ⚙️ Generate tùy chỉnh
                       </button>
-                    )}
+
+                      {/* Nút generate nhanh */}
+                      {newlyCreatedTopics.length > 0 && (
+                        <button
+                          onClick={handleAutoGenerateMoreTopics}
+                          disabled={autoGeneratingTopics}
+                          className={`bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded-lg font-medium hover:from-purple-700 hover:to-purple-800 transition-all flex items-center ${
+                            autoGeneratingTopics
+                              ? "opacity-75 cursor-not-allowed"
+                              : ""
+                          }`}
+                        >
+                          {autoGeneratingTopics ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Đang generate...
+                            </>
+                          ) : (
+                            <>
+                              <Wand2 size={16} className="mr-2" />
+                              🔄 Generate thêm Topics
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Section hiển thị topics vừa được AI tạo */}
@@ -613,12 +1038,12 @@ const WorkspaceDetailPage = () => {
                           </div>
                           <div className="flex-1">
                             <h3 className="text-2xl font-bold mb-2">
-                              🎉 AI đã tạo {newlyCreatedTopics.length} topics
-                              mới!
+                              🎉 AI đã generate {newlyCreatedTopics.length}{" "}
+                              topics mới!
                             </h3>
                             <p className="text-purple-100 text-base">
-                              Dưới đây là các topics vừa được AI tạo ra cho bạn.
-                              Hãy xem và chỉnh sửa nếu cần.
+                              Dưới đây là các topics vừa được AI generate ra cho
+                              bạn. Hãy xem và chỉnh sửa nếu cần.
                             </p>
                           </div>
                           <button
@@ -650,7 +1075,7 @@ const WorkspaceDetailPage = () => {
 
                             return (
                               <div
-                                key={foundTopic.id}
+                                key={`ai-topic-${foundTopic.id}-${Date.now()}`}
                                 className="bg-white border-2 border-purple-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group"
                               >
                                 <div className="absolute inset-0 bg-gradient-to-r from-purple-100 to-pink-100 opacity-30"></div>
@@ -662,7 +1087,8 @@ const WorkspaceDetailPage = () => {
                                 </div>
 
                                 <div className="relative z-10">
-                                  <div className="flex items-start justify-between mb-4">
+                                  {/* Checkbox để approve topic */}
+                                  <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center space-x-3">
                                       <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                                         <Wand2
@@ -677,11 +1103,51 @@ const WorkspaceDetailPage = () => {
                                         <div className="flex items-center space-x-2">
                                           <div className="flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-bold">
                                             <Wand2 size={10} className="mr-1" />
-                                            AI Tạo tự động
+                                            AI Generate
                                           </div>
                                         </div>
                                       </div>
                                     </div>
+
+                                    {/* Checkbox approve */}
+                                    <label className="flex items-center cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={approvedTopics.has(
+                                          foundTopic.id
+                                        )}
+                                        onChange={() =>
+                                          handleApproveTopic(foundTopic.id)
+                                        }
+                                        className="sr-only"
+                                      />
+                                      <div
+                                        className={`w-6 h-6 border-2 rounded-lg flex items-center justify-center transition-all ${
+                                          approvedTopics.has(foundTopic.id)
+                                            ? "bg-green-500 border-green-500 text-white"
+                                            : "border-gray-300 hover:border-green-400"
+                                        }`}
+                                      >
+                                        {approvedTopics.has(foundTopic.id) && (
+                                          <svg
+                                            className="w-4 h-4"
+                                            fill="currentColor"
+                                            viewBox="0 0 20 20"
+                                          >
+                                            <path
+                                              fillRule="evenodd"
+                                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                              clipRule="evenodd"
+                                            />
+                                          </svg>
+                                        )}
+                                      </div>
+                                      <span className="ml-2 text-sm font-medium text-gray-700">
+                                        {approvedTopics.has(foundTopic.id)
+                                          ? "Đã chọn"
+                                          : "Chọn lưu"}
+                                      </span>
+                                    </label>
                                   </div>
 
                                   <h4 className="text-lg font-bold text-purple-900 mb-3 line-clamp-2">
@@ -699,32 +1165,76 @@ const WorkspaceDetailPage = () => {
                                       </span>
                                     </div>
                                     <div>
-                                      <span>Pending: </span>
-                                      <span className="font-medium text-purple-800">
-                                        {foundTopic.pendingPosts}
+                                      <span>Status: </span>
+                                      <span
+                                        className={`font-medium ${
+                                          approvedTopics.has(foundTopic.id)
+                                            ? "text-green-600"
+                                            : "text-orange-600"
+                                        }`}
+                                      >
+                                        {approvedTopics.has(foundTopic.id)
+                                          ? "APPROVED"
+                                          : "PENDING"}
                                       </span>
                                     </div>
                                   </div>
 
-                                  <div className="flex space-x-2">
-                                    <button
-                                      onClick={() =>
-                                        handleSelectTopicForContent(
-                                          foundTopic.id
-                                        )
-                                      }
-                                      className="flex-1 text-center py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-sm font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg"
-                                    >
-                                      📝 Tạo Content
-                                    </button>
-                                    <button className="py-2.5 px-4 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-all">
-                                      <Edit3 size={14} />
-                                    </button>
+                                  <div className="text-center">
+                                    <p className="text-xs text-gray-500 mb-2">
+                                      {approvedTopics.has(foundTopic.id)
+                                        ? "✅ Topic này sẽ được lưu vào database"
+                                        : "⏳ Chọn checkbox để approve topic này"}
+                                    </p>
                                   </div>
                                 </div>
                               </div>
                             );
                           })}
+                        </div>
+
+                        {/* Nút lưu approved topics */}
+                        <div className="mt-8 border-t border-purple-200 pt-6">
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium">
+                                Đã chọn: {approvedTopics.size}/
+                                {newlyCreatedTopics.length} topics
+                              </span>
+                              <p className="text-xs mt-1">
+                                Chỉ những topics được chọn mới được lưu vào
+                                database
+                              </p>
+                            </div>
+
+                            <button
+                              onClick={handleSaveApprovedTopics}
+                              disabled={
+                                savingTopics || approvedTopics.size === 0
+                              }
+                              className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center space-x-2 ${
+                                approvedTopics.size === 0
+                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                  : savingTopics
+                                  ? "bg-blue-400 text-white cursor-not-allowed"
+                                  : "bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl"
+                              }`}
+                            >
+                              {savingTopics ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                  <span>Đang lưu...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>💾</span>
+                                  <span>
+                                    Lưu Topics ({approvedTopics.size})
+                                  </span>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -766,9 +1276,9 @@ const WorkspaceDetailPage = () => {
                                 (topic) =>
                                   !newlyCreatedTopics.includes(topic.id)
                               )
-                              .map((topic) => (
+                              .map((topic, topicIndex) => (
                                 <div
-                                  key={topic.id}
+                                  key={`campaign-${campaign.id}-topic-${topic.id}-${topicIndex}`}
                                   className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300"
                                 >
                                   <div className="flex items-start justify-between mb-3">
@@ -838,7 +1348,7 @@ const WorkspaceDetailPage = () => {
                             </h5>
                             <p className="text-gray-600 mb-4">
                               Campaign "{campaign.name}" chưa có topics nào. Hãy
-                              để AI tạo ra những chủ đề thú vị!
+                              để AI generate ra những chủ đề thú vị!
                             </p>
                             {campaign.status !== "completed" && (
                               <button
@@ -846,7 +1356,7 @@ const WorkspaceDetailPage = () => {
                                 className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
                               >
                                 <Wand2 size={14} className="mr-2 inline" />
-                                🎯 Tạo Topics
+                                🎯 Generate Topics
                               </button>
                             )}
                           </div>
@@ -915,7 +1425,6 @@ const WorkspaceDetailPage = () => {
             isOpen={showTopicGenerator}
             onClose={() => setShowTopicGenerator(false)}
             onGenerate={handleTopicGenerated}
-            campaigns={workspace.campaigns}
           />
 
           {/* AI Content Generator Modal */}
@@ -927,7 +1436,6 @@ const WorkspaceDetailPage = () => {
             }}
             onGenerate={handleContentGenerated}
             selectedTopic={selectedTopicForContent}
-            campaigns={workspace.campaigns}
           />
         </div>
       </div>
