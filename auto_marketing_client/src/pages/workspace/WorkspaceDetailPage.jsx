@@ -522,9 +522,7 @@ const WorkspaceDetailPage = () => {
     if (selectedTopic) {
       setSelectedTopicForContent(selectedTopic);
       setShowContentGenerator(true);
-      toast.success(
-        `Mở AI Content Generator cho topic: ${selectedTopic.title}`
-      );
+      // Đã xoá toast khi mở content generator
     }
   };
 
@@ -980,7 +978,7 @@ const WorkspaceDetailPage = () => {
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-900">
-                      🎯 Topics trong workspace
+                      Topics trong workspace
                     </h3>
                     <div className="flex space-x-3">
                       {/* Nút để mở form tùy chỉnh */}
@@ -989,7 +987,7 @@ const WorkspaceDetailPage = () => {
                         className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg font-medium hover:from-green-700 hover:to-green-800 transition-all flex items-center"
                       >
                         <Settings size={16} className="mr-2" />
-                        ⚙️ Generate tùy chỉnh
+                        Generate tùy chỉnh
                       </button>
 
                       {/* Nút generate nhanh */}
@@ -1011,7 +1009,7 @@ const WorkspaceDetailPage = () => {
                           ) : (
                             <>
                               <Wand2 size={16} className="mr-2" />
-                              🔄 Generate thêm Topics
+                              Generate thêm Topics
                             </>
                           )}
                         </button>
@@ -1029,7 +1027,7 @@ const WorkspaceDetailPage = () => {
                           </div>
                           <div className="flex-1">
                             <h3 className="text-2xl font-bold mb-2">
-                              🎉 AI đã generate {newlyCreatedTopics.length}{" "}
+                              AI đã generate {newlyCreatedTopics.length}{" "}
                               topics mới!
                             </h3>
                             <p className="text-purple-100 text-base">
@@ -1243,35 +1241,46 @@ const WorkspaceDetailPage = () => {
                               .map((topic, topicIndex) => (
                                 <div
                                   key={`campaign-${campaign.id}-topic-${topic.id}-${topicIndex}`}
-                                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300"
+                                  className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
                                 >
-                                  <div className="flex items-start justify-between mb-3">
-                                    <div className="flex items-center space-x-2">
-                                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600">
-                                        <Folder
-                                          className="text-white"
-                                          size={16}
-                                        />
-                                      </div>
-                                      <div className="flex items-center space-x-2">
-                                        {topic.aiGenerated && (
-                                          <div className="flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-medium">
-                                            <Wand2 size={10} className="mr-1" />
-                                            AI
-                                          </div>
-                                        )}
-                                      </div>
+                                  <div className="flex items-center mb-3">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 mr-2">
+                                      <Folder
+                                        className="text-white"
+                                        size={20}
+                                      />
                                     </div>
+                                    {topic.aiGenerated && (
+                                      <div className="flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-bold ml-2">
+                                        <Wand2 size={12} className="mr-1" />
+                                        AI
+                                      </div>
+                                    )}
                                   </div>
-
-                                  <h5 className="font-semibold mb-2 line-clamp-2 text-gray-900">
-                                    {topic.title}
+                                  <h5 className="font-semibold text-base mb-1 text-gray-900">
+                                    {topic.name || topic.title}
                                   </h5>
-                                  <p className="text-sm mb-4 line-clamp-3 text-gray-600">
+                                  <p className="text-sm mb-3 text-gray-600">
                                     {topic.description}
                                   </p>
 
-                                  {/* ...info khác nếu muốn... */}
+                                  <div className="flex items-center justify-between mt-auto">
+                                    <button
+                                      className="w-full bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center justify-center"
+                                      onClick={() =>
+                                        handleSelectTopicForContent(topic.id)
+                                      }
+                                    >
+                                      Tạo Content
+                                    </button>
+                                    <button
+                                      className="ml-2 bg-purple-100 text-purple-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-purple-200 transition-colors flex items-center justify-center"
+                                      title="Chỉnh sửa topic"
+                                      disabled
+                                    >
+                                      <Settings size={16} />
+                                    </button>
+                                  </div>
                                 </div>
                               ))}
                           </div>
