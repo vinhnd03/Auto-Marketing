@@ -26,12 +26,14 @@ import { getAllCampaigns } from "../../service/campaign_service";
 import {
   generateTopicsWithAI,
   approveTopic,
-  deleteTopic,
   deleteTopicsByCampaignAndStatus,
+  getTopicsByCampaign,
 } from "../../service/topic_service";
 import dayjs from "dayjs";
 const WorkspaceDetailPage = () => {
   const { workspaceId } = useParams();
+  const [workspace, setWorkspace] = useState(null);
+  const [loadingWorkspace, setLoadingWorkspace] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [showTopicGenerator, setShowTopicGenerator] = useState(false);
   const [newlyCreatedTopics, setNewlyCreatedTopics] = useState([]);
@@ -62,37 +64,7 @@ const WorkspaceDetailPage = () => {
     } catch (err) {
       console.error("❌ Error fetching campaigns for workspace:", err);
       setCampaignsError("Không thể tải danh sách chiến dịch từ API");
-
-      // Fallback to mock data for development
-      if (process.env.NODE_ENV === "development") {
-        console.warn("🔄 Using mock data as fallback");
-        setApiCampaigns([
-          {
-            id: 1,
-            name: "Chiến dịch Tuyển sinh Khóa mới 2024",
-            description:
-              "Chiến dịch marketing tổng thể để tuyển sinh cho các khóa học lập trình mới năm 2024. Mục tiêu: 1000 học viên mới.",
-            createdAt: "2024-01-15",
-            updatedAt: "2024-01-15",
-            status: "ACTIVE",
-            startDate: "2024-02-01",
-            endDate: "2024-04-30",
-          },
-          {
-            id: 2,
-            name: "Black Friday Sale Campaign",
-            description:
-              "Chiến dịch khuyến mãi lớn dịp Black Friday cho tất cả các khóa học online. Giảm giá lên đến 70%.",
-            createdAt: "2024-01-20",
-            updatedAt: "2024-01-20",
-            status: "DRAFT",
-            startDate: "2024-11-20",
-            endDate: "2024-11-30",
-          },
-        ]);
-      } else {
-        setApiCampaigns([]);
-      }
+      setApiCampaigns([]);
     } finally {
       setLoadingCampaigns(false);
     }
@@ -180,9 +152,6 @@ const WorkspaceDetailPage = () => {
     ],
   };
 
-  // State quản lý workspace data
-  const [workspace, setWorkspace] = useState(initialWorkspace);
-
   // Function để cập nhật campaigns
   const handleUpdateCampaigns = (updatedCampaigns) => {
     setApiCampaigns(updatedCampaigns);
@@ -211,33 +180,6 @@ const WorkspaceDetailPage = () => {
       content: campaign.content || 0,
     };
   });
-
-  const stats = [
-    {
-      label: "Tổng chiến dịch",
-      value: apiCampaigns.length,
-      color: "blue",
-      icon: <Target size={24} />,
-    },
-    {
-      label: "Đang chạy",
-      value: apiCampaigns.filter((c) => c.status === "ACTIVE").length,
-      color: "green",
-      icon: <Play size={24} />,
-    },
-    {
-      label: "Tổng chủ đề",
-      value: transformedCampaigns.reduce((sum, c) => sum + c.topics, 0),
-      color: "purple",
-      icon: <Folder size={24} />,
-    },
-    {
-      label: "Tổng content",
-      value: workspace.campaigns.reduce((sum, c) => sum + c.content, 0),
-      color: "orange",
-      icon: <BarChart3 size={24} />,
-    },
-  ];
 
   const quickActions = [
     {
@@ -645,7 +587,7 @@ const WorkspaceDetailPage = () => {
       });
 
       toast.dismiss(loadingToast);
-      toast.success(`🎉 Đã lưu thành công và xóa các topic chưa chọn!`, {
+      toast.success(`Đã lưu thành công các topic mà bạn đã chọn!`, {
         duration: 4000,
       });
       setNewlyCreatedTopics([]);
@@ -721,6 +663,75 @@ const WorkspaceDetailPage = () => {
     setPosts((prev) => prev.filter((p) => p.id !== deletedPost.id));
   };
 
+  useEffect(() => {
+    const fetchWorkspaceData = async () => {
+      setLoadingWorkspace(true);
+      try {
+        // Lấy campaigns thật từ API
+        const campaignsData = await getAllCampaigns();
+        const campaignsWithTopics = await Promise.all(
+          campaignsData.map(async (campaign) => {
+            const topicsList = await getTopicsByCampaign(campaign.id);
+            return { ...campaign, topicsList: topicsList || [] };
+          })
+        );
+        setWorkspace({
+          id: parseInt(workspaceId),
+          name: "Tên workspace từ API nếu có",
+          description: "Mô tả workspace từ API nếu có",
+          campaigns: campaignsWithTopics,
+        });
+      } catch (err) {
+        toast.error("Không thể tải dữ liệu workspace từ API");
+        setWorkspace(null);
+      } finally {
+        setLoadingWorkspace(false);
+      }
+    };
+
+    fetchWorkspaceData();
+  }, [workspaceId]);
+
+  if (loadingWorkspace) {
+    return <div>Đang tải workspace...</div>;
+  }
+  if (!workspace || !workspace.campaigns) {
+    return <div>Không có dữ liệu workspace</div>;
+  }
+
+  const stats = [
+    {
+      label: "Tổng chiến dịch",
+      value: workspace && workspace.campaigns ? workspace.campaigns.length : 0,
+      color: "blue",
+      icon: <Target size={24} />,
+    },
+    {
+      label: "Đang chạy",
+      value: apiCampaigns
+        ? apiCampaigns.filter((c) => c.status === "ACTIVE").length
+        : 0,
+      color: "green",
+      icon: <Play size={24} />,
+    },
+    {
+      label: "Tổng chủ đề",
+      value: Array.isArray(transformedCampaigns)
+        ? transformedCampaigns.reduce((sum, c) => sum + (c.topics || 0), 0)
+        : 0,
+      color: "purple",
+      icon: <Folder size={24} />,
+    },
+    {
+      label: "Tổng content",
+      value:
+        workspace && Array.isArray(workspace.campaigns)
+          ? workspace.campaigns.reduce((sum, c) => sum + (c.content || 0), 0)
+          : 0,
+      color: "orange",
+      icon: <BarChart3 size={24} />,
+    },
+  ];
   return (
     <div className="bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -900,15 +911,22 @@ const WorkspaceDetailPage = () => {
                         Mục tiêu
                       </h3>
                       <div className="space-y-2">
-                        {workspace.goals.map((goal, goalIndex) => (
-                          <div
-                            key={`goal-${goalIndex}`}
-                            className="flex items-center space-x-2"
-                          >
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span className="text-gray-700">{goal}</span>
-                          </div>
-                        ))}
+                        {Array.isArray(workspace.goals) &&
+                        workspace.goals.length > 0 ? (
+                          workspace.goals.map((goal, goalIndex) => (
+                            <div
+                              key={`goal-${goalIndex}-${goal}`}
+                              className="flex items-center space-x-2"
+                            >
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <span className="text-gray-700">{goal}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <span className="text-gray-500">
+                            Chưa có mục tiêu nào
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1130,34 +1148,11 @@ const WorkspaceDetailPage = () => {
                                     {foundTopic.description}
                                   </p>
 
-                                  <div className="grid grid-cols-2 gap-3 text-xs text-gray-600 mb-4">
-                                    <div>
-                                      <span>Posts: </span>
-                                      <span className="font-medium text-purple-800">
-                                        {foundTopic.posts}
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <span>Status: </span>
-                                      <span
-                                        className={`font-medium ${
-                                          approvedTopics.has(foundTopic.id)
-                                            ? "text-green-600"
-                                            : "text-orange-600"
-                                        }`}
-                                      >
-                                        {approvedTopics.has(foundTopic.id)
-                                          ? "APPROVED"
-                                          : "PENDING"}
-                                      </span>
-                                    </div>
-                                  </div>
-
                                   <div className="text-center">
                                     <p className="text-xs text-gray-500 mb-2">
                                       {approvedTopics.has(foundTopic.id)
-                                        ? "✅ Topic này sẽ được lưu vào database"
-                                        : "⏳ Chọn checkbox để approve topic này"}
+                                        ? "✅ Topic này sẽ được lưu"
+                                        : "⏳ Chọn checkbox để lưu topic này"}
                                     </p>
                                   </div>
                                 </div>
@@ -1213,7 +1208,6 @@ const WorkspaceDetailPage = () => {
                     </div>
                   )}
 
-                  {/* Topics by Campaign */}
                   {workspace.campaigns.map((campaign) => (
                     <div
                       key={campaign.id}
@@ -1237,18 +1231,15 @@ const WorkspaceDetailPage = () => {
                           {getStatusBadge(campaign.status)}
                         </div>
                       </div>
-
                       <div className="p-6">
+                        {/* SỬA ĐOẠN NÀY: chỉ render topic APPROVED */}
                         {campaign.topicsList &&
                         campaign.topicsList.filter(
-                          (topic) => !newlyCreatedTopics.includes(topic.id)
+                          (topic) => topic.status === "APPROVED"
                         ).length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {campaign.topicsList
-                              .filter(
-                                (topic) =>
-                                  !newlyCreatedTopics.includes(topic.id)
-                              )
+                              .filter((topic) => topic.status === "APPROVED")
                               .map((topic, topicIndex) => (
                                 <div
                                   key={`campaign-${campaign.id}-topic-${topic.id}-${topicIndex}`}
@@ -1280,34 +1271,7 @@ const WorkspaceDetailPage = () => {
                                     {topic.description}
                                   </p>
 
-                                  <div className="grid grid-cols-2 gap-3 text-xs text-gray-500 mb-4">
-                                    <div>
-                                      <span>Posts: </span>
-                                      <span className="font-medium text-gray-900">
-                                        {topic.posts}
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <span>Pending: </span>
-                                      <span className="font-medium text-gray-900">
-                                        {topic.pendingPosts}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex space-x-2">
-                                    <button
-                                      onClick={() =>
-                                        handleSelectTopicForContent(topic.id)
-                                      }
-                                      className="flex-1 text-center py-2 px-3 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
-                                    >
-                                      Tạo Content
-                                    </button>
-                                    <button className="py-2 px-3 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-sm font-medium transition-colors">
-                                      <Wand2 size={14} />
-                                    </button>
-                                  </div>
+                                  {/* ...info khác nếu muốn... */}
                                 </div>
                               ))}
                           </div>
