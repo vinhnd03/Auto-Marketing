@@ -166,6 +166,16 @@ public class TopicService implements ITopicService {
         return topicRepository.save(topic);
     }
 
+    @Override
+    public void deleteById(Long topicId) {
+        topicRepository.deleteById(topicId);
+    }
+
+    @Override
+    public void deleteAll() {
+        topicRepository.deleteAll();
+    }
+
     // Hàm này truyền thêm promptSentToAI để set aiPrompt cho từng topic
     private List<Topic> parseGPTResponseToTopics(String gptResponse, Campaign campaign, String promptSentToAI) {
         List<Topic> topics = new ArrayList<>();

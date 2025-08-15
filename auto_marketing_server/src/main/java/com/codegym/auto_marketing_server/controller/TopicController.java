@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/v1/topics")
 @RequiredArgsConstructor
+@CrossOrigin("*")
 @Slf4j
 @Tag(name = "Topics", description = "AI Topic Generation and Management")
 public class TopicController {
@@ -105,5 +106,35 @@ public class TopicController {
 
         TopicResponseDTO topic = topicService.rejectTopic(topicId);
         return ResponseEntity.ok(topic);
+    }
+
+    // --- Thêm API xóa một topic ---
+    @DeleteMapping("/{topicId}")
+    @Operation(
+            summary = "Delete a topic",
+            description = "Delete a topic by its ID",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Topic deleted successfully"),
+                    @ApiResponse(responseCode = "404", description = "Topic not found")
+            }
+    )
+    public ResponseEntity<Void> deleteTopic(@Parameter(description = "Topic ID") @PathVariable Long topicId) {
+        topicService.deleteById(topicId);
+        log.info("🗑️ Deleted topic ID: {}", topicId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping
+    @Operation(
+            summary = "Delete all topics",
+            description = "Delete all topics in the system",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "All topics deleted successfully")
+            }
+    )
+    public ResponseEntity<Void> deleteAllTopics() {
+        topicService.deleteAll();
+        log.info("🗑️ Deleted all topics");
+        return ResponseEntity.ok().build();
     }
 }

@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/v1/posts")
 @RequiredArgsConstructor
+@CrossOrigin("*")
 @Slf4j
 @Tag(name = "Posts", description = "AI Content Generation and Post Management")
 public class PostController {

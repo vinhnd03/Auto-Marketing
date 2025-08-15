@@ -22,4 +22,8 @@ public interface ITopicService {
     Topic findById(Long topicId);
 
     Topic save(Topic topic);
+
+    void deleteById(Long topicId);
+
+    void deleteAll();
 }
