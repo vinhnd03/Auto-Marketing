@@ -137,4 +137,22 @@ public class TopicController {
         log.info("🗑️ Deleted all topics");
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/campaign/{campaignId}/status/{status}")
+    @Operation(
+            summary = "Delete topics by campaign and status",
+            description = "Delete all topics for a campaign with specific status (e.g. PENDING)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Topics deleted successfully"),
+                    @ApiResponse(responseCode = "404", description = "Campaign not found")
+            }
+    )
+    public ResponseEntity<Void> deleteTopicsByCampaignAndStatus(
+            @Parameter(description = "Campaign ID") @PathVariable Long campaignId,
+            @Parameter(description = "Topic status") @PathVariable TopicStatus status
+    ) {
+        topicService.deleteByCampaignAndStatus(campaignId, status);
+        log.info("🗑️ Deleted topics with status {} for campaign ID: {}", status, campaignId);
+        return ResponseEntity.ok().build();
+    }
 }
