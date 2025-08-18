@@ -28,4 +28,12 @@ public class Workspace {
     @Enumerated(EnumType.STRING)
     @Column(name="status")
     private WorkspaceStatus status = WorkspaceStatus.ACTIVE;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.avatar == null || this.avatar.isBlank()) {
+            this.avatar = "https://i.pravatar.cc/100?img=4";
+        }
+        this.createdAt = LocalDate.now();
+    }
 }

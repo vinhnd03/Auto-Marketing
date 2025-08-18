@@ -1,5 +1,6 @@
 package com.codegym.auto_marketing_server.entity;
 
+import com.codegym.auto_marketing_server.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +21,8 @@ public class Transaction {
     private Long id;
     private Long amount;
     private String paymentMethod;
-    private String paymentStatus;
+    @Enumerated(EnumType.STRING) // Lưu enum dưới dạng chuỗi (ví dụ: "SUCCESS")
+    private PaymentStatus paymentStatus;
     private String transactionCode;
     private LocalDateTime createdAt;
 
