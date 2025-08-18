@@ -4,70 +4,122 @@ import com.codegym.auto_marketing_server.dto.TopicGenerationRequestDTO;
 import com.codegym.auto_marketing_server.dto.TopicResponseDTO;
 import com.codegym.auto_marketing_server.enums.TopicStatus;
 import com.codegym.auto_marketing_server.service.ITopicService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.ResponseEntity;
 
-import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
-@WebMvcTest(TopicController.class)
-@AutoConfigureMockMvc
-public class TopicControllerTest {
+class TopicControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
+    @Mock
     private ITopicService topicService;
 
+    @InjectMocks
+    private TopicController topicController;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
     @Test
-    public void testGenerateTopics_success() throws Exception {
+    void generateTopics_shouldReturnOk() {
+        TopicGenerationRequestDTO request = new TopicGenerationRequestDTO();
+        List<TopicResponseDTO> mockTopics = Arrays.asList(new TopicResponseDTO(), new TopicResponseDTO());
+
+        when(topicService.generateTopicsWithAI(request)).thenReturn(CompletableFuture.completedFuture(mockTopics));
+
+        ResponseEntity<List<TopicResponseDTO>> response = topicController.generateTopics(request).join();
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(2, response.getBody().size());
+        verify(topicService).generateTopicsWithAI(request);
+    }
+
+    @Test
+    void getTopicsByCampaign_shouldReturnOk() {
+        List<TopicResponseDTO> mockTopics = Arrays.asList(new TopicResponseDTO());
+        when(topicService.getTopicsByCampaign(88L)).thenReturn(mockTopics);
+
+        ResponseEntity<List<TopicResponseDTO>> response = topicController.getTopicsByCampaign(88L);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(1, response.getBody().size());
+        verify(topicService).getTopicsByCampaign(88L);
+    }
+
+    @Test
+    void getTopicsByCampaignAndStatus_shouldReturnOk() {
+        List<TopicResponseDTO> mockTopics = Arrays.asList(new TopicResponseDTO());
+        when(topicService.getTopicsByCampaignAndStatus(88L, TopicStatus.PENDING)).thenReturn(mockTopics);
+
+        ResponseEntity<List<TopicResponseDTO>> response = topicController.getTopicsByCampaignAndStatus(88L, TopicStatus.PENDING);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(1, response.getBody().size());
+        verify(topicService).getTopicsByCampaignAndStatus(88L, TopicStatus.PENDING);
+    }
+
+    @Test
+    void approveTopic_shouldReturnOk() {
         TopicResponseDTO topic = new TopicResponseDTO();
-        topic.setId(10L);
-        topic.setName("AI Topic");
-        topic.setDescription("Desc");
-        topic.setGeneratedByAI(true);
-        topic.setAiPrompt("Prompt");
-        topic.setStatus(TopicStatus.PENDING);
-        topic.setCreatedAt(LocalDate.now());
-        topic.setUpdatedAt(LocalDate.now());
-        topic.setCampaignId(1L);
+        when(topicService.approveTopic(77L)).thenReturn(topic);
 
-        when(topicService.generateTopicsWithAI(any(TopicGenerationRequestDTO.class)))
-                .thenReturn(CompletableFuture.completedFuture(List.of(topic)));
+        ResponseEntity<TopicResponseDTO> response = topicController.approveTopic(77L);
 
-        TopicGenerationRequestDTO requestDTO = new TopicGenerationRequestDTO();
-        requestDTO.setNumberOfTopics(1);
-        requestDTO.setCampaignId(1L);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(topic, response.getBody());
+        verify(topicService).approveTopic(77L);
+    }
 
-        String jsonRequest = objectMapper.writeValueAsString(requestDTO);
+    @Test
+    void rejectTopic_shouldReturnOk() {
+        TopicResponseDTO topic = new TopicResponseDTO();
+        when(topicService.rejectTopic(77L)).thenReturn(topic);
 
-        var mvcResult = mockMvc.perform(post("/api/v1/topics/generate")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
-                .andExpect(request().asyncStarted())
-                .andReturn();
+        ResponseEntity<TopicResponseDTO> response = topicController.rejectTopic(77L);
 
-        mockMvc.perform(asyncDispatch(mvcResult))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(10L))
-                .andExpect(jsonPath("$[0].name").value("AI Topic"))
-                .andExpect(jsonPath("$[0].campaignId").value(1L));
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(topic, response.getBody());
+        verify(topicService).rejectTopic(77L);
+    }
+
+    @Test
+    void deleteTopic_shouldReturnOk() {
+        doNothing().when(topicService).deleteById(77L);
+
+        ResponseEntity<Void> response = topicController.deleteTopic(77L);
+
+        assertEquals(200, response.getStatusCodeValue());
+        verify(topicService).deleteById(77L);
+    }
+
+    @Test
+    void deleteAllTopics_shouldReturnOk() {
+        doNothing().when(topicService).deleteAll();
+
+        ResponseEntity<Void> response = topicController.deleteAllTopics();
+
+        assertEquals(200, response.getStatusCodeValue());
+        verify(topicService).deleteAll();
+    }
+
+    @Test
+    void deleteTopicsByCampaignAndStatus_shouldReturnOk() {
+        doNothing().when(topicService).deleteByCampaignAndStatus(88L, TopicStatus.PENDING);
+
+        ResponseEntity<Void> response = topicController.deleteTopicsByCampaignAndStatus(88L, TopicStatus.PENDING);
+
+        assertEquals(200, response.getStatusCodeValue());
+        verify(topicService).deleteByCampaignAndStatus(88L, TopicStatus.PENDING);
     }
 }
