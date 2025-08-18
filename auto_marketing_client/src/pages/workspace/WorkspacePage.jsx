@@ -1,11 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { Plus, Folder, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {Plus, Folder, Settings} from "lucide-react";
+import {Link} from "react-router-dom";
 import CreateWorkspaceModal from "../../components/workspace/CreateWorkspaceModal";
 import UpdateWorkspaceModal from "../../components/workspace/UpdateWorkspaceModal";
 import SelectPagesModal from "../../components/modal/SelectPagesModal";
 import SelectSocialNetwork from "./../../components/modal/SelectSocialNetwork";
-import { useAuth } from "../../hooks/useAuth";
+import {useAuth} from "../../hooks/useAuth";
+import {
+    getAllWorkspaceByUserId,
+    getMaxWorkspace,
+    updateWorkspaceStatus
+} from "../../service/workspace/workspace_service";
+import WorkspaceLimitModal from "../../components/workspace/WorkspaceLimitModal";
+import toast from "react-hot-toast";
 
 const WorkspacePage = () => {
     const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -14,98 +21,127 @@ const WorkspacePage = () => {
     const [visibleCount, setVisibleCount] = useState(6); // số lượng card hiển thị
     const [isExpanded, setIsExpanded] = useState(false); // trạng thái xem thêm / thu gọn
 
+    const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
+    const [selectedActiveIds, setSelectedActiveIds] = useState([]);
+
     const defaultAvatar = "https://i.pravatar.cc/100?img=4";
 
-    const [workspaces, setWorkspaces] = useState([
-        {
-            id: 1,
-            name: "Summer Sale Campaign",
-            description: "Chiến dịch khuyến mãi mùa hè 2024",
-            avatar: defaultAvatar,
-            createdAt: "2024-08-01",
-            status: "active",
-            campaigns: 5,
-            members: 3,
-        },
-        {
-            id: 2,
-            name: "Product Launch",
-            description: "Ra mắt sản phẩm mới iPhone 15",
-            avatar: defaultAvatar,
-            createdAt: "2024-07-15",
-            status: "completed",
-            campaigns: 8,
-            members: 5,
-        },
-        {
-            id: 3,
-            name: "Brand Awareness",
-            avatar: defaultAvatar,
-            createdAt: "2024-07-01",
-            status: "active",
-            campaigns: 12,
-            members: 7,
-        },
-        {
-            id: 4,
-            name: "New Year Campaign",
-            description: "Khuyến mãi Tết 2025",
-            avatar: defaultAvatar,
-            createdAt: "2024-12-25",
-            status: "active",
-            campaigns: 10,
-            members: 4,
-        },
-        {
-            id: 5,
-            name: "Black Friday",
-            avatar: defaultAvatar,
-            createdAt: "2024-11-20",
-            status: "completed",
-            campaigns: 7,
-            members: 6,
-        },
-        {
-            id: 6,
-            name: "Tech Fair",
-            description: "Triển lãm công nghệ",
-            avatar: defaultAvatar,
-            createdAt: "2024-09-05",
-            status: "active",
-            campaigns: 9,
-            members: 8,
-        },
-        {
-            id: 7,
-            name: "Charity Event",
-            avatar: defaultAvatar,
-            createdAt: "2024-10-15",
-            status: "active",
-            campaigns: 4,
-            members: 2,
-        },
-    ]);
+    const [workspaces, setWorkspaces] = useState([])
 
-    const { user } = useAuth();
+    const {user} = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSelectPageModalOpen, setIsSelectPageModalOpen] = useState(false);
+    const userId = 1;
+    const [maxWorkspace, setMaxWorkspace] = useState(0);
 
     useEffect(() => {
-        if (user?.isNew) {
-            setIsModalOpen(true);
-        } else {
-            setIsModalOpen(false);
-        }
-    }, [user]);
+        const fetchData = async () => {
+            const [maxWsRes, wsList] = await Promise.all([
+                getMaxWorkspace(userId),
+                getAllWorkspaceByUserId(userId)
+            ]);
 
-    const handleCreateWorkspace = (workspace) => {
-        setWorkspaces((prev) => [workspace, ...prev]);
-    };
+            if (maxWsRes.error) {
+                toast.error(maxWsRes.error);
+                return;
+            }
+
+            setMaxWorkspace(maxWsRes);
+
+            if (!Array.isArray(wsList)) {
+                toast.error(wsList.message || "Lấy danh sách workspace thất bại");
+                setWorkspaces([]);
+                return;
+            }
+
+            if (wsList.length === 0) {
+                setShowCreateModal(true);
+            }
+
+            // Tự động bật ACTIVE nếu ít hơn maxWorkspace
+            const activeCount = wsList.filter(w => w.status === "ACTIVE").length;
+            if (activeCount < maxWsRes) {
+                const allIds = wsList.map(w => w.id);
+                // Gọi API update trạng thái
+                try {
+                    const res = await updateWorkspaceStatus(userId, allIds, "ACTIVE");
+                    if (res.error) {
+                        toast.error(res.error);
+                    } else {
+                        // Cập nhật trạng thái trong state
+                        const updatedWs = wsList.map(w => ({...w, status: "ACTIVE"}));
+                        setWorkspaces(updatedWs);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    toast.error("Không thể cập nhật trạng thái workspace");
+                    setWorkspaces(wsList); // vẫn set danh sách cũ
+                }
+            } else {
+                setWorkspaces(wsList);
+            }
+        };
+
+        fetchData();
+    }, [userId]);
+
+
+    useEffect(() => {
+
+        const activeWs = workspaces.filter(w => w.status === "ACTIVE");
+
+        if (activeWs.length > maxWorkspace) {
+            setSelectedActiveIds(activeWs.map(w => w.id));
+            setIsLimitModalOpen(true);
+            toast.custom(
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 rounded shadow">
+                    Vui lòng nâng cấp gói để tạo thêm không gian làm việc
+                </div>
+            );
+        } else {
+            setIsLimitModalOpen(false);
+        }
+    }, [workspaces, maxWorkspace]);
+
 
     const handleUpdateWorkspace = (updatedWs) => {
         setWorkspaces((prev) =>
             prev.map((ws) => (ws.id === updatedWs.id ? updatedWs : ws))
         );
+    };
+
+    const handleSaveLimit = async () => {
+        try {
+            // Lấy các workspace được chọn ACTIVE
+            const activeIds = selectedActiveIds;
+
+            // Gọi API PATCH
+            const res = await updateWorkspaceStatus(userId, activeIds, "ACTIVE");
+
+            if (res.error) {
+                toast.error(res.error);
+                return;
+            }
+
+            // Cập nhật trạng thái workspace trong state
+            setWorkspaces(prev =>
+                prev.map(ws => ({
+                    ...ws,
+                    status: activeIds.includes(ws.id) ? "ACTIVE" : "INACTIVE"
+                }))
+            );
+
+            toast.success("Cập nhật trạng thái workspace thành công");
+            setIsLimitModalOpen(false); // đóng modal sau khi lưu
+        } catch (error) {
+            console.error(error);
+            toast.error("Cập nhật thất bại");
+        }
+    };
+
+
+    const handleAddWorkspace = (newWorkspace) => {
+        setWorkspaces(prev => [newWorkspace, ...prev]); // thêm workspace mới vào state
     };
 
     return (
@@ -139,7 +175,7 @@ const WorkspacePage = () => {
                     onClick={() => setShowCreateModal(true)}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all flex items-center"
                 >
-                    <Plus size={16} className="mr-2" />
+                    <Plus size={16} className="mr-2"/>
                     Tạo workspace mới
                 </button>
             </div>
@@ -147,10 +183,10 @@ const WorkspacePage = () => {
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 {[
-                    { label: "Tổng workspace", value: workspaces.length, color: "blue" },
+                    {label: "Tổng workspace", value: workspaces.length, color: "blue"},
                     {
                         label: "Đang hoạt động",
-                        value: workspaces.filter((w) => w.status === "active").length,
+                        value: workspaces.filter((w) => w.status === "ACTIVE").length,
                         color: "green",
                     },
                     {
@@ -188,7 +224,7 @@ const WorkspacePage = () => {
                                                 : "from-orange-500 to-orange-600"
                                 } rounded-lg flex items-center justify-center`}
                             >
-                                <Folder className="text-white" size={24} />
+                                <Folder className="text-white" size={24}/>
                             </div>
                         </div>
                     </div>
@@ -215,7 +251,7 @@ const WorkspacePage = () => {
                                         className="text-gray-500 hover:text-blue-600"
                                         title="Chỉnh sửa"
                                     >
-                                        <Settings size={18} />
+                                        <Settings size={18}/>
                                     </button>
                                 </div>
                                 <img
@@ -227,20 +263,33 @@ const WorkspacePage = () => {
                                 <div className="mt-1 min-h-[1.25rem] flex items-center justify-center">
                                     {ws.description && (
                                         <p className="text-sm text-gray-500 text-center">
-                                            {ws.description}
+                                            {ws.description.length > 50
+                                                ? ws.description.substring(0, 50) + "..."
+                                                : ws.description
+                                            }
                                         </p>
                                     )}
                                 </div>
                                 <div className="text-xs text-gray-400 mt-2">
-                                    Ngày tạo: {ws.createdAt}
+                                    Ngày tạo: {new Date(ws.createdAt).toLocaleDateString()}
                                 </div>
                                 <div className="mt-auto w-full pt-4">
-                                    <Link
-                                        to={`/workspaces/${ws.id}`}
-                                        className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium block text-center"
-                                    >
-                                        Mở workspace
-                                    </Link>
+                                    {ws.status === "ACTIVE" ? (
+                                        <Link
+                                            to={`/workspaces/${ws.id}`}
+                                            className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium block text-center"
+                                        >
+                                            Mở workspace
+                                        </Link>
+                                    ) : (
+                                        <button
+                                            disabled
+                                            className="w-full bg-gray-200 text-gray-400 py-2 px-4 rounded-lg text-sm font-medium block text-center cursor-not-allowed"
+                                            title="Workspace này đang tạm dừng"
+                                        >
+                                            Mở workspace
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -270,7 +319,7 @@ const WorkspacePage = () => {
                                     onClick={() => {
                                         setVisibleCount(6);
                                         setIsExpanded(false);
-                                        window.scrollTo({ top: 0, behavior: "smooth" });
+                                        window.scrollTo({top: 0, behavior: "smooth"});
                                     }}
                                     className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium"
                                 >
@@ -282,17 +331,31 @@ const WorkspacePage = () => {
                 </>
             )}
 
+            {isLimitModalOpen && (
+                <WorkspaceLimitModal
+                    workspaces={workspaces}
+                    selectedIds={selectedActiveIds}
+                    onChange={setSelectedActiveIds}
+                    onSave={handleSaveLimit}
+                    maxWorkspace={maxWorkspace}
+                />
+            )}
+
             {/* Modals */}
             <CreateWorkspaceModal
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
-                onCreate={handleCreateWorkspace}
+                onAdd={handleAddWorkspace}
+                workspaces={workspaces}
             />
             <UpdateWorkspaceModal
                 isOpen={showUpdateModal}
                 onClose={() => setShowUpdateModal(false)}
                 onUpdate={handleUpdateWorkspace}
                 workspace={selectedWorkspace}
+                setWorkspaces={setWorkspaces}
+                userId={userId}
+                workspaces={workspaces}
             />
         </div>
     );
