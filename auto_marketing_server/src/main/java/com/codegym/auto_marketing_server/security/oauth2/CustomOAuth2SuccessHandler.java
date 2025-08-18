@@ -132,7 +132,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         user.setAccessToken(accessToken);
         user.setRefreshToken(refreshToken);
         user.setAccessTokenExpiry(accessTokenExpiry);
-        if(avatarUrl != null) {
+        if(avatarUrl != null && user.getAvatar() == null ) {
             user.setAvatar(avatarUrl);
         }
 
