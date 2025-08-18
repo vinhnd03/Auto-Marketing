@@ -20,16 +20,18 @@ public class Topic {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+    @Column(columnDefinition = "TEXT")
     private String description;
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private TopicStatus status = TopicStatus.PENDING;
     private Boolean generatedByAI;
+    @Column(name = "ai_prompt", columnDefinition = "TEXT")
     private String aiPrompt;
     private LocalDate createdAt;
     private LocalDate updatedAt;
 
     @ManyToOne
-    @JoinColumn(name="campaign_id")
+    @JoinColumn(name = "campaign_id")
     private Campaign campaign;
 }
