@@ -1,4 +1,4 @@
 package com.codegym.auto_marketing_server.util;
 
-public class util {
+public class OpenAIImageService {
 }
