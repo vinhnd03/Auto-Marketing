@@ -46,4 +46,6 @@ public class Post {
     @ManyToOne
     @JoinColumn(name = "topic_id")
     private Topic topic;
+
+    private String imageUrl;
 }

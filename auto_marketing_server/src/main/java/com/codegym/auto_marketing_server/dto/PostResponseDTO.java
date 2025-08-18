@@ -70,4 +70,6 @@ public class PostResponseDTO {
     // ========== RELATIONSHIPS ==========
     @Schema(description = "Associated topic information")
     private TopicResponseDTO topic;
+
+    private String imageUrl;
 }

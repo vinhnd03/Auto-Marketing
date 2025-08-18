@@ -9,12 +9,17 @@ import com.codegym.auto_marketing_server.enums.TopicStatus;
 import com.codegym.auto_marketing_server.repository.IPostRepository;
 import com.codegym.auto_marketing_server.service.IPostService;
 import com.codegym.auto_marketing_server.service.ITopicService;
+import com.codegym.auto_marketing_server.util.CloudinaryService;
+import com.codegym.auto_marketing_server.util.OpenAIImageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.net.URL;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,37 +37,46 @@ public class PostService implements IPostService {
     private final GPTService gptService;
     private final ModelMapper modelMapper;
     private final ObjectMapper objectMapper;
+    private final CloudinaryService cloudinaryService;
+    private final OpenAIImageService openAIImageService; // Thêm service này!
 
     @Override
     public CompletableFuture<List<PostResponseDTO>> generateContentWithAI(ContentGenerationRequestDTO request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                log.info("🤖 Starting AI content generation for topic ID: {}", request.getTopicId());
-
-                // Validate topic exists and is approved
                 Topic topic = topicService.findById(request.getTopicId());
                 if (topic.getStatus() != TopicStatus.APPROVED) {
-                    throw new RuntimeException("Topic must be approved before generating content. Current status: " + topic.getStatus());
+                    throw new RuntimeException("Topic must be approved before generating content.");
                 }
-
                 List<Post> generatedPosts = new ArrayList<>();
 
-                // Generate multiple posts if requested
                 for (int i = 0; i < request.getNumberOfPosts(); i++) {
-                    log.info("Generating post {} of {} for topic: {}",
-                            i + 1, request.getNumberOfPosts(), topic.getName());
-
+                    // 1. Gen content
                     String gptResponse = gptService.generateLongFormContent(topic, request).get();
 
+                    // 2. Gen image prompt từ content
+                    String imagePrompt = gptService.generateImagePromptFromContent(gptResponse).get();
+
+                    // 3. Gọi OpenAI API để lấy url ảnh thật
+                    String aiImageUrl = openAIImageService.generateImageUrlFromPrompt(imagePrompt);
+
+                    // 4. Download ảnh về file tạm
+                    File imageFile = downloadImageToFile(aiImageUrl);
+
+                    // 5. Upload lên Cloudinary
+                    String imageUrl = cloudinaryService.uploadImage(imageFile);
+
+                    // 6. Xoá file tạm
+                    imageFile.delete();
+
+                    // 7. Tạo post, lưu imageUrl
                     Post post = createPostFromGPTResponse(gptResponse, topic, request);
+                    post.setImageUrl(imageUrl);
+
                     generatedPosts.add(post);
                 }
 
-                // Save all generated posts
                 List<Post> savedPosts = postRepository.saveAll(generatedPosts);
-
-                log.info("Successfully generated {} AI posts for topic: {}",
-                        savedPosts.size(), topic.getName());
 
                 return savedPosts.stream()
                         .map(this::mapToResponseDTO)
@@ -73,6 +87,16 @@ public class PostService implements IPostService {
                 throw new RuntimeException("Failed to generate AI content: " + e.getMessage(), e);
             }
         });
+    }
+
+    // Download ảnh từ url về file tạm
+    private File downloadImageToFile(String imageUrl) throws Exception {
+        URL url = new URL(imageUrl);
+        File tempFile = File.createTempFile("ai-image", ".jpg");
+        try (var in = url.openStream()) {
+            Files.copy(in, tempFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
+        return tempFile;
     }
 
     @Override
