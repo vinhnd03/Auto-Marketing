@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import {TrendingUp, Package, Users, Percent, DollarSign, AlertTriangle} from "lucide-react";
 import {Link} from "react-router-dom";
-import TimeFilter from "../../components/admin/TimeFilter";
+import FilterForm from "../../components/admin/FilterForm";
 import RevenueLineChart from "../../components/admin/RevenueLineChart";
 import PackageCharts from "../../components/admin/PackageCharts";
 
@@ -120,7 +120,7 @@ const RevenueManagement = () => {
                 <div className="bg-white p-4 rounded-xl shadow">
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
                         <h2 className="font-bold text-lg text-gray-800">📈 Doanh thu</h2>
-                        <TimeFilter onFilterChange={setRevenueFilter}/>
+                        <FilterForm onFilterChange={setRevenueFilter}/>
                     </div>
                     <RevenueLineChart selectedTimeType={revenueFilter.type}/>
                 </div>
@@ -129,7 +129,7 @@ const RevenueManagement = () => {
                 <div className="bg-white p-4 rounded-xl shadow">
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
                         <h2 className="font-bold text-lg text-gray-800">📦 Phân phối gói dịch vụ</h2>
-                        <TimeFilter onFilterChange={setPackageFilter}/>
+                        <FilterForm onFilterChange={setPackageFilter}/>
                     </div>
                     <PackageCharts selectedTimeType={packageFilter.type}/>
                 </div>
