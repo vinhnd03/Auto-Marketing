@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Lock, ArrowLeft } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth";
 import toast from "react-hot-toast";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import verifyToken from "../../service/tokenService";
+import authService from "../../service/authService";
+import Preloader from './../../components/ui/Preloader';
 
 // Validation schema
 const registerSchema = Yup.object({
@@ -24,37 +26,57 @@ const registerSchema = Yup.object({
 const ResetPasswordPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { changePassword } = useAuth();
+  const [isExpiry, setIsExpiry] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  console.log(token);
 
   const initialValues = {
     password: "",
     confirmPassword: "",
   };
 
-  const handleSubmit = async (values, { setSubmitting }) => {
-    try {
-      const newPassword = values.password;
-
-      const result = await changePassword(token, newPassword);
-      if (result.success) {
-        toast.success("Đặt lại mật khẩu thành công!");
-        navigate("/login");
-      } else {
-        toast.error(result.error || "Đặt lại mật khẩu thất bại");
+  useEffect(() => {
+    const checkToken = async () => {
+      if (!token) {
+        setIsExpiry(true);
+        return;
       }
-    } catch (error) {
-      console.error("Rest password error:", error);
-      toast.error("Có lỗi xảy ra, vui lòng thử lại");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+      const valid = await verifyToken(token);
+      setIsExpiry(!valid);
+    };
 
-  return (
+    checkToken();
+  }, [token]);
+
+  const handleSubmit = async (values, { setSubmitting }) => {
+  try {
+    const newPassword = values.password;
+    const result = await authService.changePassword(token, newPassword);
+
+    if (result.success) {
+      toast.success(result.data?.message || "Đặt lại mật khẩu thành công!");
+      setIsLoading(true);
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+    } else {
+      toast.error(result.error || "Đặt lại mật khẩu thất bại");
+    }
+  } catch (error) {
+    console.error(error);
+    toast.error("Có lỗi xảy ra, vui lòng thử lại");
+  } finally {
+    
+    setSubmitting(false);
+  }
+};
+  if(isLoading) return (<Preloader/>)
+
+  return !isExpiry ? (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
@@ -192,6 +214,44 @@ const ResetPasswordPage = () => {
               </Form>
             )}
           </Formik>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <Link
+            to="/"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-8"
+          >
+            <ArrowLeft size={20} className="mr-2" />
+            Về trang chủ
+          </Link>
+
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center">
+              <span className="text-white font-bold text-xl">AM</span>
+            </div>
+          </div>
+
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Liên kết không hợp lệ
+          </h2>
+          <p className="text-gray-600">
+            Đường dẫn của bạn đã hết hạn hoặc không hợp lệ.
+            <br /> Vui lòng yêu cầu đặt lại mật khẩu mới.
+          </p>
+          <button
+            onClick={() => {
+              // setEmailSent(false);
+              // setEmail("");
+            }}
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+          >
+            Gửi lại email
+          </button>
         </div>
       </div>
     </div>

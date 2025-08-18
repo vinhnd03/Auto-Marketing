@@ -44,6 +44,11 @@ import ListCustomerComponent from "./components/admin/ListCustomerComponent";
 import ListCustomerByDateComponent from "./components/admin/ListCustomerByDateComponent";
 import NewCustomerStatisticsComponent from "./components/admin/NewCustomerStatisticsComponent";
 import TrendPage from "./components/admin/TrendAnalysis";
+import { AuthProvider } from "./context/AuthContext";
+import { ForbiddenPage, NotFoundPage } from "./pages/error/ErrorPage ";
+import AdminRoute from "./routes/AdminRoute";
+import GuestRoute from "./routes/GuestRoute";
+import OAuth2Success from "./pages/auth/OAuthSucess";
 
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
@@ -90,106 +95,162 @@ AppLayout.propTypes = {
 
 function App() {
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     setTimeout(() => setLoading(false), 1200);
   }, []);
   if (loading) return <Preloader />;
 
   return (
-    <Router>
-      <ScrollToTop />
-      <Routes>
-        {/* Admin Routes - Separate layout */}
-        <Route
-          path="/admin/*"
-          element={
-            <AdminLayout>
-              <Routes>
-                <Route index element={<AdminDashboard />} />
-                <Route path="users/list" element={<ListCustomerComponent />} />
-                <Route
-                  path="users/new"
-                  element={<ListCustomerByDateComponent />}
-                />
-                <Route path="customers/trends" element={<TrendPage />} />
-                <Route
-                  path="customers/statistics"
-                  element={<NewCustomerStatisticsComponent />}
-                />
-                <Route path="revenue/overview" element={<RevenueManagement />} />
-              </Routes>
-            </AdminLayout>
-          }
-        />
+    <AuthProvider>
+      <Router>
+        <ScrollToTop />
+        <Routes>
+          {/* Admin Routes - Separate layout */}
+          <Route
+            path="/admin/*"
+            element={
+              <AdminRoute>
+                <AdminLayout>
+                  <Routes>
+                    <Route index element={<AdminDashboard />} />
+                    <Route
+                      path="users/list"
+                      element={<ListCustomerComponent />}
+                    />
+                    <Route
+                      path="users/new"
+                      element={<ListCustomerByDateComponent />}
+                    />
+                    <Route path="customers/trends" element={<TrendPage />} />
+                    <Route
+                      path="customers/statistics"
+                      element={<NewCustomerStatisticsComponent />}
+                    />
+                    <Route
+                      path="revenue/overview"
+                      element={<RevenueManagement />}
+                    />
+                  </Routes>
+                </AdminLayout>
+              </AdminRoute>
+            }
+          />
+          {/* <Route element={<AdminRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/admin/*" element={<AdminDashboard />} />
+              <Route
+                path="/admin/users/list"
+                element={<ListCustomerComponent />}
+              />
+              <Route
+                path="/admin/users/new"
+                element={<ListCustomerByDateComponent />}
+              />
+              <Route path="/admin/customers/trends" element={<TrendPage />} />
+              <Route
+                path="/admin/customers/statistics"
+                element={<NewCustomerStatisticsComponent />}
+              />
+              <Route
+                path="/admin/revenue/overview"
+                element={<RevenueManagement />}
+              />
+            </Route>
+          </Route> */}
 
-        {/* Regular Routes with AppLayout */}
-        <Route
-          path="/*"
-          element={
-            <AppLayout>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/blog" element={<BlogPage />} />
-                <Route path="/help" element={<HelpPage />} />
-                <Route path="/faq" element={<FAQPage />} />
-                <Route path="/guide" element={<GuidePage />} />
-                <Route path="/sitemap" element={<SitemapPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route
-                  path="/forgot-password"
-                  element={<ForgotPasswordPage />}
-                />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                <Route path="/terms" element={<TermsPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/features" element={<FeaturesPage />} />
-                <Route path="/pricing" element={<ListComponent />} />
-                <Route
-                  path="/payment-result"
-                  element={<PaymentResultComponent />}
-                />
-                <Route path="/campaign-manager" element={<CampaignManager />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/workspace" element={<WorkspacePage />} />
-                <Route
-                  path="/workspaces/:workspaceId"
-                  element={<WorkspaceDetailPage />}
-                />
-              </Routes>
-              
-            </AppLayout>
-          }
+          {/* Regular Routes with AppLayout */}
+          <Route
+            path="/*"
+            element={
+              <AppLayout>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/blog" element={<BlogPage />} />
+                  <Route path="/help" element={<HelpPage />} />
+                  <Route path="/faq" element={<FAQPage />} />
+                  <Route path="/guide" element={<GuidePage />} />
+                  <Route path="/sitemap" element={<SitemapPage />} />
+                  <Route
+                    path="/login"
+                    element={
+                      <GuestRoute>
+                        <LoginPage />
+                      </GuestRoute>
+                    }
+                  />
+                  <Route
+                    path="/register"
+                    element={
+                      <GuestRoute>
+                        <RegisterPage />
+                      </GuestRoute>
+                    }
+                  />
+                  <Route path="/oauth2/success" element={<OAuth2Success />} />
+                  <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/features" element={<FeaturesPage />} />
+                  <Route path="/pricing" element={<ListComponent />} />
+                  <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                  />
+                  <Route
+                    path="/reset-password"
+                    element={<ResetPasswordPage />}
+                  />
+                  <Route
+                    path="/payment-result"
+                    element={<PaymentResultComponent />}
+                  />
+                  <Route
+                    path="/campaign-manager"
+                    element={<CampaignManager />}
+                  />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/workspace" element={<WorkspacePage />} />
+                  <Route
+                    path="/workspaces/:workspaceId"
+                    element={<WorkspaceDetailPage />}
+                  />
+                </Routes>
+              </AppLayout>
+            }
+          />
+
+          <Route path="/403" element={<ForbiddenPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 2500,
+            style: {
+              background: "#363636",
+              color: "#fff",
+            },
+            success: {
+              duration: 2500,
+              style: {
+                background: "#10B981",
+                color: "#fff",
+              },
+            },
+            error: {
+              duration: 2500,
+              style: {
+                background: "#EF4444",
+                color: "#fff",
+              },
+            },
+          }}
         />
-      </Routes>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2500,
-          style: {
-            background: "#363636",
-            color: "#fff",
-          },
-          success: {
-            duration: 2500,
-            style: {
-              background: "#10B981",
-              color: "#fff",
-            },
-          },
-          error: {
-            duration: 2500,
-            style: {
-              background: "#EF4444",
-              color: "#fff",
-            },
-          },
-        }}
-      />
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 }
 

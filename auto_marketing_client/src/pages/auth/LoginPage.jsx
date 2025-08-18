@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth";
 import toast from "react-hot-toast";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field, ErrorMessage  } from "formik";
 import * as Yup from "yup";
+import authService from "../../service/authService";
+import { useAuth } from "../../context/AuthContext";
 
 // Validation schema
 const loginSchema = Yup.object({
@@ -18,7 +19,7 @@ const loginSchema = Yup.object({
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const { fetchUser, user } = useAuth();
   const navigate = useNavigate();
 
   const initialValues = {
@@ -28,19 +29,32 @@ const LoginPage = () => {
   };
 
   const handleSubmit = async (values, { setSubmitting }) => {
-    try {
-      const result = await login(values.email, values.password);
-      if (result.success) {
-        toast.success("Đăng nhập thành công!");
-        navigate("/workspace");
+  try {
+    const result = await authService.login(values);
+    if (result.success) {
+      await fetchUser(); // 🚀 reload lại user từ server
+      toast.success("Đăng nhập thành công!");
+      if (user?.role?.name === "ADMIN") {
+        navigate("/admin");
       } else {
-        toast.error(result.error || "Đăng nhập thất bại");
+        navigate("/workspace");
       }
-    } catch (error) {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại");
-    } finally {
-      setSubmitting(false);
+    } else {
+      toast.error(result.error || "Sai tài khoản hoặc mật khẩu");
     }
+  } catch (error) {
+    toast.error("Có lỗi xảy ra, vui lòng thử lại");
+  } finally {
+    setSubmitting(false);
+  }
+};
+
+  const handleGoogleLogin = () => {
+    window.location.href = `http://localhost:8080/api/auth/google`;
+  };
+
+  const handleFacebookLogin = () => {
+    window.location.href = `http://localhost:8080/api/auth/facebook`;
   };
 
   return (
@@ -208,7 +222,10 @@ const LoginPage = () => {
 
             {/* Social Login */}
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <button className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <button
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                onClick={handleGoogleLogin}
+              >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
@@ -230,7 +247,10 @@ const LoginPage = () => {
                 <span className="ml-2">Google</span>
               </button>
 
-              <button className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <button
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                onClick={handleFacebookLogin}
+              >
                 <svg className="h-5 w-5" fill="#1877F2" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                 </svg>

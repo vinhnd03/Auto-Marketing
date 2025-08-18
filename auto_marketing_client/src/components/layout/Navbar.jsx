@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../context/AuthContext";
+import authService from "../../service/authService";
 import {
   Bars3Icon,
   XMarkIcon,
@@ -8,7 +9,9 @@ import {
   Cog6ToothIcon,
   ArrowRightEndOnRectangleIcon,
   ChevronDownIcon,
+  IdentificationIcon,
 } from "@heroicons/react/24/solid";
+import toast from "react-hot-toast";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,7 +19,8 @@ export default function Navbar() {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  const { user, logout, isLogin } = useAuth();
+  const { user, setUser } = useAuth();
+  console.log(user);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -58,12 +62,14 @@ export default function Navbar() {
     };
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    setDropdownOpen(false);
-    // Navigate back to home after logout
-    navigate("/");
-    // Thêm logic logout khác ở đây
+  const handleLogout = async () => {
+    const result = await authService.logout();
+    if (result.success) {
+      setUser(null); // xóa user khỏi Context
+      navigate("/"); // điều hướng về trang chủ
+    } else {
+      toast.error(result.error);
+    }
   };
 
   const navLinks = [
@@ -73,7 +79,7 @@ export default function Navbar() {
     { path: "/contact", label: "Liên hệ" },
     // Chỉ hiển thị Workspace khi đã đăng nhập
     // ...(isLoggedIn ? [{ path: "/workspace", label: "Workspace" }] : []),
-    ...(isLogin() ? [{ path: "/workspace", label: "Workspace" }] : []),
+    ...(user ? [{ path: "/workspace", label: "Workspace" }] : []),
   ];
 
   return (
@@ -130,7 +136,7 @@ export default function Navbar() {
             </button> */}
 
             {/* {isLoggedIn ? ( */}
-            {isLogin() ? (
+            {user ? (
               /* Avatar và Dropdown Menu */
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -138,12 +144,15 @@ export default function Navbar() {
                   className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors"
                 >
                   <img
-                    src={user.avatar}
-                    alt={user.name}
+                    src={
+                        user?.avatar ||
+                      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+                    }
+                    alt={user?.name || "User"}
                     className="w-8 h-8 rounded-full object-cover border-2 border-blue-500"
                   />
                   <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                    {user.lastName + " " + user.firstName}
+                    {user.name}
                   </span>
                   <ChevronDownIcon
                     className={`w-4 h-4 text-gray-400 transition-transform ${
@@ -180,6 +189,18 @@ export default function Navbar() {
                       Cài đặt
                     </Link>
 
+                    <hr className="my-2" />
+
+                    {user.role.name === "ADMIN" && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <IdentificationIcon className="w-4 h-4 mr-3" />
+                        Trang quản trị
+                      </Link>
+                    )}
                     <hr className="my-2" />
 
                     <button
@@ -273,18 +294,23 @@ export default function Navbar() {
           </div>
 
           {/* User Section */}
-          {isLogin() ? (
+          {user ? (
             <div className="px-6 py-4 border-t border-gray-200">
               {/* User Info */}
               <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl mb-4">
                 <img
-                  src={user.avatar}
-                  alt={user.name}
+                  // src={user.avatar}
+                  // alt={user.name}
+                  src={
+                    user?.avatar ||
+                    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+                  }
+                  alt={user?.name || "Người dùng"}
                   className="w-12 h-12 rounded-full object-cover border-2 border-blue-500"
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900 truncate">
-                    {user.lastName + " " + user.firstName}
+                    {user.name}
                   </p>
                   <p className="text-xs text-gray-500 truncate">{user.email}</p>
                 </div>
