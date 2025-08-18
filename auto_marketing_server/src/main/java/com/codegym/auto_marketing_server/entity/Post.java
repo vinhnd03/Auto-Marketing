@@ -16,20 +16,24 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name="posts")
+@Table(name = "posts")
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(columnDefinition = "TEXT")
     private String title;
-    private String content;
+
+    @Column(columnDefinition = "TEXT")
+    private String content; 
+
     private String hashtag;
     private Boolean generatedByAI;
     private String aiPrompt;
     private String aiModel;
     @Enumerated(EnumType.STRING)
-    @Column(name="status")
-    private PostStatus status = PostStatus.Published;
+    @Column(name = "status")
+    private PostStatus status = PostStatus.DRAFT;
     private String contentType;
     private String tone;
     private Integer targetAudience;
@@ -39,9 +43,9 @@ public class Post {
     private LocalDate createdAt;
     private LocalDate updatedAt;
 
-
     @ManyToOne
-    @JoinColumn(name="topic_id")
+    @JoinColumn(name = "topic_id")
     private Topic topic;
 
+    private String imageUrl;
 }

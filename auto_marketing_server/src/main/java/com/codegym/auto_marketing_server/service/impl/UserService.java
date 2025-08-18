@@ -3,6 +3,7 @@ package com.codegym.auto_marketing_server.service.impl;
 import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.repository.IUserRepository;
 import com.codegym.auto_marketing_server.service.IUserService;
+import com.codegym.auto_marketing_server.util.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,8 @@ import java.util.Optional;
 public class UserService implements IUserService {
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CloudinaryService cloudinaryService;
+
     @Override
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
@@ -27,6 +30,24 @@ public class UserService implements IUserService {
             }
         }
         return userRepository.save(user);
+    }
+
+    @Override
+    public String updateAvatar(Long userId, String newAvatar) throws Exception {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            return null;
+        }
+
+        User user = userOptional.get();
+        if (user.getAvatar() != null) {
+            cloudinaryService.deleteImageByUrl(user.getAvatar());
+        }
+        String uploadedAvatar = cloudinaryService.uploadImageFromUrl(newAvatar);
+        user.setAvatar(uploadedAvatar);
+        userRepository.save(user);
+
+        return uploadedAvatar;
     }
 
     @Override

@@ -10,6 +10,8 @@ public interface IUserService {
 
     User save(User user);
 
+    String updateAvatar(Long userId, String newAvatar) throws Exception;
+
     void changePassword(Long userId, String password);
 
     Boolean existedByEmail(String email);

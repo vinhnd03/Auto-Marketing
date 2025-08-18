@@ -1,10 +1,15 @@
 package com.codegym.auto_marketing_server.service.impl;
 
-import com.codegym.auto_marketing_server.repository.IScheduledPostRepository;
+import com.codegym.auto_marketing_server.service.IPostService;
 import com.codegym.auto_marketing_server.service.IScheduledPostService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
+@Service
 public class ScheduledPostService implements IScheduledPostService {
-    private final IScheduledPostRepository scheduledPostRepository;
+    private final IPostService postService;
+
+    public ScheduledPostService(IPostService postService) {
+        this.postService = postService;
+    }
 }
+

@@ -6,6 +6,7 @@ import com.codegym.auto_marketing_server.security.jwt.service.JwtService;
 import com.codegym.auto_marketing_server.security.oauth2.CustomOAuth2SuccessHandler;
 import com.codegym.auto_marketing_server.service.IRoleService;
 import com.codegym.auto_marketing_server.service.IUserService;
+import com.codegym.auto_marketing_server.util.CloudinaryService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -35,10 +36,8 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final JwtService jwtService;
-    private final IUserService userService;
-    private final IRoleService roleService;
     private final CustomUserDetailsService userDetailsService;
-    private final OAuth2AuthorizedClientService authorizedClientService;
+    private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 
 
     @Bean
@@ -48,14 +47,15 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**", "/api/v1/topics/generate", "/api/v1/topics/generate/**",
+                                "/api/v1/posts/generate").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasRole("USER")
-                        .requestMatchers("/api/auth/**", "https://lh3.googleusercontent.com/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
 //                        .loginPage("/api/auth/google")
-                                .successHandler(oAuth2SuccessHandler())
+                                .successHandler(customOAuth2SuccessHandler)
                                 .failureHandler((request, response, exception) -> {
                                     String errorMessage = "oauth_error";
                                     if (exception instanceof OAuth2AuthenticationException) {
@@ -64,25 +64,25 @@ public class SecurityConfig {
                                     response.sendRedirect("http://localhost:3000/login?error=" + errorMessage);
                                 })
                 ).logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")
-                        .logoutSuccessHandler((req, resp, auth) -> {
-                            Cookie cookie = new Cookie("jwt", "");
-                            cookie.setMaxAge(0);
-                            cookie.setHttpOnly(true);
-                            cookie.setPath("/");
+                                .logoutUrl("/api/auth/logout")
+                                .logoutSuccessHandler((req, resp, auth) -> {
+                                    Cookie cookie = new Cookie("jwt", "");
+                                    cookie.setMaxAge(0);
+                                    cookie.setHttpOnly(true);
+                                    cookie.setPath("/");
 //                            cookie.setSecure(true);
-                            resp.addCookie(cookie);
-                            resp.setStatus(HttpServletResponse.SC_OK);
-                        })
+                                    resp.addCookie(cookie);
+                                    resp.setStatus(HttpServletResponse.SC_OK);
+                                })
                 );
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
-    @Bean
-    public AuthenticationSuccessHandler oAuth2SuccessHandler() {
-        return new CustomOAuth2SuccessHandler(userService, jwtService, roleService, authorizedClientService);
-    }
+//    @Bean
+//    public AuthenticationSuccessHandler oAuth2SuccessHandler() {
+//        return new CustomOAuth2SuccessHandler(userService, jwtService, roleService, authorizedClientService, cloudinaryService);
+//    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
