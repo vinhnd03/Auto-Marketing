@@ -34,7 +34,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
             const response = await addWorkspace({
                 ...values,
                 socialAccountId,
-            });
+            },);
 
             if (response && !response.error) {
                 onAdd(response);

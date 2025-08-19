@@ -3,19 +3,19 @@ import axios from "axios";
 const url = "http://localhost:8080/api/v1/workspaces"
 export const getAllWorkspaceByUserId = async (id) => {
     try {
-        const res = await axios.get(`${url}/1`)
+        const res = await axios.get(`${url}/${id}`,{ withCredentials: true, })
         return res.data;
     } catch (e) {
+        console.log("loi ket noi db")
         return []
     }
 }
 
 export const addWorkspace = async (workspaceCreate) => {
     try {
-        const res = await axios.post(`${url}`, workspaceCreate);
+        const res = await axios.post(`${url}`, workspaceCreate,{ withCredentials: true, });
         return res.data;
     } catch (error) {
-        console.log(" loi ket noi db")
         if (error.response && error.response.data) {
             return {error: error.response.data};
         }
@@ -26,7 +26,7 @@ export const addWorkspace = async (workspaceCreate) => {
 export const updateWorkspace = async (id, workspaceUpdate) => {
 
     try {
-        const res = await axios.patch(`${url}/${id}`, workspaceUpdate);
+        const res = await axios.patch(`${url}/${id}`, workspaceUpdate,{ withCredentials: true, });
         return res.data;
     } catch (error) {
         if (error.response && error.response.data) {
@@ -39,7 +39,7 @@ export const updateWorkspace = async (id, workspaceUpdate) => {
 export const getMaxWorkspace = async (id, workspaceUpdate) => {
 
     try {
-        const res = await axios.get(`${url}/${id}/workspace-limit`);
+        const res = await axios.get(`${url}/${id}/workspace-limit`,{ withCredentials: true, });
         return res.data;
     } catch (error) {
         if (error.response && error.response.data) {
@@ -54,7 +54,7 @@ export const updateWorkspaceStatus = async (userId,ids, status) => {
         const res = await axios.patch(`http://localhost:8080/api/v1/workspaces/${userId}/status`, {
             ids,
             status
-        });
+        },{ withCredentials: true, });
         return res.data;
     } catch (error) {
         if (error.response && error.response.data) {

@@ -14,16 +14,13 @@ import { useAuth } from "../../hooks/useAuth";
 import toast from "react-hot-toast";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import authService from "../../service/authService";
 
 // Validation schema
 const registerSchema = Yup.object({
-  lastName: Yup.string()
-    .min(2, "Họ phải có ít nhất 2 ký tự")
+  name: Yup.string()
+    .min(2, "Họ phải có ít nhất 5 ký tự")
     .max(50, "Họ không được quá 50 ký tự")
-    .required("Vui lòng nhập họ"),
-  firstName: Yup.string()
-    .min(2, "Tên phải có ít nhất 2 ký tự")
-    .max(50, "Tên không được quá 50 ký tự")
     .required("Vui lòng nhập tên"),
   email: Yup.string()
     .email("Email không hợp lệ")
@@ -45,43 +42,49 @@ const registerSchema = Yup.object({
   agreeToTerms: Yup.boolean()
     .oneOf([true], "Bạn phải đồng ý với điều khoản sử dụng")
     .required("Bạn phải đồng ý với điều khoản sử dụng"),
-  subscribeNewsletter: Yup.boolean(),
 });
 
 const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { register } = useAuth();
+  // const { register } = useAuth();
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: "",
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
 
   const initialValues = {
-    lastName: "",
-    firstName: "",
+    name: "",
     email: "",
     phone: "",
     password: "",
     confirmPassword: "",
     agreeToTerms: false,
-    subscribeNewsletter: false,
   };
 
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
     try {
       const userData = {
-        lastName: values.lastName,
-        firstName: values.firstName,
+        name: values.name,
         email: values.email,
         phone: values.phone,
         password: values.password,
-        subscribeNewsletter: values.subscribeNewsletter,
       };
 
-      const result = await register(userData);
+      const result = await authService.register(userData);
       if (result.success) {
         toast.success("Đăng ký thành công!");
-        navigate("/workspace");
+        navigate("/login");
       } else {
-        toast.error(result.error || "Đăng ký thất bại");
+        if (result.error.includes("Email")) {
+          setFieldError("email", result.error);
+        } else {
+          toast.error(result.error || "Đăng ký thất bại");
+        }
       }
     } catch (error) {
       console.error("Registration error:", error);
@@ -128,7 +131,7 @@ const RegisterPage = () => {
             {({ isSubmitting, errors, touched }) => (
               <Form className="space-y-6">
                 {/* Name Fields */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label
                       htmlFor="lastName"
@@ -183,6 +186,36 @@ const RegisterPage = () => {
                       className="mt-1 text-sm text-red-600"
                     />
                   </div>
+                </div> */}
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Họ và tên
+                  </label>
+                  <div className="relative">
+                    <User
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={20}
+                    />
+                    <Field
+                      id="name"
+                      name="name"
+                      type="text"
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        errors.name && touched.name
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="Nhập tên của bạn"
+                    />
+                  </div>
+                  <ErrorMessage
+                    name="name"
+                    component="div"
+                    className="mt-1 text-sm text-red-600"
+                  />
                 </div>
 
                 {/* Email Field */}

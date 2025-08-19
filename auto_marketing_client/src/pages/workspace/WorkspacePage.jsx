@@ -1,11 +1,11 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Plus, Folder, Settings} from "lucide-react";
 import {Link} from "react-router-dom";
 import CreateWorkspaceModal from "../../components/workspace/CreateWorkspaceModal";
 import UpdateWorkspaceModal from "../../components/workspace/UpdateWorkspaceModal";
 import SelectPagesModal from "../../components/modal/SelectPagesModal";
 import SelectSocialNetwork from "./../../components/modal/SelectSocialNetwork";
-import {useAuth} from "../../hooks/useAuth";
+
 import {
     getAllWorkspaceByUserId,
     getMaxWorkspace,
@@ -13,8 +13,11 @@ import {
 } from "../../service/workspace/workspace_service";
 import WorkspaceLimitModal from "../../components/workspace/WorkspaceLimitModal";
 import toast from "react-hot-toast";
+import {useAuth} from "../../context/AuthContext";
+import {Preloader} from "../../components";
 
 const WorkspacePage = () => {
+    const {user} = useAuth();
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [selectedWorkspace, setSelectedWorkspace] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -28,17 +31,18 @@ const WorkspacePage = () => {
 
     const [workspaces, setWorkspaces] = useState([])
 
-    const {user} = useAuth();
+    // const {user} = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSelectPageModalOpen, setIsSelectPageModalOpen] = useState(false);
-    const userId = 1;
     const [maxWorkspace, setMaxWorkspace] = useState(0);
 
     useEffect(() => {
+        if (!user || !user.id) return;
+
         const fetchData = async () => {
             const [maxWsRes, wsList] = await Promise.all([
-                getMaxWorkspace(userId),
-                getAllWorkspaceByUserId(userId)
+                getMaxWorkspace(user.id),
+                getAllWorkspaceByUserId(user.id)
             ]);
 
             if (maxWsRes.error) {
@@ -49,33 +53,25 @@ const WorkspacePage = () => {
             setMaxWorkspace(maxWsRes);
 
             if (!Array.isArray(wsList)) {
-                toast.error(wsList.message || "Lấy danh sách workspace thất bại");
                 setWorkspaces([]);
+                setShowCreateModal(true);
                 return;
             }
 
-            if (wsList.length === 0) {
-                setShowCreateModal(true);
-            }
-
-            // Tự động bật ACTIVE nếu ít hơn maxWorkspace
+            // auto ACTIVE
             const activeCount = wsList.filter(w => w.status === "ACTIVE").length;
             if (activeCount < maxWsRes) {
                 const allIds = wsList.map(w => w.id);
-                // Gọi API update trạng thái
                 try {
-                    const res = await updateWorkspaceStatus(userId, allIds, "ACTIVE");
-                    if (res.error) {
-                        toast.error(res.error);
-                    } else {
-                        // Cập nhật trạng thái trong state
+                    const res = await updateWorkspaceStatus(user.id, allIds, "ACTIVE");
+                    if (res.error) toast.error(res.error);
+                    else {
                         const updatedWs = wsList.map(w => ({...w, status: "ACTIVE"}));
                         setWorkspaces(updatedWs);
                     }
                 } catch (err) {
-                    console.error(err);
                     toast.error("Không thể cập nhật trạng thái workspace");
-                    setWorkspaces(wsList); // vẫn set danh sách cũ
+                    setWorkspaces(wsList);
                 }
             } else {
                 setWorkspaces(wsList);
@@ -83,22 +79,28 @@ const WorkspacePage = () => {
         };
 
         fetchData();
-    }, [userId]);
+    }, [user]);
 
+
+    const toastShown = useRef(false);
 
     useEffect(() => {
-
         const activeWs = workspaces.filter(w => w.status === "ACTIVE");
 
         if (activeWs.length > maxWorkspace) {
             setSelectedActiveIds(activeWs.map(w => w.id));
             setIsLimitModalOpen(true);
-            toast.custom(
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 rounded shadow">
-                    Vui lòng nâng cấp gói để tạo thêm không gian làm việc
-                </div>
-            );
+
+            if (!toastShown.current) {
+                toast.custom(
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 rounded shadow">
+                        Vui lòng nâng cấp gói để tạo thêm không gian làm việc
+                    </div>
+                );
+                toastShown.current = true;
+            }
         } else {
+            toastShown.current = false;
             setIsLimitModalOpen(false);
         }
     }, [workspaces, maxWorkspace]);
@@ -116,7 +118,7 @@ const WorkspacePage = () => {
             const activeIds = selectedActiveIds;
 
             // Gọi API PATCH
-            const res = await updateWorkspaceStatus(userId, activeIds, "ACTIVE");
+            const res = await updateWorkspaceStatus(user.id, activeIds, "ACTIVE");
 
             if (res.error) {
                 toast.error(res.error);
@@ -354,7 +356,7 @@ const WorkspacePage = () => {
                 onUpdate={handleUpdateWorkspace}
                 workspace={selectedWorkspace}
                 setWorkspaces={setWorkspaces}
-                userId={userId}
+                userId={user?.id}
                 workspaces={workspaces}
             />
         </div>

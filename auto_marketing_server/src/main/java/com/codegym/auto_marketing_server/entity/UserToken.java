@@ -16,7 +16,8 @@ public class UserToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String tokenHash;
-    private LocalDateTime expires_at;
+    private LocalDateTime expiresAt;
+    private Boolean status;
 
     //User
     @ManyToOne

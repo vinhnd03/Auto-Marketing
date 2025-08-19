@@ -12,8 +12,11 @@ const ListComponent = () => {
     useEffect(() => {
         const fetchPlans = async () => {
             try {
-                const response = await axios.get("http://localhost:8080/api/v1/plans");
-                setPlans(response.data || []);
+                const response = await axios.get("http://localhost:8080/api/v1/plans", {
+                    withCredentials: true,
+                });
+                // đảm bảo plans luôn là mảng
+                setPlans(Array.isArray(response.data) ? response.data : []);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách gói:", error);
                 toast.error("Không tải được danh sách gói.");
@@ -31,7 +34,9 @@ const ListComponent = () => {
             const response = await axios.post("http://localhost:8080/api/payment", {
                 serviceName: plan.name,
                 amount: plan.price,
-                userId:userId
+                userId: userId
+            },{
+                withCredentials: true,
             });
 
             const {paymentUrl} = response.data;
@@ -89,7 +94,7 @@ const ListComponent = () => {
             <section className="pb-20">
                 <div className="container mx-auto px-6 max-w-6xl">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {plans?.map((plan) => (
+                        {plans && plans.map((plan) => (
                             <div
                                 key={plan.id}
                                 className={`relative rounded-2xl p-8 ${getCardStyles(plan)}`}
