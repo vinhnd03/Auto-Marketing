@@ -146,98 +146,105 @@ export let servicePackages = [
 
 
 
-export async function getAllCustomer() {
-    return customer;
-    // //gọi API
-    // try {
-    //     const response = await axios.get("http://localhost:8080/customer");
-    //     return response.data;
-    // } catch (e) {
-    //     console.log(e)
-    //     return [];
-    // }
-}
-
-export async function addNewCustomer(customer) {
+export async function getAllServicePackages() {
     try {
-        const response = await axios.post("http://localhost:8080/customer", customer);
+        const response = await axios.get("http://localhost:8080/api/plans");
+        const plans = response.data?.data || response.data;
+        return Array.isArray(plans) ? plans : [];
     } catch (e) {
-        console.log(e)
-        throw e;
+        console.error("Error fetching plans:", e);
+        return [];
     }
 }
-
+export async function getAllSub() {
+    try {
+        const response = await axios.get("http://localhost:8080/api/subscriptions");
+        const plans = response.data?.data || response.data;
+        return Array.isArray(plans) ? plans : [];
+    } catch (e) {
+        console.error("Error fetching plans:", e);
+        return [];
+    }
+}
 export async function search(
     nameKeyword,
     servicePackageKey,
     page = 1,
-    size = 2,
-    startDate = null,
-    endDate = null
+    size = 5
 ) {
     try {
-        const filtered = customer.filter((p) => {
-            const matchName =
-                !nameKeyword ||
-                p.nameCustomer.toLowerCase().includes(nameKeyword.toLowerCase());
-
-            const matchService =
-                !servicePackageKey ||
-                p.servicePackage.toLowerCase().includes(servicePackageKey.toLowerCase());
-
-            const matchDate = (() => {
-                if (!startDate && !endDate) return true; // Không lọc theo ngày
-                const regDate = new Date(p.createDate); // Ngày đăng ký của khách
-                if (startDate && regDate < new Date(startDate)) return false;
-                else if(endDate && regDate > new Date(endDate)) return false;
-                return true;
-            })();
-
-            return matchName && matchService && matchDate;
+        const response = await axios.get("http://localhost:8080/api/users", {
+            params: {
+                name: nameKeyword || null,
+                planName: servicePackageKey || null,
+                page: page - 1, // Spring Data JPA dùng 0-based index
+                size
+            }
         });
 
-        // Phân trang
-        const startIndex = (page - 1) * size;
-        const endIndex = startIndex + size;
-        const pagedData = filtered.slice(startIndex, endIndex);
-
+        const result = response.data;
         return {
-            data: pagedData,
-            totalItems: filtered.length,
-            totalPages: Math.ceil(filtered.length / size),
-            currentPage: page,
+            data: result.content || [],
+            totalItems: result.totalItems || 0,
+            totalPages: result.totalPages || 0,
+            currentPage: result.number + 1
         };
     } catch (e) {
-        console.log(e);
+        console.error("Error fetching customers:", e);
         return { data: [], totalItems: 0, totalPages: 0, currentPage: page };
     }
 }
 
-// export async function search(nameKeyword, servicePackageKey, page = 1, size = 5) {
+
+
+// export async function search(
+//     nameKeyword,
+//     servicePackageKey,
+//     page = 1,
+//     size = 2,
+//     startDate = null,
+//     endDate = null
+// ) {
 //     try {
-//         // Lọc danh sách khách hàng theo tên và gói dịch vụ
-//         const filtered = customer.filter((p) => {
-//             const matchName = !nameKeyword || p.nameCustomer.toLowerCase().includes(nameKeyword.toLowerCase());
-//             const matchService = !servicePackageKey || p.servicePackage.toLowerCase().includes(servicePackageKey.toLowerCase());
-//             return matchName && matchService;
+//         const response = await axios.get("http://localhost:8080/api/users");
+//         const allCustomers = response.data?.data || response.data || [];
+//
+//         const filtered = allCustomers.filter((p) => {
+//             const matchName =
+//                 !nameKeyword ||
+//                 (p.name && p.name.toLowerCase().includes(nameKeyword.toLowerCase()));
+//
+//             const matchService =
+//                 !servicePackageKey ||
+//                 (p.servicePackage && p.servicePackage.toLowerCase().includes(servicePackageKey.toLowerCase()));
+//
+//             const matchDate = (() => {
+//                 if (!startDate && !endDate) return true;
+//                 const regDate = new Date(p.createDate);
+//                 if (startDate && regDate < new Date(startDate)) return false;
+//                 if (endDate && regDate > new Date(endDate)) return false;
+//                 return true;
+//             })();
+//
+//             return matchName && matchService && matchDate;
 //         });
 //
-//         // Tính toán phân trang
 //         const startIndex = (page - 1) * size;
 //         const endIndex = startIndex + size;
 //         const pagedData = filtered.slice(startIndex, endIndex);
 //
 //         return {
-//             data: pagedData,         // Dữ liệu cho trang hiện tại
-//             totalItems: filtered.length, // Tổng số bản ghi tìm được
-//             totalPages: Math.ceil(filtered.length / size), // Tổng số trang
-//             currentPage: page
+//             data: pagedData,
+//             totalItems: filtered.length,
+//             totalPages: Math.ceil(filtered.length / size),
+//             currentPage: page,
 //         };
 //     } catch (e) {
-//         console.log(e);
+//         console.error("Error fetching customers:", e);
 //         return { data: [], totalItems: 0, totalPages: 0, currentPage: page };
 //     }
 // }
+
 
 
 

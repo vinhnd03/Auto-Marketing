@@ -88,13 +88,10 @@ function ListCustomerByDateComponent() {
                     <thead className="bg-gray-300">
                     <tr>
                         <th className="p-2 border-b">STT</th>
-                        <th className="p-2 border-b">Mã khách hàng</th>
                         <th className="p-2 border-b">Tên khách hàng</th>
                         <th className="p-2 border-b">Email</th>
-                        <th className="p-2 border-b">Số điện thoại</th>
-                        <th className="p-2 border-b">Gói dịch vụ</th>
-                        <th className="p-2 border-b">Tên tài khoản</th>
                         <th className="p-2 border-b">Ngày tạo</th>
+                        <th className="p-2 border-b">Gói đã mua</th>
                         <th className="p-2 border-b">Trạng thái</th>
                     </tr>
                     </thead>
@@ -109,13 +106,14 @@ function ListCustomerByDateComponent() {
                         list.map((customer, index) => (
                             <tr key={customer.id} className="border-b">
                                 <td className="p-2">{(page - 1) * 5 + index + 1}</td>
-                                <td className="p-2">{customer.codeCustomer}</td>
-                                <td className="p-2">{customer.nameCustomer}</td>
+                                <td className="p-2">{customer.name}</td>
                                 <td className="p-2">{customer.email}</td>
-                                <td className="p-2">{customer.phone}</td>
-                                <td className="p-2">{customer.servicePackage}</td>
-                                <td className="p-2">{customer.username}</td>
                                 <td className="p-2">{formatDate(customer.createDate)}</td>
+                                <td className="p-2">
+                                    { customer.subscriptions.length > 0
+                                        ? customer.subscriptions.map(sub => sub.planId?.name).join(", ")
+                                        : "Chưa mua gói nào"}
+                                </td>
                                 <td className="p-2">
                                     <button
                                         onClick={() => toggleStatus(customer.id)}
