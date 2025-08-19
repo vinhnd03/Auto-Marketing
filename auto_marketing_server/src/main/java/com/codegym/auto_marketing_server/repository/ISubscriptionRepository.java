@@ -1,10 +1,12 @@
 package com.codegym.auto_marketing_server.repository;
 
 import com.codegym.auto_marketing_server.entity.Subscription;
+import com.codegym.auto_marketing_server.enums.SubscriptionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,4 +25,11 @@ public interface ISubscriptionRepository extends JpaRepository<Subscription, Lon
 
     @Query(value = "select p.max_workspace from subscriptions s join plans p on s.plan_id=p.id where s.id=:id", nativeQuery = true)
     Integer findMaxWorkspaceByCurrenSubscription(@Param("id") Long id);
+
+    @Query(value = "SELECT COUNT(*) FROM subscriptions " +
+            "WHERE user_id = :userId AND plan_id = :planId AND status = 'SUCCESS' ", nativeQuery = true)
+    int countSuccessSubscriptionByPlan(@Param("userId") Long userId, @Param("planId") Long planId);
+
+    // Lấy tất cả subscription có status SUCCESS mà endDate <= ngày hiện tại
+    List<Subscription> findAllByStatusAndEndDateLessThanEqual(SubscriptionStatus status, LocalDate date);
 }

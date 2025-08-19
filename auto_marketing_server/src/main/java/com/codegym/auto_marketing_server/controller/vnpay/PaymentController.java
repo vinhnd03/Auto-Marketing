@@ -40,6 +40,7 @@ public class PaymentController {
         return response;
     }
 
+
     @GetMapping("/vn-pay-callback")
     public void paymentCallback(@RequestParam Map<String, String> allParams, HttpServletResponse response) throws IOException {
         // Kiểm tra các tham số bắt buộc
@@ -73,10 +74,9 @@ public class PaymentController {
         String service = parts[0];
         Long userId = Long.valueOf(parts[1]);
 
-        // Chỉ gọi transactionService khi thanh toán thành công
-        if (success) {
-            transactionService.handleSuccessfulPayment(txnRef, amount, service, userId);
-        }
+        // Gọi transactionService dù thành công hay thất bại
+        String status = success ? "success" : "failed";
+        transactionService.handlePayment(txnRef, amount, service, userId, status);
 
         String redirectUrl = String.format(
                 "http://localhost:3000/payment-result?success=%s&message=%s&amount=%d&service=%s&txnRef=%s",
@@ -89,7 +89,6 @@ public class PaymentController {
 
         response.sendRedirect(redirectUrl);
     }
-
 
 
     private static final Map<String, String> VNPAY_ERROR_CODES = Map.ofEntries(

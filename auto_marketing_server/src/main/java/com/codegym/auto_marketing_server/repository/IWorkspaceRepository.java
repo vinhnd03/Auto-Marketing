@@ -36,4 +36,18 @@ public interface IWorkspaceRepository extends JpaRepository<Workspace, Long> {
             nativeQuery = true)
     Integer countWorkspaceByNameAndUser(@Param("name") String name,
                                         @Param("userId") Long userId);
+
+
+    @Query(
+            value = "SELECT COUNT(*) " +
+                    "FROM workspaces w " +
+                    "JOIN social_account_workspace saw ON saw.workspace_id = w.id " +
+                    "JOIN social_accounts sa ON sa.id = saw.social_account_id " +
+                    "JOIN users u ON u.id = sa.user_id " +
+                    "WHERE w.name = :name AND u.id = :userId AND w.id <> :excludeId",
+            nativeQuery = true
+    )
+    Integer countWorkspaceByNameAndUserExceptId(@Param("name") String name,
+                                                @Param("userId") Long userId,
+                                                @Param("excludeId") Long excludeId);
 }

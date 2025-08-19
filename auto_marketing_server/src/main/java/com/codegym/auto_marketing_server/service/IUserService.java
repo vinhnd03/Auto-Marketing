@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Optional;
 
 public interface IUserService {
-    User findById(Long id);
 
     Long selectUserIdBySocialAccountId(@Param("id") Long id);
     Optional<User> findByEmail(String username);

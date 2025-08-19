@@ -5,5 +5,6 @@ import org.springframework.stereotype.Service;
 
 
 public interface ITransactionService {
-    void handleSuccessfulPayment(String txnRef, long amount, String service, Long userId);
+
+    void handlePayment(String txnRef, long amount, String serviceName, Long userId, String status);
 }

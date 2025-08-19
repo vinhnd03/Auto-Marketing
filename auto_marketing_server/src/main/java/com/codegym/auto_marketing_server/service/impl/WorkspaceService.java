@@ -31,7 +31,6 @@ public class WorkspaceService implements IWorkspaceService {
             int maxWorkspace = subscriptionService.findMaxWorkspaceByCurrenSubscription(currentActiveOpt.get().getId());
             int totalWorkspaceOfUser = totalWorkspaceOfUser(userId);
             if (totalWorkspaceOfUser < maxWorkspace) {
-
                 return workspaceRepository.save(workspace);
             }
         }
@@ -56,5 +55,15 @@ public class WorkspaceService implements IWorkspaceService {
     public boolean existsByNameForUser(String name, Long userId) {
         Integer count = workspaceRepository.countWorkspaceByNameAndUser(name, userId);
         return count != null && count > 0;
+    }
+
+    @Override
+    public Workspace findById(Long id) {
+        return workspaceRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public boolean existsByNameForUserExceptId(String name, Long userId, Long excludeId) {
+        return workspaceRepository.countWorkspaceByNameAndUserExceptId(name, userId, excludeId) > 0;
     }
 }

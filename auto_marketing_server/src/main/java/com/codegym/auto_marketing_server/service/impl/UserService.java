@@ -16,11 +16,6 @@ public class UserService implements IUserService {
     private final IUserRepository userRepository;
 
     @Override
-    public User findById(Long id) {
-        return userRepository.findById(id).orElse(null);
-    }
-
-    @Override
     public Long selectUserIdBySocialAccountId(Long id) {
         return userRepository.selectUserIdBySocialAccountId(id);
     }
