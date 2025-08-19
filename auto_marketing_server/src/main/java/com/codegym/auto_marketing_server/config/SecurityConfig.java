@@ -53,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/api/v1/topics/generate", "/api/v1/topics/generate/**",
                                 "/api/v1/posts/generate").permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/user/**").hasAuthority("USER")
+                        .requestMatchers("/api/user/**").hasAnyAuthority("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth

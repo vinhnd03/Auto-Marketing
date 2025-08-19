@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   UserIcon,
   EnvelopeIcon,
   PhoneIcon,
-  MapPinIcon,
   PencilIcon,
   CameraIcon,
+  BriefcaseIcon,
+  IdentificationIcon,
 } from "@heroicons/react/24/outline";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
@@ -24,7 +25,10 @@ export default function Profile() {
     address: "",
     job: "",
     createdAt: "",
+    description: "",
   });
+  const [userData, setUserData] = useState({});
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,6 +39,7 @@ export default function Profile() {
           console.log(data);
           if (data) {
             setFormData(data);
+            setUserData(data);
           } else {
             toast.error("Không tìm thấy dữ liệu");
           }
@@ -54,27 +59,48 @@ export default function Profile() {
     }));
   };
 
-  const handleSave = (value) => {
-    console.log(value);
-    const fetchData = async () => {
-      setFormData({...value})
-      const status = await userService.updateUserProfile(formData);
-      if (status) {
-        toast.success("Đã cập nhật thông tin");
-      } else {
-        toast.error("Có lỗi xảy ra khi cập nhật thông tin");
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Kiểm tra MIME type
+      if (!file.type.startsWith("image/")) {
+        toast.error("Vui lòng chọn đúng định dạng ảnh (jpg, png, jpeg, ...)");
+        return;
       }
-      setIsEditing(false);
-    };
 
-    fetchData();
+      // Nếu đúng là ảnh thì preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, avatar: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  const handleOpenFileDialog = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleSave = async (value, { setSubmitting }) => {
+    console.log(value);
+    const status = await userService.updateUserProfile(value);
+    if (status) {
+      toast.success("Đã cập nhật thông tin");
+      setFormData({ ...value });
+      setUserData(value);
+      setUser({
+        ...user,
+        avatar: value.avatar
+      })
+    } else {
+      toast.error("Có lỗi xảy ra khi cập nhật thông tin");
+    }
+    setIsEditing(false);
+    setSubmitting(false);
   };
 
   const handleCancel = () => {
     // Reset lại dữ liệu ban đầu
-    setFormData({
-      ...user,
-    });
+    setFormData(userData);
     setIsEditing(false);
   };
 
@@ -83,7 +109,7 @@ export default function Profile() {
   return (
     <div className="bg-gray-50 py-8">
       <Formik enableReinitialize initialValues={formData} onSubmit={handleSave}>
-        {({ values, handleChange }) => (
+        {({ values, handleChange, isSubmitting }) => (
           <Form>
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               {/* Header */}
@@ -104,19 +130,29 @@ export default function Profile() {
                       </button>
                     ) : (
                       <div className="flex space-x-3">
-                        <button
-                          type="button"
-                          onClick={handleCancel}
-                          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          Hủy
-                        </button>
+                        {!isSubmitting && (
+                          <button
+                            type="button"
+                            onClick={handleCancel}
+                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            Hủy
+                          </button>
+                        )}
                         <button
                           type="submit"
                           // onClick={handleSave}
+                          disabled={isSubmitting}
                           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                         >
-                          Lưu thay đổi
+                          {isSubmitting ? (
+                            <div className="flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                              Đang lưu...
+                            </div>
+                          ) : (
+                            "Cập nhật"
+                          )}
                         </button>
                       </div>
                     )}
@@ -128,14 +164,30 @@ export default function Profile() {
                   <div className="flex items-center space-x-6">
                     <div className="relative">
                       <img
-                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+                        src={
+                          formData.avatar ||
+                          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+                        }
                         alt="Avatar"
                         className="w-24 h-24 rounded-full object-cover border-4 border-blue-500"
                       />
                       {isEditing && (
-                        <button className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors">
-                          <CameraIcon className="w-4 h-4" />
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleOpenFileDialog}
+                            className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
+                          >
+                            <CameraIcon className="w-4 h-4" />
+                          </button>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            className="hidden"
+                          />
+                        </>
                       )}
                     </div>
                     <div>
@@ -232,6 +284,7 @@ export default function Profile() {
                     {/* Công ty */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <BriefcaseIcon className="w-4 h-4 inline mr-2" />
                         Nghề nghiệp
                       </label>
                       {isEditing ? (
@@ -251,11 +304,12 @@ export default function Profile() {
                   {/* Giới thiệu */}
                   <div className="mt-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <IdentificationIcon className="w-4 h-4 inline mr-2" />
                       Giới thiệu bản thân
                     </label>
                     {isEditing ? (
                       <textarea
-                        name="bio"
+                        name="description"
                         value={formData.description}
                         onChange={handleInputChange}
                         rows="4"

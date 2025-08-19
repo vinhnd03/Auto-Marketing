@@ -47,12 +47,12 @@ public class UserController {
 
         User user = userOptional.get();
         user.setAvatar(userProfile.avatar());
-        user.setName(user.getName());
-        user.setDescription(user.getDescription());
-        user.setJob(user.getJob());
-        user.setPhone(user.getPhone());
+        user.setName(userProfile.name());
+        user.setDescription(userProfile.description());
+        user.setJob(userProfile.job());
+        user.setPhone(userProfile.phone());
 
-        userService.save(user);
+        userService.updateUserProfile(user);
         return ResponseEntity.ok(Map.of("success", true));
     }
 }

@@ -17,4 +17,6 @@ public interface IUserService {
     Boolean existedByEmail(String email);
 
     Optional<User> findById(Long id);
+
+    void updateUserProfile(User user);
 }

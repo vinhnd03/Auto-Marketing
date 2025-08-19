@@ -39,14 +39,14 @@ const TermsPage = () => {
             </h2>
             <div className="text-gray-700 space-y-4">
               <p>
-                Chào mừng bạn đến với <strong>MarketingAuto</strong> - nền tảng
+                Chào mừng bạn đến với <strong>AutoMarketing</strong> - nền tảng
                 tự động hóa marketing hàng đầu. Bằng việc sử dụng dịch vụ của
                 chúng tôi, bạn đồng ý tuân thủ các điều khoản và điều kiện được
                 nêu dưới đây.
               </p>
               <p>
                 Các điều khoản này áp dụng cho tất cả người dùng, khách hàng và
-                bên thứ ba truy cập hoặc sử dụng dịch vụ MarketingAuto.
+                bên thứ ba truy cập hoặc sử dụng dịch vụ AutoMarketing.
               </p>
             </div>
           </section>
@@ -58,7 +58,7 @@ const TermsPage = () => {
               2. Dịch vụ của chúng tôi
             </h2>
             <div className="text-gray-700 space-y-4">
-              <p>MarketingAuto cung cấp các dịch vụ sau:</p>
+              <p>AutoMarketing cung cấp các dịch vụ sau:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>Tự động hóa chiến dịch email marketing</li>
                 <li>Phân tích và báo cáo hiệu suất marketing</li>
@@ -76,7 +76,7 @@ const TermsPage = () => {
               3. Trách nhiệm của người dùng
             </h2>
             <div className="text-gray-700 space-y-4">
-              <p>Khi sử dụng dịch vụ MarketingAuto, bạn cam kết:</p>
+              <p>Khi sử dụng dịch vụ AutoMarketing, bạn cam kết:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>Cung cấp thông tin chính xác và cập nhật</li>
                 <li>Không sử dụng dịch vụ cho mục đích bất hợp pháp</li>
@@ -158,7 +158,7 @@ const TermsPage = () => {
               6. Giới hạn trách nhiệm
             </h2>
             <div className="text-gray-700 space-y-4">
-              <p>MarketingAuto không chịu trách nhiệm cho:</p>
+              <p>AutoMarketing không chịu trách nhiệm cho:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>
                   Thiệt hại gián tiếp hoặc hậu quả từ việc sử dụng dịch vụ
@@ -201,7 +201,7 @@ const TermsPage = () => {
             </h2>
             <div className="text-gray-700 space-y-4">
               <p>
-                MarketingAuto có quyền cập nhật các điều khoản này bất cứ lúc
+                AutoMarketing có quyền cập nhật các điều khoản này bất cứ lúc
                 nào. Chúng tôi sẽ thông báo trước ít nhất 30 ngày về các thay
                 đổi quan trọng.
               </p>
@@ -224,7 +224,7 @@ const TermsPage = () => {
               </p>
               <ul className="space-y-1">
                 <li>
-                  <strong>Email:</strong> legal@marketingauto.vn
+                  <strong>Email:</strong> legal@AutoMarketing.vn
                 </li>
                 <li>
                   <strong>Điện thoại:</strong> 1900 1234

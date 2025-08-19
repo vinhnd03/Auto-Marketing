@@ -47,7 +47,7 @@ const PrivacyPage = () => {
             </h2>
             <div className="text-gray-700 space-y-4">
               <p>
-                Tại <strong>MarketingAuto</strong>, chúng tôi cam kết bảo vệ
+                Tại <strong>AutoMarketing</strong>, chúng tôi cam kết bảo vệ
                 quyền riêng tư và thông tin cá nhân của bạn. Chính sách này giải
                 thích cách chúng tôi thu thập, sử dụng, và bảo vệ dữ liệu của
                 bạn.
@@ -108,7 +108,7 @@ const PrivacyPage = () => {
             <div className="text-gray-700 space-y-4">
               <p>Chúng tôi sử dụng thông tin được thu thập để:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Cung cấp và vận hành dịch vụ MarketingAuto</li>
+                <li>Cung cấp và vận hành dịch vụ AutoMarketing</li>
                 <li>Xử lý thanh toán và quản lý tài khoản</li>
                 <li>Gửi thông báo quan trọng về dịch vụ</li>
                 <li>Cung cấp hỗ trợ kỹ thuật và khách hàng</li>
@@ -148,7 +148,7 @@ const PrivacyPage = () => {
                 </li>
                 <li>
                   <strong>Bảo vệ quyền lợi:</strong> Để bảo vệ an toàn và quyền
-                  lợi của MarketingAuto và người dùng
+                  lợi của AutoMarketing và người dùng
                 </li>
               </ul>
             </div>
@@ -224,7 +224,7 @@ const PrivacyPage = () => {
                 email:
                 <span className="font-medium text-blue-600">
                   {" "}
-                  privacy@marketingauto.vn
+                  privacy@AutoMarketing.vn
                 </span>
               </p>
             </div>
@@ -287,7 +287,7 @@ const PrivacyPage = () => {
             </h2>
             <div className="text-gray-700 space-y-4">
               <p>
-                Dịch vụ MarketingAuto không dành cho trẻ em dưới 16 tuổi. Chúng
+                Dịch vụ AutoMarketing không dành cho trẻ em dưới 16 tuổi. Chúng
                 tôi không cố ý thu thập thông tin cá nhân từ trẻ em dưới 16
                 tuổi.
               </p>
@@ -327,7 +327,7 @@ const PrivacyPage = () => {
               </p>
               <ul className="space-y-1">
                 <li>
-                  <strong>Email bảo mật:</strong> privacy@marketingauto.vn
+                  <strong>Email bảo mật:</strong> privacy@AutoMarketing.vn
                 </li>
                 <li>
                   <strong>Điện thoại:</strong> 1900 1234 (máy lẻ 2)
@@ -337,7 +337,7 @@ const PrivacyPage = () => {
                 </li>
                 <li>
                   <strong>DPO (Data Protection Officer):</strong>{" "}
-                  dpo@marketingauto.vn
+                  dpo@AutoMarketing.vn
                 </li>
               </ul>
             </div>

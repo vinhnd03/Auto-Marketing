@@ -49,6 +49,7 @@ import { ForbiddenPage, NotFoundPage } from "./pages/error/ErrorPage ";
 import AdminRoute from "./routes/AdminRoute";
 import GuestRoute from "./routes/GuestRoute";
 import OAuth2Success from "./pages/auth/OAuthSucess";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
@@ -204,25 +205,61 @@ function App() {
                   />
                   <Route
                     path="/payment-result"
-                    element={<PaymentResultComponent />}
+                    element={
+                      <ProtectedRoute>
+                        <PaymentResultComponent />
+                      </ProtectedRoute>
+                    }
                   />
                   <Route
                     path="/campaign-manager"
-                    element={<CampaignManager />}
+                    element={
+                      <ProtectedRoute>
+                        <CampaignManager />{" "}
+                      </ProtectedRoute>
+                    }
                   />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/workspace" element={<WorkspacePage />} />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        {" "}
+                        <Profile />{" "}
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        {" "}
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/workspace"
+                    element={
+                      <ProtectedRoute>
+                        {" "}
+                        <WorkspacePage />{" "}
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/workspaces/:workspaceId"
-                    element={<WorkspaceDetailPage />}
+                    element={
+                      <ProtectedRoute>
+                        <WorkspaceDetailPage />
+                      </ProtectedRoute>
+                    }
                   />
                 </Routes>
               </AppLayout>
             }
           />
 
-          <Route path="/403" element={<ForbiddenPage />} />
+          <Route path="/unauthorized" element={<ForbiddenPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         <Toaster

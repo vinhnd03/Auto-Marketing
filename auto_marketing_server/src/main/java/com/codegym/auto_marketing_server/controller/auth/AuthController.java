@@ -138,9 +138,9 @@ public class AuthController {
             );
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-            String token = jwtService.generateToken((User) userDetails);
-
             long maxAge = loginRequest.getRememberMe() ? 30 * 24 * 60 * 60 : 3600;
+
+            String token = jwtService.generateToken((User) userDetails);
             System.out.println(maxAge);
             // Tạo httpOnly cookie
             ResponseCookie cookie = ResponseCookie.from("jwt", token)
@@ -148,7 +148,7 @@ public class AuthController {
 //                .secure(true) // Chỉ dùng true nếu deploy trên HTTPS
                     .sameSite("Lax")
                     .path("/")
-                    .maxAge(maxAge) // 1 giờ
+                    .maxAge(maxAge)
                     .build();
 
             // Gửi cookie
