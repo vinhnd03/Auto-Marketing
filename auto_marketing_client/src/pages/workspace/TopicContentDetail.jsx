@@ -83,7 +83,8 @@ const TopicContentDetail = ({ topic, onBack }) => {
                     : ""}
                 </span>
               </div>
-              <div className="text-gray-700 whitespace-pre-line mb-2">
+              {/* CHỈ render duy nhất phần justify, bỏ phần không justify */}
+              <div className="text-gray-700 whitespace-pre-line mb-2 text-justify">
                 {(
                   selectedContent.text ||
                   selectedContent.body ||
