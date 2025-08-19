@@ -10,6 +10,7 @@ import com.codegym.auto_marketing_server.util.CloudinaryService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,6 +40,8 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -49,8 +52,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/v1/topics/generate", "/api/v1/topics/generate/**",
                                 "/api/v1/posts/generate").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/user/**").hasRole("USER")
+                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/user/**").hasAuthority("USER")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
@@ -87,7 +90,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // domain frontend
+        configuration.setAllowedOrigins(Arrays.asList(frontendUrl)); // domain frontend
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true); // <--- QUAN TRỌNG

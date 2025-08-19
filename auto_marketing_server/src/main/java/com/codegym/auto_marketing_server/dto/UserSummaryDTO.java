@@ -3,16 +3,17 @@ package com.codegym.auto_marketing_server.dto;
 import com.codegym.auto_marketing_server.entity.Role;
 import com.codegym.auto_marketing_server.entity.User;
 
-import java.util.stream.Collectors;
+import java.time.LocalDate;
 
-public record UserDTO (Long id, String email, String name, Role role, String avatar, Boolean status) {
-    public static UserDTO from(User user) {
-        return new UserDTO(
+public record UserSummaryDTO(Long id, String email, String name, Role role, String avatar, Boolean status, LocalDate createdAt ) {
+    public static UserSummaryDTO from(User user) {
+        return new UserSummaryDTO(
                 user.getId(),
                 user.getEmail(),
                 user.getName(),
                 user.getRole(),
                 user.getAvatar(),
-                user.getStatus());
+                user.getStatus(),
+                user.getCreatedAt());
     }
 }

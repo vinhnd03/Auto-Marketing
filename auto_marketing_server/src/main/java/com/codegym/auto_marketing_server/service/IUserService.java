@@ -15,4 +15,6 @@ public interface IUserService {
     void changePassword(Long userId, String password);
 
     Boolean existedByEmail(String email);
+
+    Optional<User> findById(Long id);
 }

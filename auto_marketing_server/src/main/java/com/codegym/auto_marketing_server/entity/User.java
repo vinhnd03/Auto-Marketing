@@ -34,8 +34,15 @@ public class User implements UserDetails {
     @Column(nullable = false, updatable = false, columnDefinition = "DATE DEFAULT CURRENT_DATE")
     private LocalDate createdAt;
 
+    private String phone;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Column(columnDefinition = "TEXT")
     private String avatar;
+
+    private String job;
 
     private String provider;
 
