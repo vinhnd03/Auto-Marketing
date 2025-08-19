@@ -29,6 +29,8 @@ import {
 import dayjs from "dayjs";
 const WorkspaceDetailPage = () => {
   const { workspaceId } = useParams();
+  // State hiển thị chi tiết content
+  const [selectedContentDetail, setSelectedContentDetail] = useState(null);
   // Hooks phải nằm ở đầu function component
   const [workspace, setWorkspace] = useState(null);
   const [loadingWorkspace, setLoadingWorkspace] = useState(true);
