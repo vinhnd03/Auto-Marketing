@@ -32,10 +32,11 @@ import RevenueManagement from "./pages/admin/RevenueManagement";
 
 // import AdminLayout from "./pages/admin/AdminLayout";
 // import AdminDashboard from "./pages/admin/AdminDashboard";
-import ListCustomerComponent from "./components/admin/ListCustomerComponent";
-import ListCustomerByDateComponent from "./components/admin/ListCustomerByDateComponent";
-import NewCustomerStatisticsComponent from "./components/admin/NewCustomerStatisticsComponent";
-import TrendPage from "./components/admin/TrendAnalysis";
+import ListUsers from "./components/admin/ListUsers";
+import ListUserByDate from "./components/admin/ListUserByDate";
+import NewCustomerStatisticsComponent from "./components/admin/CustomersBuyNewPackagesStatistic";
+import TrendPage from "./components/admin/NewCustomerStatistic";
+import DetailUserComponent from "./components/admin/DetailUser";
 
 
 
@@ -61,11 +62,11 @@ const AppLayout = ({ children }) => {
 };
 
 function App() {
-    const [loading, setLoading] = useState(true);
-    useEffect(() => {
-        setTimeout(() => setLoading(false), 1200);
-    }, []);
-    if (loading) return <Preloader/>;
+    // const [loading, setLoading] = useState(true);
+    // useEffect(() => {
+    //     setTimeout(() => setLoading(false), 1200);
+    // }, []);
+ //   if (loading) return <Preloader/>;
     return (
         <Router>
             <AppLayout>
@@ -101,10 +102,11 @@ function App() {
                         }
                     >
                         <Route index element={<AdminDashboard/>}/>
-                        <Route path="users" element={<ListCustomerComponent/>}/>
-                        <Route path="users/new" element={<ListCustomerByDateComponent/>}/>
-                        <Route path="customers/trends" element={<TrendPage/>}/>
-                        <Route path="customers/statistics" element={<NewCustomerStatisticsComponent/>}/>
+                        <Route path="users/list" element={<ListUsers/>}/>
+                        <Route path="users/new" element={<ListUserByDate/>}/>
+                        <Route path={"users/detail/:id"} element={<DetailUserComponent/>}/>
+                        <Route path="customers/statistics_customer" element={<TrendPage/>}/>
+                        <Route path="customers/statistics_packages" element={<NewCustomerStatisticsComponent/>}/>
                         <Route path="revenue" element={<RevenueManagement/>}/>
                     </Route>
                 </Routes>

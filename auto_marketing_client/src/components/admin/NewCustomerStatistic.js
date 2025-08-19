@@ -11,7 +11,7 @@ import {
     Legend,
 } from "chart.js";
 import { Chart } from "react-chartjs-2";
-import { getStatisticByMonthYear } from "../../service/admin/statistics_service";
+import { getStatisticByMonthYear } from "../../service/admin/statistics_customer_service";
 
 ChartJS.register(
     CategoryScale,

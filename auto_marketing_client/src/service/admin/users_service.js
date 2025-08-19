@@ -1,200 +1,24 @@
-
 import axios from "axios";
 
-// Danh sách khách hàng
-export let customer = [
-    {
-        id: 1,
-        codeCustomer: "C001",
-        nameCustomer: "Nguyễn Văn A",
-        email: "a@example.com",
-        phone: "0901111111",
-        servicePackage: "Gói Premium",
-        username: "nguyenvana",
-        createDate: "2025-08-01",
-        status:true
-    },
-    {
-        id: 2,
-        codeCustomer: "C002",
-        nameCustomer: "Trần Thị B",
-        email: "b@example.com",
-        phone: "0902222222",
-        servicePackage: "Gói Basic",
-        username: "tranthib",
-        createDate: "2025-08-02",
-        status: false
-    },
-    {
-        id: 3,
-        codeCustomer: "C003",
-        nameCustomer: "Lê Văn C",
-        email: "c@example.com",
-        phone: "0903333333",
-        servicePackage: "Gói Premium",
-        username: "levanc",
-        createDate: "2025-08-03",
-        status: true
-    },
-    {
-        id: 4,
-        codeCustomer: "C004",
-        nameCustomer: "Phạm Thị D",
-        email: "d@example.com",
-        phone: "0904444444",
-        servicePackage: "Gói Standard",
-        username: "phamthid",
-        createDate: "2025-08-04",
-        status: true
-    },
-    {
-        id: 5,
-        codeCustomer: "C005",
-        nameCustomer: "Hoàng Văn E",
-        email: "e@example.com",
-        phone: "0905555555",
-        servicePackage: "Gói Basic",
-        username: "hoangvane",
-        createDate: "2025-08-05",
-        status: false
-    },
-    {
-        id: 6,
-        codeCustomer: "C006",
-        nameCustomer: "Vũ Thị F",
-        email: "f@example.com",
-        phone: "0906666666",
-        servicePackage: "Gói Premium",
-        username: "vuthif",
-        createDate: "2025-08-06",
-        status: false
-    },
-    {
-        id: 7,
-        codeCustomer: "C007",
-        nameCustomer: "Ngô Văn G",
-        email: "g@example.com",
-        phone: "0907777777",
-        servicePackage: "Gói Standard",
-        username: "ngovang",
-        createDate: "2025-08-07",
-        status: true
-    },
-    {
-        id: 8,
-        codeCustomer: "C008",
-        nameCustomer: "Đỗ Thị H",
-        email: "h@example.com",
-        phone: "0908888888",
-        servicePackage: "Gói Basic",
-        username: "dothih",
-        createDate: "2025-08-08",
-        status: false
-    },
-    {
-        id: 9,
-        codeCustomer: "C009",
-        nameCustomer: "Bùi Văn I",
-        email: "i@example.com",
-        phone: "0909999999",
-        servicePackage: "Gói Premium",
-        username: "buivani",
-        createDate: "2025-08-09",
-        status: true
-    },
-    {
-        id: 10,
-        codeCustomer: "C010",
-        nameCustomer: "Tạ Thị J",
-        email: "j@example.com",
-        phone: "0910000000",
-        servicePackage: "Gói Standard",
-        username: "tatij",
-        createDate: "2025-08-10",
-        status: true
-    },
-    {
-        id: 11,
-        codeCustomer: "C011",
-        nameCustomer: "Phan Văn K",
-        email: "k@example.com",
-        phone: "0911111111",
-        servicePackage: "Gói Basic",
-        username: "phanvank",
-        createDate: "2025-08-11",
-        status: false
-    },
-    {
-        id: 12,
-        codeCustomer: "C012",
-        nameCustomer: "Mai Thị L",
-        email: "l@example.com",
-        phone: "0912222222",
-        servicePackage: "Gói Premium",
-        username: "maithil",
-        createDate: "2025-08-12",
-        status: true
-    }
-];
-
-// Danh sách gói dịch vụ
-export let servicePackages = [
-    { id: 1, name: "Gói Basic" },
-    { id: 2, name: "Gói Standard" },
-    { id: 3, name: "Gói Premium" }
-];
-
-
-
-export async function getAllServicePackages() {
+export async function updateUser(id, user) {
     try {
-        const response = await axios.get("http://localhost:8080/api/plans");
-        const plans = response.data?.data || response.data;
-        return Array.isArray(plans) ? plans : [];
+        const response = await axios.patch("http://localhost:8080/api/users/" + id, user);
+        return response.data;
     } catch (e) {
-        console.error("Error fetching plans:", e);
-        return [];
-    }
-}
-export async function getAllSub() {
-    try {
-        const response = await axios.get("http://localhost:8080/api/subscriptions");
-        const plans = response.data?.data || response.data;
-        return Array.isArray(plans) ? plans : [];
-    } catch (e) {
-        console.error("Error fetching plans:", e);
-        return [];
-    }
-}
-export async function search(
-    nameKeyword,
-    servicePackageKey,
-    page = 1,
-    size = 5
-) {
-    try {
-        const response = await axios.get("http://localhost:8080/api/users", {
-            params: {
-                name: nameKeyword || null,
-                planName: servicePackageKey || null,
-                page: page - 1, // Spring Data JPA dùng 0-based index
-                size
-            }
-        });
-
-        const result = response.data;
-        return {
-            data: result.content || [],
-            totalItems: result.totalItems || 0,
-            totalPages: result.totalPages || 0,
-            currentPage: result.number + 1
-        };
-    } catch (e) {
-        console.error("Error fetching customers:", e);
-        return { data: [], totalItems: 0, totalPages: 0, currentPage: page };
+        console.log(e)
+        throw e;
     }
 }
 
+export async function findById(id) {
+    try {
+        const response=await axios.get("http://localhost:8080/api/users/"+id);
+        return response.data;
+    }catch (e) {
+        console.log(e)
+        return null;
+    }
+}
 
 
 // export async function search(
@@ -244,27 +68,81 @@ export async function search(
 //         return { data: [], totalItems: 0, totalPages: 0, currentPage: page };
 //     }
 // }
-
-
-
-
-// export async function search(nameKeyword, idKey) {
+// export async function search(
+//     nameKeyword,
+//     servicePackageKey,
+//     page = 1,
+//     size = 5
+// ) {
 //     try {
-//         const name = await axios.get(`http://localhost:8080/customer?_sort=soLuong&_order=asc`)
-//         const theLoaiId = await axios.get("http://localhost:8080/theLoai");
-//         const responseName = name.data.filter((p) => {
-//             return (!nameKeyword || p.nameCustomer.toLowerCase().includes(nameKeyword.toLowerCase()))
-//                 && (!idKey || p.theLoai.id === parseInt(idKey));
+//         const response = await axios.get("http://localhost:8080/api/users", {
+//             params: {
+//                 name: nameKeyword || null,
+//                 planName: servicePackageKey || null,
+//                 page: page - 1, // Spring Data JPA dùng 0-based index
+//                 size
+//             }
 //         });
+//
+//         const result = response.data;
 //         return {
-//             sach: responseName,
-//             theLoai: theLoaiId.data
-//         }
+//             data: result.content || [],
+//             totalItems: result.totalItems || 0,
+//             totalPages: result.totalPages || 0,
+//             currentPage: result.number + 1
+//         };
 //     } catch (e) {
-//         console.log(e)
-//         return {
-//             sach: [],
-//             theLoai: []
-//         }
+//         console.error("Error fetching customers:", e);
+//         return {data: [], totalItems: 0, totalPages: 0, currentPage: page};
 //     }
 // }
+
+
+export async function search(
+    nameKeyword,
+    servicePackageKey,
+    page = 1,
+    size = 5,
+    startDate = null,
+    endDate = null
+) {
+    try {
+        // 1. Gửi request chỉ với name + planName
+        const { data: result } = await axios.get("http://localhost:8080/api/users", {
+            params: {
+                name: nameKeyword || undefined,
+                planName: servicePackageKey || undefined,
+                page: 0, // Lấy hết data để tự lọc
+                size: 10000 // Số đủ lớn để lấy toàn bộ
+            }
+        });
+
+        let allData = result?.content ?? [];
+
+        if (startDate || endDate) {
+            const start = startDate ? new Date(startDate) : null;
+            const end = endDate ? new Date(endDate) : null;
+
+            allData = allData.filter(item => {
+                const createdAt = new Date(item.createDate); // cột ngày của bạn
+                return (!start || createdAt >= start) && (!end || createdAt <= end);
+            });
+        }
+
+        const totalItems = allData.length;
+        const totalPages = Math.ceil(totalItems / size);
+        const paginatedData = allData.slice((page - 1) * size, page * size);
+
+        return {
+            data: paginatedData,
+            totalItems,
+            totalPages,
+            currentPage: page
+        };
+    } catch (e) {
+        console.error("Error fetching customers:", e);
+        return { data: [], totalItems: 0, totalPages: 0, currentPage: page };
+    }
+}
+
+

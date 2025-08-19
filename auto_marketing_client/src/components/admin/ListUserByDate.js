@@ -1,8 +1,9 @@
+import {useEffect, useState} from "react";
+import {findById, search} from "../../service/admin/users_service";
+import { Eye,Lock, Unlock } from "lucide-react";
+import UpdateUserModal from "./UpdateUser";
 
-import { useEffect, useState } from "react";
-import { search, servicePackages } from "../../service/customer_service";
-
-function ListCustomerByDateComponent() {
+function ListUserByDate() {
     const [list, setList] = useState([]);
     const [keyword, setKeyWord] = useState("");
     const [sortKey, setSortKey] = useState("");
@@ -10,39 +11,88 @@ function ListCustomerByDateComponent() {
     const [endDate, setEndDate] = useState("");
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [errors, setErrors] = useState({startDate: "", endDate: ""});
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [showDetail, setShowDetail] = useState(false);
+    const [modalUser, setModalUser] = useState(null);
+
 
     useEffect(() => {
-        handleSearch();
+        handleSearch().then();
     }, [page]);
 
     const handleSearch = async () => {
-        const { data, totalPages } = await search(keyword, sortKey, page, 5, startDate, endDate);
+        const {data, totalPages} = await search(keyword, sortKey, page, 5, startDate, endDate);
         setList(data.map(c => ({
             ...c,
-            status: c.status || "Đang hoạt động"
+            status: c.status
         })));
         setTotalPages(totalPages);
     };
 
-    const toggleStatus = (id) => {
-        setList(prevList =>
-            prevList.map(c =>
-                c.id === id
-                    ? { ...c, status: c.status === "Đang hoạt động" ? "Bị khóa" : "Đang hoạt động" }
-                    : c
-            )
-        );
+    const handleValid = () => {
+        let valid = true;
+        let newErrors = {startDate: "", endDate: ""};
+
+        if (!startDate) {
+            newErrors.startDate = "Vui lòng chọn ngày bắt đầu";
+            valid = false;
+        }
+        if (!endDate) {
+            newErrors.endDate = "Vui lòng chọn ngày kết thúc";
+            valid = false;
+        }
+
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const today = new Date();
+            start.setHours(0, 0, 0, 0);
+            end.setHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0);
+
+            if (start > end) {
+                newErrors.startDate = "Ngày bắt đầu không được sau ngày kết thúc";
+                valid = false;
+            }
+            if (end > today) {
+                newErrors.endDate = "Ngày kết thúc không được sau hôm nay";
+                valid = false;
+            }
+        }
+        setErrors(newErrors);
+        return valid;
     };
+
+    const handleViewDetail = async (id) => {
+        let us = await findById(id);
+        setSelectedUser(us);
+        setShowDetail(true);
+    };
+
+    const closeDetail = () => {
+        setShowDetail(false);
+        setSelectedUser(null);
+    };
+
+    const openModal = (user) => setModalUser(user);
+    const closeModal = () => setModalUser(null);
+
+    const handleUpdateSuccess = (id, newStatus) => {
+        setList(prev => prev.map(u => u.id === id ? { ...u, status: newStatus } : u));
+    };
+
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+        return date.toLocaleDateString("vi-VN", {day: "2-digit", month: "2-digit", year: "numeric"});
     };
 
     return (
         <div className="container mx-auto p-4 bg-gray-50 min-h-screen">
             {/* Tiêu đề */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-green-50 p-4 rounded-lg shadow-md">
+            <div
+                className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-green-50 p-4 rounded-lg shadow-md">
                 <p className="text-center sm:text-left text-3xl font-bold flex-1">
                     Danh sách tài khoản theo ngày tạo
                 </p>
@@ -60,6 +110,7 @@ function ListCustomerByDateComponent() {
                         onChange={(e) => setStartDate(e.target.value)}
                         className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300 focus:outline-none"
                     />
+                    {errors.startDate && <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>}
                 </div>
 
                 <div className="flex-1 min-w-[200px]">
@@ -70,15 +121,22 @@ function ListCustomerByDateComponent() {
                         onChange={(e) => setEndDate(e.target.value)}
                         className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300 focus:outline-none"
                     />
+                    {errors.endDate && <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>}
+
                 </div>
 
                 <div className="flex items-end">
                     <button
-                        onClick={() => { setPage(1); handleSearch(); }}
-                        className="w-full sm:w-auto px-5 py-2 bg-blue-400 text-white rounded-lg hover:bg-green-400 transition"
-                    >
+                        onClick={() => {
+                            if (handleValid()) {
+                                setPage(1);
+                                handleSearch().then();
+                            }
+                        }}
+                        className="w-full sm:w-auto px-5 py-2 bg-blue-400 text-white rounded-lg hover:bg-green-400 transition">
                         Tìm kiếm
                     </button>
+
                 </div>
             </div>
 
@@ -93,6 +151,7 @@ function ListCustomerByDateComponent() {
                         <th className="p-2 border-b">Ngày tạo</th>
                         <th className="p-2 border-b">Gói đã mua</th>
                         <th className="p-2 border-b">Trạng thái</th>
+                        <th className="p-2 border-b">Hành động</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -110,23 +169,97 @@ function ListCustomerByDateComponent() {
                                 <td className="p-2">{customer.email}</td>
                                 <td className="p-2">{formatDate(customer.createDate)}</td>
                                 <td className="p-2">
-                                    { customer.subscriptions.length > 0
+                                    {customer.subscriptions.length > 0
                                         ? customer.subscriptions.map(sub => sub.planId?.name).join(", ")
                                         : "Chưa mua gói nào"}
                                 </td>
-                                <td className="p-2">
-                                    <button
-                                        onClick={() => toggleStatus(customer.id)}
-                                        className={`px-3 py-1 rounded text-white ${customer.status=== "Đang hoạt động" ? "bg-green-500 hover:bg-green-600":"bg-red-500 hover:bg-red-600" }`}
-                                    >
-                                        {customer.status === "Đang hoạt động" ? "Đang hoạt động" : "Mở khóa"}
-                                    </button>
+                                <td className="p-2 "> {customer.status ? "Đang hoạt động" : "Đang bị khóa"}</td>
+                                <td className="whitespace-nowrap px-6 py-4">
+                                    <div className="inline-flex items-center space-x-2 rounded-md px-3 py-1">
+                                        <button
+                                            onClick={() => handleViewDetail(customer.id)}
+                                            className="text-gray-600 hover:text-blue-600 focus:outline-none transition-colors duration-200">
+                                            <Eye size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => openModal(customer)}
+                                            className={`focus:outline-none transition-colors duration-200 ${
+                                                customer.status ? "text-green-600 hover:text-green-800" : "text-red-600 hover:text-red-800"
+                                            }`}
+                                        >
+                                            {customer.status ? <Unlock size={16} /> : <Lock size={16} />}
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))
                     )}
                     </tbody>
                 </table>
+
+                {modalUser && (
+                    <UpdateUserModal
+                        user={modalUser}
+                        isShowModal={!!modalUser}
+                        isCloseModal={closeModal}
+                        onUpdateSuccess={handleUpdateSuccess}
+                    />
+                )}
+
+                {/* Card hiển thị chi tiết */}
+                {showDetail && selectedUser && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                        <div className="bg-white rounded-lg p-8 w-[600px] shadow-lg relative"> {/* tăng width */}
+                            <button
+                                onClick={closeDetail}
+                                className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+                            >
+                                ✕
+                            </button>
+                            <h2 className="text-2xl font-bold mb-6">Chi tiết khách hàng</h2>
+
+                            <div className="grid grid-cols-2 gap-y-3">
+                                <span className="font-semibold">ID:</span>
+                                <span>{selectedUser.id}</span>
+
+                                <span className="font-semibold">Tên:</span>
+                                <span>{selectedUser.name}</span>
+
+                                <span className="font-semibold">Email:</span>
+                                <span>{selectedUser.email}</span>
+
+                                <span className="font-semibold">Ngày tạo:</span>
+                                <span>{selectedUser.createDate}</span>
+
+                                <span className="font-semibold">Trạng thái tài khoản:</span>
+                                <span className={selectedUser.status ? "text-green-600" : "text-red-600"}>{selectedUser.status ? "Đang hoạt động" : "Đang bị khóa"}</span>
+                            </div>
+
+                            {/* Hiển thị gói dịch vụ */}
+                            <div className="mt-6">
+                                <span className="font-semibold">Gói dịch vụ đã mua:</span>
+                                {selectedUser.subscriptions?.length > 0 ? (
+                                    <div className="space-y-2 mt-2">
+                                        {selectedUser.subscriptions.map((sub, idx) => (
+                                            <div key={idx} className="border p-3 rounded grid grid-cols-2">
+                                                <span>Gói:</span>
+                                                <span>{sub.planId?.name}</span>
+
+                                                <span>Ngày mua:</span>
+                                                <span>{sub.startDate}</span>
+
+                                                <span>Ngày hết hạn:</span>
+                                                <span>{sub.endDate}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p>Chưa mua gói nào</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Pagination */}
@@ -140,7 +273,7 @@ function ListCustomerByDateComponent() {
                 </button>
 
                 {(() => {
-                    const visiblePages = 3; // số trang hiển thị
+                    const visiblePages = 5; // số trang hiển thị
                     let startPage = Math.max(1, page - 1); // bắt đầu từ trang trước trang hiện tại 1 bước
 
                     // Nếu gần cuối, đảm bảo vẫn hiển thị đủ 3 trang
@@ -177,4 +310,4 @@ function ListCustomerByDateComponent() {
     );
 }
 
-export default ListCustomerByDateComponent;
+export default ListUserByDate;

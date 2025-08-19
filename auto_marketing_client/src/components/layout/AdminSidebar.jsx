@@ -37,9 +37,20 @@ const AdminSidebar = () => {
             name: "Quản lý người dùng",
             icon: Users,
             children: [
-                { name: "Tất cả người dùng", href: "/admin/users", icon: Users },
-                { name: "Người dùng mới", href: "/admin/users/new", icon: UserCheck },
+                { name: "Tất cả người dùng", href: "/admin/users/list", icon: Users },
+                { name: "Người dùng mới", href: "/admin/users/new", icon: UserCheck }
                 // { name: "Tài khoản bị khóa", href: "/admin/users/blocked", icon: AlertTriangle },
+            ],
+        },
+        {
+            name: "Thống kê khách hàng",
+            icon: BarChart3,
+            children: [
+                // { name: "Tăng trưởng theo tuần", href: "/admin/customers/weekly" },
+                // { name: "Tăng trưởng theo tháng", href: "/admin/customers/monthly" },
+                // { name: "Tăng trưởng theo quý", href: "/admin/customers/quarterly" },
+                { name: "Theo lượt mua gói mới", href: "/admin/customers/statistics_packages" },
+                { name: "Theo lượt đăng kí mới", href: "/admin/customers/statistics_customer" },
             ],
         },
         {
@@ -50,17 +61,6 @@ const AdminSidebar = () => {
                 { name: "Theo tuần", href: "/admin/revenue/weekly" },
                 { name: "Theo tháng", href: "/admin/revenue/monthly" },
                 { name: "Theo quý", href: "/admin/revenue/quarterly" },
-            ],
-        },
-        {
-            name: "Thống kê khách hàng",
-            icon: BarChart3,
-            children: [
-                // { name: "Tăng trưởng theo tuần", href: "/admin/customers/weekly" },
-                // { name: "Tăng trưởng theo tháng", href: "/admin/customers/monthly" },
-                // { name: "Tăng trưởng theo quý", href: "/admin/customers/quarterly" },
-                { name: "Thống kê tăng trưởng", href: "/admin/customers/statistics" },
-                { name: "Phân tích xu hướng", href: "/admin/customers/trends" },
             ],
         },
         {

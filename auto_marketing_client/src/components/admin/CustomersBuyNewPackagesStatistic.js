@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getStatisticByMonthYear } from "../../service/admin/statistics_service";
+import { getStatisticByMonthYear } from "../../service/admin/statistics_packages_service";
 import { Bar } from "react-chartjs-2";
 import { Chart, registerables } from "chart.js";
 
