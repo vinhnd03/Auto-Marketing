@@ -1014,7 +1014,197 @@ const WorkspaceDetailPage = () => {
                     </div>
                   ) : (
                     <>
-                      {/* ...existing code... (giữ nguyên phần render danh sách topic như cũ) */}
+                      {/* Danh sách các campaign và topic đã có */}
+                      {workspace.campaigns.map((campaign) => {
+                        // Lấy danh sách topic đã approved
+                        const approvedTopics = campaign.topicsList
+                          ? campaign.topicsList.filter(
+                              (topic) =>
+                                topic.status === "APPROVED" ||
+                                topic.status === "active" ||
+                                topic.status === "ACTIVE"
+                            )
+                          : [];
+                        const pageSize =
+                          topicsPageByCampaign[campaign.id] ||
+                          DEFAULT_TOPICS_PER_PAGE;
+                        const visibleTopics = approvedTopics.slice(0, pageSize);
+                        const hasMore =
+                          approvedTopics.length > visibleTopics.length;
+                        return (
+                          <div
+                            key={campaign.id}
+                            className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6"
+                          >
+                            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                    <Target className="text-white" size={20} />
+                                  </div>
+                                  <div>
+                                    <h4 className="text-lg font-semibold text-gray-900">
+                                      {campaign.name}
+                                    </h4>
+                                    <p className="text-sm text-gray-600">
+                                      {campaign.description}
+                                    </p>
+                                  </div>
+                                </div>
+                                {getStatusBadge(campaign.status)}
+                              </div>
+                            </div>
+                            <div className="p-6">
+                              {visibleTopics.length > 0 ? (
+                                <>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {visibleTopics.map((topic, topicIndex) => (
+                                      <div
+                                        key={`campaign-${campaign.id}-topic-${topic.id}-${topicIndex}`}
+                                        className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+                                      >
+                                        <div className="flex items-center mb-3">
+                                          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 mr-2">
+                                            <Folder
+                                              className="text-white"
+                                              size={20}
+                                            />
+                                          </div>
+                                          {topic.aiGenerated && (
+                                            <div className="flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-bold ml-2">
+                                              <Wand2
+                                                size={12}
+                                                className="mr-1"
+                                              />
+                                              AI
+                                            </div>
+                                          )}
+                                        </div>
+                                        <h5 className="font-semibold text-base mb-1 text-gray-900">
+                                          {topic.name || topic.title}
+                                        </h5>
+                                        <p className="text-sm mb-3 text-gray-600">
+                                          {topic.description}
+                                        </p>
+                                        <div className="flex items-center justify-between mt-auto">
+                                          <button
+                                            className="w-full bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center justify-center"
+                                            onClick={() => {
+                                              setSelectedTopicForContent(topic);
+                                            }}
+                                          >
+                                            Xem Content
+                                          </button>
+                                          <button
+                                            className="ml-2 bg-purple-100 text-purple-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-purple-200 transition-colors flex items-center justify-center"
+                                            title="Chỉnh sửa topic"
+                                            disabled
+                                          >
+                                            <Settings size={16} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  {/* Nút phân trang: Xem thêm & Thu gọn */}
+                                  <div className="flex justify-center mt-6 space-x-3">
+                                    {hasMore &&
+                                      pageSize > DEFAULT_TOPICS_PER_PAGE && (
+                                        <>
+                                          <button
+                                            className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold shadow hover:from-purple-600 hover:to-blue-600 transition-all"
+                                            onClick={() =>
+                                              handleShowMoreTopics(
+                                                campaign.id,
+                                                approvedTopics.length
+                                              )
+                                            }
+                                          >
+                                            Xem thêm
+                                          </button>
+                                          <button
+                                            className="px-6 py-2 rounded-lg bg-gradient-to-r from-gray-400 to-gray-600 text-white font-semibold shadow hover:from-gray-500 hover:to-gray-700 transition-all"
+                                            onClick={() =>
+                                              setTopicsPageByCampaign(
+                                                (prev) => ({
+                                                  ...prev,
+                                                  [campaign.id]:
+                                                    DEFAULT_TOPICS_PER_PAGE,
+                                                })
+                                              )
+                                            }
+                                          >
+                                            Thu gọn
+                                          </button>
+                                        </>
+                                      )}
+                                    {!hasMore &&
+                                      pageSize > DEFAULT_TOPICS_PER_PAGE && (
+                                        <button
+                                          className="px-6 py-2 rounded-lg bg-gradient-to-r from-gray-400 to-gray-600 text-white font-semibold shadow hover:from-gray-500 hover:to-gray-700 transition-all"
+                                          onClick={() =>
+                                            setTopicsPageByCampaign((prev) => ({
+                                              ...prev,
+                                              [campaign.id]:
+                                                DEFAULT_TOPICS_PER_PAGE,
+                                            }))
+                                          }
+                                        >
+                                          Thu gọn
+                                        </button>
+                                      )}
+                                    {hasMore &&
+                                      pageSize === DEFAULT_TOPICS_PER_PAGE && (
+                                        <button
+                                          className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold shadow hover:from-purple-600 hover:to-blue-600 transition-all"
+                                          onClick={() =>
+                                            handleShowMoreTopics(
+                                              campaign.id,
+                                              approvedTopics.length
+                                            )
+                                          }
+                                        >
+                                          Xem thêm
+                                        </button>
+                                      )}
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="text-center py-8">
+                                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Folder
+                                      className="text-gray-400"
+                                      size={24}
+                                    />
+                                  </div>
+                                  <h5 className="text-lg font-semibold text-gray-900 mb-2">
+                                    Chưa có topics nào
+                                  </h5>
+                                  <p className="text-gray-600 mb-4">
+                                    Campaign "{campaign.name}" chưa có topics
+                                    nào. Hãy để AI generate ra những chủ đề thú
+                                    vị!
+                                  </p>
+                                  {campaign.status !== "completed" && (
+                                    <button
+                                      onClick={() =>
+                                        setShowTopicGenerator(true)
+                                      }
+                                      className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+                                    >
+                                      <Wand2
+                                        size={14}
+                                        className="mr-2 inline"
+                                      />
+                                      🎯 Generate Topics
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </>
                   )}
                 </div>
