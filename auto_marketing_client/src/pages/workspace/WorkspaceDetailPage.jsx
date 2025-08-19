@@ -2,6 +2,7 @@ import TopicContentList from "../../components/ai/TopicContentList";
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import TopicContentDetail from "./TopicContentDetail";
 import { AITopicGenerator, CampaignTable } from "../../components";
 import {
   ArrowLeft,
@@ -112,70 +113,15 @@ const WorkspaceDetailPage = () => {
         endDate: "2024-08-07",
         budget: 15000000,
         platforms: ["Facebook", "Instagram"],
+
         topics: 5,
-        content: 12,
-        performance: { reach: 125000, engagement: 8500, conversions: 450 },
-        topicsList: [
-          {
-            id: 1,
-            title: "Top 10 sản phẩm hot nhất mùa hè",
-            description:
-              "Giới thiệu những sản phẩm bán chạy và được yêu thích nhất trong mùa hè này",
-            campaignId: 1,
-            status: "active",
-            posts: 5,
-            pendingPosts: 2,
-            aiGenerated: true,
-            createdAt: "2024-08-01",
-          },
-          {
-            id: 2,
-            title: "Tips chọn outfit mùa hè",
-            description:
-              "Hướng dẫn phối đồ thời trang phù hợp với thời tiết nóng bức",
-            campaignId: 1,
-            status: "active",
-            posts: 3,
-            pendingPosts: 1,
-            aiGenerated: false,
-            createdAt: "2024-08-02",
-          },
-        ],
       },
-      {
-        id: 2,
-        name: "Flash Sale Weekend",
-        description: "Sale cuối tuần với giảm giá sốc",
-        status: "draft",
-        startDate: "2024-08-10",
-        endDate: "2024-08-11",
-        budget: 8000000,
-        platforms: ["Facebook", "Instagram", "Google Ads"],
-        topics: 3,
-        content: 6,
-        performance: { reach: 0, engagement: 0, conversions: 0 },
-        topicsList: [
-          {
-            id: 3,
-            title: "Flash Sale 24h - Giảm giá sốc",
-            description:
-              "Thông báo về chương trình flash sale với mức giảm giá không thể bỏ lỡ",
-            campaignId: 2,
-            status: "draft",
-            posts: 0,
-            pendingPosts: 3,
-            aiGenerated: true,
-            createdAt: "2024-08-03",
-          },
-        ],
-      },
+      // ...other campaigns
     ],
   };
 
-  // Function để cập nhật campaigns
   const handleUpdateCampaigns = (updatedCampaigns) => {
     setApiCampaigns(updatedCampaigns);
-    // Also update workspace for compatibility with other features
     setWorkspace((prevWorkspace) => ({
       ...prevWorkspace,
       campaigns: updatedCampaigns,
@@ -632,13 +578,16 @@ const WorkspaceDetailPage = () => {
   // Lọc danh sách bài viết đã xác nhận (mock)
   // Ở đây mình giả sử confirmed = status === "active" và posts > 0
   // Lấy danh sách nội dung khả dụng (content) từ campaign đầu tiên làm ví dụ
-  const availableContents = initialWorkspace.campaigns[0].topicsList.map(
-    (topic) => ({
-      id: topic.id.toString(), // id dưới dạng string vì select value là string
-      title: topic.title,
-      content: topic.description,
-    })
-  );
+  const availableContents =
+    initialWorkspace.campaigns &&
+    initialWorkspace.campaigns[0] &&
+    Array.isArray(initialWorkspace.campaigns[0].topicsList)
+      ? initialWorkspace.campaigns[0].topicsList.map((topic) => ({
+          id: topic.id.toString(),
+          title: topic.title,
+          content: topic.description,
+        }))
+      : [];
   // Hàm nhận dữ liệu post mới từ component con
   const handleScheduleSubmit = (posts) => {
     console.log("Posts mới được lên lịch:", posts);
@@ -952,79 +901,32 @@ const WorkspaceDetailPage = () => {
                 <div className="space-y-6">
                   {/* Nếu đang xem detail content của topic */}
                   {selectedTopicForContent ? (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                      <button
-                        className="mb-6 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
-                        onClick={() => setSelectedTopicForContent(null)}
-                      >
-                        ← Quay lại danh sách chủ đề
-                      </button>
-                      <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                          {selectedTopicForContent.title ||
-                            selectedTopicForContent.name}
-                        </h2>
-                        <p className="text-gray-700 mb-2">
-                          {selectedTopicForContent.description}
-                        </p>
-                        {selectedTopicForContent.aiGenerated && (
-                          <span className="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-bold mr-2">
-                            <Wand2 size={12} className="mr-1 inline" /> AI
-                            Generated
-                          </span>
-                        )}
-                      </div>
-                      {/* Danh sách content/posts của topic */}
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                          Danh sách Content đã tạo
-                        </h3>
-                        {Array.isArray(selectedTopicForContent.contents) &&
-                        selectedTopicForContent.contents.length > 0 ? (
-                          <div className="space-y-4">
-                            {selectedTopicForContent.contents.map(
-                              (content, idx) => (
-                                <div
-                                  key={content.id || idx}
-                                  className="bg-gray-50 border border-gray-200 rounded-lg p-4"
-                                >
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="font-semibold text-gray-800">
-                                      Content #{idx + 1}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                      {content.createdAt}
-                                    </span>
-                                  </div>
-                                  <div className="text-gray-700 whitespace-pre-line">
-                                    {content.text ||
-                                      content.body ||
-                                      content.content}
-                                  </div>
-                                </div>
-                              )
-                            )}
-                          </div>
-                        ) : (
-                          <div className="text-gray-500">
-                            Chưa có content nào cho topic này.
-                          </div>
-                        )}
-                      </div>
+                    <TopicContentDetail
+                      topic={selectedTopicForContent}
+                      onBack={() => setSelectedTopicForContent(null)}
+                    />
+                  ) : !workspace || !Array.isArray(workspace.campaigns) ? (
+                    <div className="text-center py-8 text-gray-500">
+                      Không có dữ liệu workspace hoặc danh sách campaigns.
+                    </div>
+                  ) : workspace.campaigns.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      Workspace chưa có campaign nào.
                     </div>
                   ) : (
                     <>
                       {/* Danh sách các campaign và topic đã có */}
                       {workspace.campaigns.map((campaign) => {
                         // Lấy danh sách topic đã approved
-                        const approvedTopics = campaign.topicsList
-                          ? campaign.topicsList.filter(
-                              (topic) =>
-                                topic.status === "APPROVED" ||
-                                topic.status === "active" ||
-                                topic.status === "ACTIVE"
-                            )
+                        const topicsListArr = Array.isArray(campaign.topicsList)
+                          ? campaign.topicsList
                           : [];
+                        const approvedTopics = topicsListArr.filter(
+                          (topic) =>
+                            topic.status === "APPROVED" ||
+                            topic.status === "active" ||
+                            topic.status === "ACTIVE"
+                        );
                         const pageSize =
                           topicsPageByCampaign[campaign.id] ||
                           DEFAULT_TOPICS_PER_PAGE;
