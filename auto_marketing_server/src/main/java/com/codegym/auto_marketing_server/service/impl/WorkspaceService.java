@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -30,6 +31,7 @@ public class WorkspaceService implements IWorkspaceService {
             int maxWorkspace = subscriptionService.findMaxWorkspaceByCurrenSubscription(currentActiveOpt.get().getId());
             int totalWorkspaceOfUser = totalWorkspaceOfUser(userId);
             if (totalWorkspaceOfUser < maxWorkspace) {
+
                 return workspaceRepository.save(workspace);
             }
         }

@@ -9,9 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ISubscriptionRepository extends JpaRepository<Subscription, Long> {
-    @Query(value = "SELECT * FROM subscriptions s " +
-            "WHERE s.user_id = :userId AND s.status = 'SUCCESS' " +
-            "LIMIT 1", nativeQuery = true)
+    @Query(value = "SELECT s.* FROM subscriptions s join users u on s.user_id=u.id where s.status=\"SUCCESS\" limit 1", nativeQuery = true)
     Optional<Subscription> findActiveByUserId(@Param("userId") Long userId);
 
     @Query(value = "SELECT * FROM subscriptions s " +

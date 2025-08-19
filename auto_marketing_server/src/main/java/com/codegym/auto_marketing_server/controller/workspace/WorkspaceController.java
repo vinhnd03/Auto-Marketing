@@ -21,7 +21,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/workspaces")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class WorkspaceController {
     private final IWorkspaceService workspaceService;

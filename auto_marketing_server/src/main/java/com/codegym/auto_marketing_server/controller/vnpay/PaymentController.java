@@ -18,7 +18,7 @@ import java.util.TreeMap;
 
 @RestController
 @RequestMapping("${api.prefix}/payment")
-@CrossOrigin(origins = "http://localhost:3000")
+//@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class PaymentController {
     private final VNPayService vnPayService;
@@ -26,7 +26,6 @@ public class PaymentController {
 
     @PostMapping
     public Map<String, String> createPayment(@RequestBody Map<String, Object> requestData, HttpServletRequest request) {
-        System.out.println(requestData + " ......................................");
         String serviceName = requestData.get("serviceName").toString();
         int amount = ((Number) requestData.get("amount")).intValue();
         Long userId = ((Number) requestData.get("userId")).longValue();
