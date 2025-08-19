@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { HeroAnimation } from "../components";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import AOS from "aos";
@@ -6,7 +6,6 @@ import "aos/dist/aos.css";
 import bgPattern from "../assets/bermuda-circle.svg";
 
 export default function Home() {
-  const [selectedPlan, setSelectedPlan] = useState(null);
   useEffect(() => {
     AOS.init({ duration: 1000, once: true });
   }, []);
@@ -141,88 +140,131 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* Pricing Section */}
-      <section className="bg-[#f7faff] py-24" id="pricing" data-aos="fade-up">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-14 text-gray-900">
-            Gói dịch vụ phù hợp với bạn
+      {/* Success Numbers Section */}
+      <section
+        className="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 py-24"
+        data-aos="fade-up"
+      >
+        <div className="container mx-auto px-6 text-center max-w-6xl">
+          <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <span>�</span>
+            Kết quả ấn tượng từ khách hàng
+          </div>
+
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Những con số thành công
+            </span>
           </h2>
 
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-16">
+            Hàng nghìn doanh nghiệp đã tin tưởng và đạt được kết quả vượt mong
+            đợi với AutoMarketing
+          </p>
+
+          {/* Statistics Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
+            {[
+              { number: "2,500+", label: "Doanh nghiệp tin tưởng", icon: "🏢" },
+              { number: "85%", label: "Tăng trưởng doanh thu", icon: "📊" },
+              { number: "12M+", label: "Khách hàng tiếp cận", icon: "👥" },
+              { number: "95%", label: "Hài lòng với dịch vụ", icon: "⭐" },
+            ].map((stat, index) => (
+              <div
+                key={index}
+                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <div className="text-3xl mb-3">{stat.icon}</div>
+                <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">
+                  {stat.number}
+                </div>
+                <div className="text-gray-600 text-sm font-medium">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Customer Testimonials */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                title: "Cơ bản",
-                price: "Miễn phí",
-                features: [
-                  "Tối đa 1 chiến dịch/tháng",
-                  "Email tự động cơ bản",
-                  "Hỗ trợ qua email",
-                ],
+                name: "Nguyễn Văn A",
+                company: "CEO - TechViet Solutions",
+                avatar: "👨‍💼",
+                rating: 5,
+                content:
+                  "AutoMarketing đã giúp chúng tôi tăng 300% khách hàng mới chỉ trong 6 tháng. Tính năng AI tạo content thực sự tuyệt vời!",
               },
               {
-                title: "Chuyên nghiệp",
-                price: "499.000đ/tháng",
-                features: [
-                  "Không giới hạn chiến dịch",
-                  "Email & chatbot nâng cao",
-                  "Phân tích chuyên sâu",
-                  "Hỗ trợ ưu tiên",
-                ],
+                name: "Trần Thị B",
+                company: "Founder - BeautyShop Online",
+                avatar: "👩‍💼",
+                rating: 5,
+                content:
+                  "Từ khi dùng AutoMarketing, tôi tiết kiệm được 5 giờ mỗi ngày cho việc đăng bài và chăm sóc khách hàng. ROI tăng 250%!",
               },
               {
-                title: "Doanh nghiệp",
-                price: "Tùy chỉnh",
-                features: [
-                  "Tích hợp CRM",
-                  "Báo cáo tùy chỉnh",
-                  "Hỗ trợ chuyên biệt",
-                  "Gói linh hoạt theo nhu cầu",
-                ],
+                name: "Lê Minh C",
+                company: "Marketing Director - FoodChain",
+                avatar: "👨‍🍳",
+                rating: 5,
+                content:
+                  "Báo cáo phân tích chi tiết giúp chúng tôi hiểu rõ khách hàng hơn. Doanh thu từ digital marketing tăng 400% năm ngoái.",
               },
-            ].map((plan, index) => {
-              const isSelected = selectedPlan === index;
-              return (
-                <div
-                  key={index}
-                  onClick={() => setSelectedPlan(index)}
-                  className={`cursor-pointer p-8 rounded-3xl border transition duration-300 shadow-md ${
-                    isSelected
-                      ? "bg-blue-100 border-blue-600 shadow-lg scale-105"
-                      : "bg-white border-gray-200 hover:border-blue-300 hover:shadow"
-                  }`}
-                >
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    {plan.title}
-                  </h3>
-                  <p className="text-3xl font-extrabold text-blue-600 mb-6">
-                    {plan.price}
-                  </p>
-                  <ul className="text-gray-700 mb-6 space-y-3 text-left">
-                    {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-2">
-                        <CheckCircleIcon className="w-5 h-5 text-green-500" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  {isSelected && (
-                    <div className="text-sm font-medium text-blue-700 mt-2">
-                      ✅ Gói đã chọn
-                    </div>
-                  )}
-                  <a
-                    href="/contact"
-                    className={`mt-4 inline-block px-6 py-3 rounded-lg font-semibold transition ${
-                      isSelected
-                        ? "bg-blue-600 text-white hover:bg-blue-700"
-                        : "bg-white border border-blue-600 text-blue-600 hover:bg-blue-50"
-                    }`}
-                  >
-                    {isSelected ? "Tiếp tục với gói này" : "Chọn gói"}
-                  </a>
+            ].map((testimonial, index) => (
+              <div
+                key={index}
+                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-left"
+              >
+                <div className="flex items-center gap-1 mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <span key={i} className="text-yellow-400 text-lg">
+                      ⭐
+                    </span>
+                  ))}
                 </div>
-              );
-            })}
+
+                <p className="text-gray-700 mb-6 italic leading-relaxed">
+                  "{testimonial.content}"
+                </p>
+
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-2xl">
+                    {testimonial.avatar}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">
+                      {testimonial.name}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {testimonial.company}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Call to action */}
+          <div className="mt-16 text-center">
+            <p className="text-gray-600 mb-6">
+              Bạn cũng muốn đạt được kết quả tương tự?
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="/pricing"
+                className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg"
+              >
+                🚀 Xem gói dịch vụ
+              </a>
+              <a
+                href="/contact"
+                className="inline-flex items-center gap-2 px-8 py-3 bg-white border-2 border-blue-500 text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-300"
+              >
+                💬 Tư vấn miễn phí
+              </a>
+            </div>
           </div>
         </div>
       </section>
