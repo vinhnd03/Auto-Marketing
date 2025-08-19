@@ -68,50 +68,63 @@ const TopicContentDetail = ({ topic, onBack }) => {
             >
               ← Quay lại danh sách content
             </button>
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-bold text-lg text-gray-900">
-                {selectedContent.title ||
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold text-lg text-gray-900">
+                  {selectedContent.title ||
+                    selectedContent.text ||
+                    selectedContent.body ||
+                    selectedContent.content ||
+                    `Content`}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {selectedContent.createdAt
+                    ? dayjs(selectedContent.createdAt).format("DD-MM-YYYY")
+                    : ""}
+                </span>
+              </div>
+              <div className="text-gray-700 whitespace-pre-line mb-2">
+                {(
                   selectedContent.text ||
                   selectedContent.body ||
                   selectedContent.content ||
-                  `Content`}
-              </span>
-              <span className="text-xs text-gray-500">
-                {selectedContent.createdAt
-                  ? dayjs(selectedContent.createdAt).format("DD-MM-YYYY")
-                  : ""}
-              </span>
-            </div>
-            {/* Nội dung KHÔNG hiển thị hashtag ở phần text */}
-            <div className="text-gray-700 whitespace-pre-line mb-2">
-              {(
-                selectedContent.text ||
-                selectedContent.body ||
-                selectedContent.content ||
-                ""
-              )
-                .split("\n")
-                .filter((line) => !line.trim().startsWith("#"))
-                .join("\n")}
-            </div>
-            {/* Chỉ hiển thị hashtag ở 1 hàng tag bên dưới */}
-            {selectedContent.hashtag && (
-              <div className="mt-4 w-full overflow-x-auto">
-                <div className="flex flex-nowrap gap-2 items-center">
-                  {selectedContent.hashtag
-                    .split(/[\s,]+/)
-                    .filter((tag) => tag.startsWith("#"))
-                    .map((tag, i) => (
-                      <span
-                        key={i}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold whitespace-nowrap"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                </div>
+                  ""
+                )
+                  .split("\n")
+                  .filter((line) => !line.trim().startsWith("#"))
+                  .join("\n")}
               </div>
-            )}
+              {selectedContent.hashtag && (
+                <div className="mt-4 w-full overflow-x-auto">
+                  <div className="flex flex-nowrap gap-2 items-center">
+                    {selectedContent.hashtag
+                      .split(/[\s,]+/)
+                      .filter((tag) => tag.startsWith("#"))
+                      .map((tag, i) => (
+                        <span
+                          key={i}
+                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold whitespace-nowrap"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              )}
+              {/* Ảnh ở dưới cùng */}
+              {selectedContent.imageUrl && (
+                <div className="mt-6 flex justify-center">
+                  <div className="relative group w-full max-w-md">
+                    <img
+                      src={selectedContent.imageUrl}
+                      alt="AI generated"
+                      className="rounded-xl border-4 border-blue-300 shadow-lg object-cover w-full max-h-72 transition-transform duration-300 group-hover:scale-105 bg-white"
+                      style={{ aspectRatio: "16/9", objectFit: "cover" }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         ) : contents.length > 0 ? (
           <>
@@ -132,6 +145,19 @@ const TopicContentDetail = ({ topic, onBack }) => {
                     className="bg-white border border-gray-200 rounded-lg p-4 shadow hover:shadow-lg cursor-pointer flex flex-col"
                     onClick={() => setSelectedContent(content)}
                   >
+                    {/* Hiển thị ảnh nếu có */}
+                    {content.imageUrl && (
+                      <div className="mb-3 flex justify-center">
+                        <div className="relative group w-full max-w-xs">
+                          <img
+                            src={content.imageUrl}
+                            alt="AI generated"
+                            className="rounded-xl border-2 border-blue-200 shadow object-cover w-full max-h-32 transition-transform duration-300 group-hover:scale-105 bg-white"
+                            style={{ aspectRatio: "16/9", objectFit: "cover" }}
+                          />
+                        </div>
+                      </div>
+                    )}
                     <div className="mb-2">
                       <span className="font-semibold text-gray-800 block">
                         {content.title || `Content #${idx + 1}`}
