@@ -3,6 +3,7 @@ package com.codegym.auto_marketing_server.service.impl;
 import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.repository.IUserRepository;
 import com.codegym.auto_marketing_server.service.IUserService;
+import com.codegym.auto_marketing_server.util.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,8 @@ public class UserService implements IUserService {
         return userRepository.selectUserIdBySocialAccountId(id);
     }
     private final PasswordEncoder passwordEncoder;
+    private final CloudinaryService cloudinaryService;
+
     @Override
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
@@ -40,6 +43,24 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public String updateAvatar(Long userId, String newAvatar) throws Exception {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            return null;
+        }
+
+        User user = userOptional.get();
+        if (user.getAvatar() != null) {
+            cloudinaryService.deleteImageByUrl(user.getAvatar());
+        }
+        String uploadedAvatar = cloudinaryService.uploadImageFromUrl(newAvatar);
+        user.setAvatar(uploadedAvatar);
+        userRepository.save(user);
+
+        return uploadedAvatar;
+    }
+
+    @Override
     public void changePassword(Long userId, String password){
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -53,5 +74,10 @@ public class UserService implements IUserService {
     @Override
     public Boolean existedByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
     }
 }

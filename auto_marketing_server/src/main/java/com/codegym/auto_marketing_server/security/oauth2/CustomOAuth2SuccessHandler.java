@@ -5,6 +5,7 @@ import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.security.jwt.service.JwtService;
 import com.codegym.auto_marketing_server.service.IRoleService;
 import com.codegym.auto_marketing_server.service.IUserService;
+import com.codegym.auto_marketing_server.util.CloudinaryService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,6 +34,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     private final JwtService jwtService;
     private final IRoleService roleService;
     private final OAuth2AuthorizedClientService authorizedClientService;
+    private final CloudinaryService cloudinaryService;
 
     @Value("${FACEBOOK_CLIENT_ID}")
     private String facebookClientId;
@@ -132,10 +134,18 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         user.setAccessToken(accessToken);
         user.setRefreshToken(refreshToken);
         user.setAccessTokenExpiry(accessTokenExpiry);
-        if(avatarUrl != null) {
-            user.setAvatar(avatarUrl);
-        }
 
+        if (user.getAvatar() == null) {
+            // Lần đầu login → upload avatar
+            if (avatarUrl != null) {
+                try {
+                    String uploadedAvatar = userService.updateAvatar(user.getId(), avatarUrl);
+                    user.setAvatar(uploadedAvatar);
+                } catch (Exception e) {
+                    throw new RuntimeException("Upload avatar failed", e);
+                }
+            }
+        }
         userService.save(user);
 
         // Tạo JWT lưu trong cookie

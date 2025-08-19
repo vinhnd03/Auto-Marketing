@@ -1,53 +1,75 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {toast} from "react-hot-toast";
-import {Check, Shield} from "lucide-react";
+import {Shield} from "lucide-react";
+import {useNavigate} from "react-router-dom";
+import {useAuth} from "../../context/AuthContext";
 
 const ListComponent = () => {
     const [plans, setPlans] = useState([]);
     const [loadingId, setLoadingId] = useState(null);
-    const userId = 1;
 
-    // Lấy dữ liệu từ API
+    const {user} = useAuth(); // lấy thông tin user hiện tại
+    const navigate = useNavigate();
+
     useEffect(() => {
         const fetchPlans = async () => {
             try {
                 const response = await axios.get("http://localhost:8080/api/v1/plans", {
                     withCredentials: true,
                 });
-                // đảm bảo plans luôn là mảng
                 setPlans(Array.isArray(response.data) ? response.data : []);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách gói:", error);
                 toast.error("Không tải được danh sách gói.");
             }
         };
-
         fetchPlans();
     }, []);
 
     const handleBuy = async (plan) => {
-        console.log(plan)
         if (!plan) return;
-        setLoadingId(plan.id);
-        try {
-            const response = await axios.post("http://localhost:8080/api/payment", {
-                serviceName: plan.name,
-                amount: plan.price,
-                userId: userId
-            },{
-                withCredentials: true,
-            });
 
-            const {paymentUrl} = response.data;
-            if (paymentUrl) {
-                window.location.href = paymentUrl;
+        // Kiểm tra đăng nhập
+        if (!user?.id) {
+            toast.error("Bạn cần đăng nhập để có thể mua gói dịch vụ!");
+            navigate("/login"); // sử dụng navigate để chuyển trang
+            return;
+        }
+
+        setLoadingId(plan.id);
+
+        try {
+            if (plan.id === 1) {
+                // Gói FREE
+                const response = await axios.post(
+                    `http://localhost:8080/api/v1/workspaces/subscriptions/trial?userId=${user.id}`,
+                    {},
+                    {withCredentials: true}
+                );
+                toast.success(response.data || "Đã kích hoạt gói FREE");
             } else {
-                toast.error("Không lấy được URL thanh toán.");
+                // Các gói khác: gọi VNPAY
+                const response = await axios.post(
+                    "http://localhost:8080/api/payment",
+                    {
+                        serviceName: plan.name,
+                        amount: plan.price,
+                        userId: user.id,
+                    },
+                    {withCredentials: true}
+                );
+
+                const {paymentUrl} = response.data;
+                if (paymentUrl) {
+                    window.location.href = paymentUrl;
+                } else {
+                    toast.error("Không lấy được URL thanh toán.");
+                }
             }
         } catch (error) {
-            console.error("Lỗi khi gửi yêu cầu thanh toán:", error);
-            toast.error("Lỗi khi xử lý thanh toán!");
+            console.error("Lỗi khi xử lý thanh toán:", error);
+            toast.error(error.response?.data || "Lỗi khi xử lý thanh toán!");
         } finally {
             setLoadingId(null);
         }
@@ -69,6 +91,7 @@ const ListComponent = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+            {/* Header */}
             <section className="py-20">
                 <div className="container mx-auto px-6 text-center max-w-4xl">
                     <div
@@ -78,27 +101,24 @@ const ListComponent = () => {
                     </div>
 
                     <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Chọn gói phù hợp
-            </span>
+                        <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            Chọn gói phù hợp
+                        </span>
                     </h1>
 
                     <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                        Tự động hóa marketing, tăng hiệu quả bán hàng và phát triển thương
-                        hiệu với các gói dịch vụ được thiết kế riêng cho doanh nghiệp của
-                        bạn.
+                        Tự động hóa marketing, tăng hiệu quả bán hàng và phát triển thương hiệu
+                        với các gói dịch vụ được thiết kế riêng cho doanh nghiệp của bạn.
                     </p>
                 </div>
             </section>
 
+            {/* Plans */}
             <section className="pb-20">
                 <div className="container mx-auto px-6 max-w-6xl">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {plans && plans.map((plan) => (
-                            <div
-                                key={plan.id}
-                                className={`relative rounded-2xl p-8 ${getCardStyles(plan)}`}
-                            >
+                        {plans.map((plan) => (
+                            <div key={plan.id} className={`relative rounded-2xl p-8 ${getCardStyles(plan)}`}>
                                 {plan?.planLevel === 2 && (
                                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                                         <div
@@ -111,14 +131,16 @@ const ListComponent = () => {
                                 <div className="text-center mb-8">
                                     <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan?.name}</h3>
 
-                                    <div className="flex items-center justify-center gap-2 mb-4">
-                    <span className="text-4xl font-bold text-gray-900">
-                      {(plan?.price ?? 0).toLocaleString("vi-VN")}
-                    </span>
-                                        <div className="text-left">
-                                            <div className="text-sm text-gray-600">VNĐ</div>
+                                    {plan?.price > 0 && (
+                                        <div className="flex items-center justify-center gap-2 mb-4">
+                                            <span className="text-4xl font-bold text-gray-900">
+                                                {plan.price.toLocaleString("vi-VN")}
+                                            </span>
+                                            <div className="text-left">
+                                                <div className="text-sm text-gray-600">VNĐ</div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
 
                                     <div
                                         className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
@@ -148,9 +170,7 @@ const ListComponent = () => {
                                 <button
                                     onClick={() => handleBuy(plan)}
                                     disabled={loadingId === plan?.id}
-                                    className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 ${getButtonStyles(
-                                        plan
-                                    )} disabled:opacity-60 disabled:cursor-not-allowed`}
+                                    className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 ${getButtonStyles(plan)} disabled:opacity-60 disabled:cursor-not-allowed`}
                                 >
                                     {loadingId === plan?.id ? (
                                         <div className="flex items-center justify-center gap-2">

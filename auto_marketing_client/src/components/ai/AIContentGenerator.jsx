@@ -2,22 +2,14 @@ import React, { useState, useEffect } from "react";
 import { X, Wand2, FileText, Image, Sparkles, Eye, Edit } from "lucide-react";
 import SocialMediaPublisher from "./SocialMediaPublisher";
 
-const AIContentGenerator = ({
-  isOpen,
-  onClose,
-  onGenerate,
-  selectedTopic,
-  campaigns,
-}) => {
+const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
   const [generating, setGenerating] = useState(false);
   const [contentSettings, setContentSettings] = useState({
     postCount: 3, // Thay đổi từ 5 thành 3
     contentType: "mixed", // text, image, video, mixed
-    platforms: ["Facebook", "Instagram"],
     tone: "professional", // casual, professional, playful, urgent
     includeHashtags: true,
     includeCTA: true,
-    scheduleType: "manual", // manual, auto, suggested
   });
 
   const [generationStep, setGenerationStep] = useState(0);
@@ -50,23 +42,6 @@ const AIContentGenerator = ({
       description: "Tạo cảm giác cần hành động ngay",
     },
   ];
-
-  const platforms = [
-    { id: "facebook", name: "Facebook", icon: "📘", maxLength: 500 },
-    { id: "instagram", name: "Instagram", icon: "📷", maxLength: 300 },
-    { id: "twitter", name: "Twitter", icon: "🐦", maxLength: 280 },
-    { id: "linkedin", name: "LinkedIn", icon: "💼", maxLength: 700 },
-    { id: "tiktok", name: "TikTok", icon: "🎵", maxLength: 200 },
-  ];
-
-  const togglePlatform = (platformId) => {
-    setContentSettings((prev) => ({
-      ...prev,
-      platforms: prev.platforms.includes(platformId)
-        ? prev.platforms.filter((p) => p !== platformId)
-        : [...prev.platforms, platformId],
-    }));
-  };
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -158,7 +133,6 @@ const AIContentGenerator = ({
         type: template.type,
         topicId: selectedTopic.id,
         topicName: selectedTopic.title,
-        platforms: contentSettings.platforms,
         content: template.template
           .replace(/{topic_name}/g, selectedTopic.title)
           .replace(/{discount}/g, Math.floor(Math.random() * 50) + 10)
@@ -360,7 +334,11 @@ const AIContentGenerator = ({
                 </h2>
                 <p className="text-sm text-gray-600">
                   Tự động tạo nội dung bài đăng cho topic:{" "}
-                  <span className="font-medium">{selectedTopic?.title}</span>
+                  <span className="font-medium">
+                    {selectedTopic?.title ||
+                      selectedTopic?.name ||
+                      "Chưa có tên chủ đề"}
+                  </span>
                 </p>
               </div>
             </div>
@@ -528,22 +506,7 @@ const AIContentGenerator = ({
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <h5 className="text-sm font-medium text-gray-700 mb-2">
-                              Nền tảng:
-                            </h5>
-                            <div className="flex flex-wrap gap-2">
-                              {content.platforms.map((platform, i) => (
-                                <span
-                                  key={i}
-                                  className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium"
-                                >
-                                  {platform}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
+                        <div className="grid grid-cols-1 gap-4 mb-4">
                           <div>
                             <h5 className="text-sm font-medium text-gray-700 mb-2">
                               Hashtags:
@@ -715,36 +678,8 @@ const AIContentGenerator = ({
                   </div>
                 </div>
 
-                {/* Platforms */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nền tảng đăng bài *
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    {platforms.map((platform) => (
-                      <div
-                        key={platform.id}
-                        onClick={() => togglePlatform(platform.id)}
-                        className={`p-3 border rounded-lg cursor-pointer transition-all text-center ${
-                          contentSettings.platforms.includes(platform.id)
-                            ? "border-green-500 bg-green-50"
-                            : "border-gray-300 hover:border-gray-400"
-                        }`}
-                      >
-                        <div className="text-lg mb-1">{platform.icon}</div>
-                        <div className="text-sm font-medium">
-                          {platform.name}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {platform.maxLength} ký tự
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Additional Options */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div>
                       <span className="text-sm font-medium text-gray-700">
@@ -785,26 +720,6 @@ const AIContentGenerator = ({
                       }
                       className="h-4 w-4 text-green-600"
                     />
-                  </div>
-
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">
-                      Lên lịch đăng
-                    </span>
-                    <select
-                      value={contentSettings.scheduleType}
-                      onChange={(e) =>
-                        setContentSettings({
-                          ...contentSettings,
-                          scheduleType: e.target.value,
-                        })
-                      }
-                      className="w-full mt-1 px-2 py-1 text-xs border border-gray-300 rounded"
-                    >
-                      <option value="manual">Thủ công</option>
-                      <option value="auto">Tự động</option>
-                      <option value="suggested">Đề xuất thời gian</option>
-                    </select>
                   </div>
                 </div>
 
@@ -852,12 +767,8 @@ const AIContentGenerator = ({
                       </h4>
                     </div>
                     <ul className="text-blue-700 mt-2 text-sm space-y-1">
-                      <li>
-                        • {contentSettings.postCount} bài viết đa dạng (khuyến
-                        nghị 2-3 bài)
-                      </li>
-                      <li>• Nội dung tối ưu cho từng platform</li>
-                      <li>• Đề xuất thời gian đăng tốt nhất</li>
+                      <li>• {contentSettings.postCount} bài viết đa dạng</li>
+                      <li>• Nội dung tối ưu và thu hút</li>
                       {contentSettings.includeHashtags && (
                         <li>• Hashtags tối ưu SEO</li>
                       )}
@@ -883,9 +794,9 @@ const AIContentGenerator = ({
               </button>
               <button
                 onClick={handleGenerate}
-                disabled={contentSettings.platforms.length === 0 || generating}
+                disabled={generating}
                 className={`px-6 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  contentSettings.platforms.length === 0 || generating
+                  generating
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-green-600 text-white hover:bg-green-700"
                 }`}
@@ -1009,39 +920,20 @@ const AIContentGenerator = ({
                     </div>
                   </div>
 
-                  {/* Platforms & Hashtags */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h5 className="font-medium text-gray-900 mb-3">
-                        🌐 Nền tảng:
-                      </h5>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedContentForDetail.platforms?.map(
-                          (platform, i) => (
-                            <span
-                              key={i}
-                              className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
-                            >
-                              {platform}
-                            </span>
-                          )
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <h5 className="font-medium text-gray-900 mb-3">
-                        # Hashtags:
-                      </h5>
-                      <div className="flex flex-wrap gap-1">
-                        {selectedContentForDetail.hashtags?.map((tag, i) => (
-                          <span
-                            key={i}
-                            className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
+                  {/* Hashtags */}
+                  <div>
+                    <h5 className="font-medium text-gray-900 mb-3">
+                      # Hashtags:
+                    </h5>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedContentForDetail.hashtags?.map((tag, i) => (
+                        <span
+                          key={i}
+                          className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
+                        >
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   </div>
 
@@ -1188,53 +1080,6 @@ const AIContentGenerator = ({
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="#hashtag1, #hashtag2, #hashtag3"
                     />
-                  </div>
-
-                  {/* Edit Platforms */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      🌐 Nền tảng:
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        "Facebook",
-                        "Instagram",
-                        "Twitter",
-                        "LinkedIn",
-                        "TikTok",
-                      ].map((platform) => (
-                        <label
-                          key={platform}
-                          className="flex items-center space-x-2"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={
-                              editingContent.platforms?.includes(platform) ||
-                              false
-                            }
-                            onChange={(e) => {
-                              const platforms = editingContent.platforms || [];
-                              if (e.target.checked) {
-                                setEditingContent({
-                                  ...editingContent,
-                                  platforms: [...platforms, platform],
-                                });
-                              } else {
-                                setEditingContent({
-                                  ...editingContent,
-                                  platforms: platforms.filter(
-                                    (p) => p !== platform
-                                  ),
-                                });
-                              }
-                            }}
-                            className="rounded"
-                          />
-                          <span className="text-sm">{platform}</span>
-                        </label>
-                      ))}
-                    </div>
                   </div>
                 </div>
 

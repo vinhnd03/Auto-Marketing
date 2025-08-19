@@ -52,29 +52,33 @@ const WorkspacePage = () => {
 
             setMaxWorkspace(maxWsRes);
 
-            if (!Array.isArray(wsList)) {
+            // Nếu không có workspace nào
+            if (!Array.isArray(wsList) || wsList.length === 0) {
                 setWorkspaces([]);
                 setShowCreateModal(true);
                 return;
             }
 
-            // auto ACTIVE
-            const activeCount = wsList.filter(w => w.status === "ACTIVE").length;
+            // Sắp xếp workspace theo id giảm dần (mới nhất lên trước)
+            const sortedWs = [...wsList].sort((a, b) => b.id - a.id);
+
+            // Chỉ auto ACTIVE khi có workspace
+            const activeCount = sortedWs.filter(w => w.status === "ACTIVE").length;
             if (activeCount < maxWsRes) {
-                const allIds = wsList.map(w => w.id);
+                const allIds = sortedWs.map(w => w.id);
                 try {
                     const res = await updateWorkspaceStatus(user.id, allIds, "ACTIVE");
                     if (res.error) toast.error(res.error);
                     else {
-                        const updatedWs = wsList.map(w => ({...w, status: "ACTIVE"}));
+                        const updatedWs = sortedWs.map(w => ({...w, status: "ACTIVE"}));
                         setWorkspaces(updatedWs);
                     }
                 } catch (err) {
                     toast.error("Không thể cập nhật trạng thái workspace");
-                    setWorkspaces(wsList);
+                    setWorkspaces(sortedWs);
                 }
             } else {
-                setWorkspaces(wsList);
+                setWorkspaces(sortedWs);
             }
         };
 
@@ -86,11 +90,9 @@ const WorkspacePage = () => {
 
     useEffect(() => {
         const activeWs = workspaces.filter(w => w.status === "ACTIVE");
-
         if (activeWs.length > maxWorkspace) {
             setSelectedActiveIds(activeWs.map(w => w.id));
             setIsLimitModalOpen(true);
-
             if (!toastShown.current) {
                 toast.custom(
                     <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-4 rounded shadow">
@@ -275,6 +277,11 @@ const WorkspacePage = () => {
                                 <div className="text-xs text-gray-400 mt-2">
                                     Ngày tạo: {new Date(ws.createdAt).toLocaleDateString()}
                                 </div>
+                                {ws.updatedAt && (
+                                    <div className="text-xs text-gray-400 mt-2">
+                                        Ngày Update: {new Date(ws.updatedAt).toLocaleDateString()}
+                                    </div>
+                                )}
                                 <div className="mt-auto w-full pt-4">
                                     {ws.status === "ACTIVE" ? (
                                         <Link

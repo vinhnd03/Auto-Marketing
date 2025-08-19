@@ -3,18 +3,38 @@ import { X, Camera, Upload, User } from "lucide-react";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
-import { getAllWorkspaceByUserId, updateWorkspace } from "../../service/workspace/workspace_service";
+import {
+    getAllWorkspaceByUserId,
+    updateWorkspace,
+} from "../../service/workspace/workspace_service";
 
-const UpdateWorkspaceModal = ({ isOpen, onClose, setWorkspaces, workspace, userId, workspaces }) => {
+const MAX_FILE_SIZE = 500 * 1024; // 500 KB
+
+const UpdateWorkspaceModal = ({
+                                  isOpen,
+                                  onClose,
+                                  setWorkspaces,
+                                  workspace,
+                                  userId,
+                                  workspaces,
+                              }) => {
     const [avatarPreview, setAvatarPreview] = useState(null);
     const fileInputRef = useRef(null);
     const socialAccountId = 1;
 
+    // Set avatar preview từ workspace khi modal mở
     useEffect(() => {
         if (workspace) {
             setAvatarPreview(workspace.avatar || null);
         }
     }, [workspace]);
+
+    // Reset avatar preview khi modal đóng
+    useEffect(() => {
+        if (!isOpen) {
+            setAvatarPreview(null);
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -25,32 +45,54 @@ const UpdateWorkspaceModal = ({ isOpen, onClose, setWorkspaces, workspace, userI
             .test("unique-name", "Tên workspace đã tồn tại", function (value) {
                 if (!value) return true;
                 const lower = value.trim().toLowerCase();
-                const exists = workspaces.some(ws => ws.name.trim().toLowerCase() === lower && ws.id !== workspace.id);
+                const exists = workspaces.some(
+                    (ws) => ws.name.trim().toLowerCase() === lower && ws.id !== workspace.id
+                );
                 return !exists;
             }),
         description: Yup.string()
             .required("Vui lòng nhập mô tả cho workspace")
             .max(225, "Mô tả không được vượt quá 225 ký tự"),
+        avatar: Yup.mixed().nullable().test(
+            "fileSize",
+            "Dung lượng ảnh tối đa 500 KB",
+            (file) => {
+                if (!file) return true;
+                return file.size <= MAX_FILE_SIZE;
+            }
+        ),
     });
 
-    const handleSubmit = (values, { setSubmitting }) => {
+    const handleSubmit = (values, { setSubmitting, resetForm }) => {
         const doUpdate = async () => {
-            const dataToSend = {
-                ...values,
-                socialAccountId,
-                avatar: values.avatar // có thể là file hoặc null
-            };
+            try {
+                const formData = new FormData();
+                formData.append("name", values.name);
+                formData.append("description", values.description);
+                formData.append("socialAccountId", socialAccountId);
 
-            const res = await updateWorkspace(workspace.id, dataToSend);
-            if (!res || res.error) {
-                toast.error(res?.error || "Cập nhật workspace thất bại");
-            } else {
-                toast.success("Cập nhật workspace thành công");
+                if (values.avatar) {
+                    formData.append("avatar", values.avatar);
+                }
+
+                const res = await updateWorkspace(workspace.id, formData);
+
+                if (!res || res.error) {
+                    toast.error(res?.error || "Cập nhật workspace thất bại");
+                } else {
+                    toast.success("Cập nhật workspace thành công");
+                }
+
+                const list = await getAllWorkspaceByUserId(userId);
+                setWorkspaces(list);
+
+                resetForm();
+                setAvatarPreview(null);
+                onClose();
+            } catch (err) {
+                console.error(err);
+                toast.error("Lỗi khi gọi API");
             }
-
-            const list = await getAllWorkspaceByUserId(userId);
-            setWorkspaces(list);
-            onClose();
             setSubmitting(false);
         };
         doUpdate();
@@ -59,18 +101,23 @@ const UpdateWorkspaceModal = ({ isOpen, onClose, setWorkspaces, workspace, userI
     return (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-4 sm:p-6 relative max-h-screen overflow-y-auto">
-                <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+                <button
+                    onClick={onClose}
+                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+                >
                     <X size={20} />
                 </button>
 
-                <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900">Cập nhật Workspace</h2>
+                <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900">
+                    Cập nhật Workspace
+                </h2>
 
                 <Formik
                     enableReinitialize
                     initialValues={{
                         name: workspace?.name || "",
                         description: workspace?.description || "",
-                        avatar: ""  // giữ file mới (nếu có)
+                        avatar: null,
                     }}
                     validationSchema={WorkspaceSchema}
                     onSubmit={handleSubmit}
@@ -87,7 +134,11 @@ const UpdateWorkspaceModal = ({ isOpen, onClose, setWorkspaces, workspace, userI
                                     >
                                         {avatarPreview ? (
                                             <>
-                                                <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
+                                                <img
+                                                    src={avatarPreview}
+                                                    alt="Avatar Preview"
+                                                    className="w-full h-full object-cover"
+                                                />
                                                 <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                     <div className="flex space-x-2">
                                                         <Camera className="w-6 h-6 text-white" />
@@ -97,7 +148,8 @@ const UpdateWorkspaceModal = ({ isOpen, onClose, setWorkspaces, workspace, userI
                                                                 e.stopPropagation();
                                                                 setAvatarPreview(null);
                                                                 setFieldValue("avatar", null);
-                                                                if (fileInputRef.current) fileInputRef.current.value = "";
+                                                                if (fileInputRef.current)
+                                                                    fileInputRef.current.value = "";
                                                                 toast.success("Đã xóa ảnh!");
                                                             }}
                                                             className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
@@ -114,7 +166,9 @@ const UpdateWorkspaceModal = ({ isOpen, onClose, setWorkspaces, workspace, userI
                                                 </div>
                                                 <div className="text-center">
                                                     <Upload className="w-4 h-4 text-blue-600 mx-auto mb-1" />
-                                                    <span className="text-xs text-blue-600 font-medium">Tải ảnh lên (tùy chọn)</span>
+                                                    <span className="text-xs text-blue-600 font-medium">
+                                                        Tải ảnh lên (tùy chọn)
+                                                    </span>
                                                 </div>
                                             </div>
                                         )}
@@ -132,12 +186,20 @@ const UpdateWorkspaceModal = ({ isOpen, onClose, setWorkspaces, workspace, userI
                                             className="hidden"
                                         />
                                     </button>
+                                    {errors.avatar && touched.avatar && (
+                                        <p className="text-xs text-red-500 mt-1">{errors.avatar}</p>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Name */}
                             <div>
-                                <label htmlFor="workspace-name" className="block text-gray-700 font-medium text-sm">Tên Workspace</label>
+                                <label
+                                    htmlFor="workspace-name"
+                                    className="block text-gray-700 font-medium text-sm"
+                                >
+                                    Tên Workspace
+                                </label>
                                 <Field
                                     id="workspace-name"
                                     name="name"
@@ -151,7 +213,12 @@ const UpdateWorkspaceModal = ({ isOpen, onClose, setWorkspaces, workspace, userI
 
                             {/* Description */}
                             <div>
-                                <label htmlFor="workspace-description" className="block text-gray-700 font-medium text-sm">Mô tả</label>
+                                <label
+                                    htmlFor="workspace-description"
+                                    className="block text-gray-700 font-medium text-sm"
+                                >
+                                    Mô tả
+                                </label>
                                 <Field
                                     as="textarea"
                                     id="workspace-description"
@@ -179,4 +246,5 @@ const UpdateWorkspaceModal = ({ isOpen, onClose, setWorkspaces, workspace, userI
         </div>
     );
 };
+
 export default UpdateWorkspaceModal;

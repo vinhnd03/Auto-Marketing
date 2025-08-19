@@ -1,6 +1,6 @@
 package com.codegym.auto_marketing_server.controller.auth;
 
-import com.codegym.auto_marketing_server.dto.UserDTO;
+import com.codegym.auto_marketing_server.dto.UserSummaryDTO;
 import com.codegym.auto_marketing_server.entity.Role;
 import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.entity.UserToken;
@@ -13,8 +13,6 @@ import com.codegym.auto_marketing_server.security.jwt.service.JwtService;
 import com.codegym.auto_marketing_server.service.IRoleService;
 import com.codegym.auto_marketing_server.service.IUserService;
 import com.codegym.auto_marketing_server.service.IUserTokenService;
-import com.codegym.auto_marketing_server.service.impl.UserTokenService;
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,10 +22,10 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -139,6 +137,7 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
             );
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
             String token = jwtService.generateToken((User) userDetails);
 
             long maxAge = loginRequest.getRememberMe() ? 30 * 24 * 60 * 60 : 3600;
@@ -157,9 +156,11 @@ public class AuthController {
 
             return ResponseEntity.ok(Map.of("success", true));
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body(Map.of("success", false));
+            return ResponseEntity.status(401).body(Map.of("success" , false, "error", "INVALID_CREDENTIALS"));
+        } catch (DisabledException e) {
+            return ResponseEntity.status(403).body(Map.of("success" , false, "error", "ACCOUNT_DISABLED"));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", "SERVER_ERROR"));
+            return ResponseEntity.status(500).body(Map.of("success" , false, "error", "SERVER_ERROR"));
         }
     }
 
@@ -188,6 +189,6 @@ public class AuthController {
             return ResponseEntity.status(401).body("Not authenticated");
         }
         User user = (User) authentication.getPrincipal();
-        return ResponseEntity.ok(UserDTO.from(user));
+        return ResponseEntity.ok(UserSummaryDTO.from(user));
     }
 }
