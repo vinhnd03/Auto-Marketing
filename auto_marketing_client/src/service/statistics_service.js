@@ -1,6 +1,4 @@
 
-import axios from "axios";
-
 export let statistic = [
     {
         year: 2025,

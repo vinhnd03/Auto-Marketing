@@ -1,16 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-    Bell,
-    Search,
-    Settings,
-    User,
-    LogOut,
-    ChevronDown,
-    Shield,
+    Bell, Search, Settings, User, LogOut, ChevronDown, Shield, Menu
 } from "lucide-react";
+import PropTypes from "prop-types";
 
-const AdminHeader = () => {
+const AdminHeader = ({ collapsed, onToggleSidebar }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const navigate = useNavigate();
@@ -23,15 +18,23 @@ const AdminHeader = () => {
     ];
 
     return (
-        <header className="bg-gradient-to-r from-blue-500 to-purple-600 shadow-md fixed top-0 right-0 left-64 z-40 h-16">
-            <div className="flex items-center justify-between h-full px-6 text-white">
-                {/* Search Bar */}
-                <div className="flex-1 max-w-2xl">
-                    <div className="relative">
-                        <Search
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-200"
-                            size={20}
-                        />
+        <header
+            className={`bg-gradient-to-r from-blue-500 to-purple-600 shadow-md fixed top-0 right-0 z-40 h-16 transition-all duration-300 ${collapsed ? "left-16" : "left-64"}`}
+        >
+            <div className="flex items-center justify-between h-full px-4 md:px-6 text-white">
+                {/* Nút hamburger + Search */}
+                <div className="flex items-center gap-3 flex-1 max-w-2xl">
+                    <button
+                        onClick={onToggleSidebar}
+                        className="p-2 rounded-lg hover:bg-white/20 active:scale-95 transition"
+                        aria-label="Thu gọn/mở rộng sidebar"
+                        title={collapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+                    >
+                        <Menu size={22} />
+                    </button>
+
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-200" size={20} />
                         <input
                             type="text"
                             placeholder="Tìm kiếm người dùng, báo cáo, thống kê..."
@@ -42,13 +45,11 @@ const AdminHeader = () => {
 
                 {/* Right Side */}
                 <div className="flex items-center space-x-4">
-                    {/* Admin Badge */}
-                    <div className="flex items-center space-x-2 bg-white/20 text-white px-3 py-1 rounded-full">
+                    <div className="hidden sm:flex items-center space-x-2 bg-white/20 text-white px-3 py-1 rounded-full">
                         <Shield size={14} />
                         <span className="text-sm font-medium">Admin</span>
                     </div>
 
-                    {/* Quick Stats */}
                     <div className="hidden lg:flex items-center space-x-4 text-sm">
                         <div className="text-center">
                             <div className="font-semibold">1,234</div>
@@ -60,7 +61,6 @@ const AdminHeader = () => {
                         </div>
                     </div>
 
-                    {/* Notifications */}
                     <div className="relative">
                         <button
                             onClick={() => setShowNotifications(!showNotifications)}
@@ -68,7 +68,7 @@ const AdminHeader = () => {
                         >
                             <Bell size={20} />
                             {notifications.some((n) => n.unread) && (
-                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
                             )}
                         </button>
 
@@ -81,9 +81,7 @@ const AdminHeader = () => {
                                     {notifications.map((notification) => (
                                         <div
                                             key={notification.id}
-                                            className={`p-4 border-b border-gray-100 hover:bg-gray-50 ${
-                                                notification.unread ? "bg-purple-50" : ""
-                                            }`}
+                                            className={`p-4 border-b border-gray-100 hover:bg-gray-50 ${notification.unread ? "bg-purple-50" : ""}`}
                                         >
                                             <p className="text-sm">{notification.message}</p>
                                             <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
@@ -99,7 +97,6 @@ const AdminHeader = () => {
                         )}
                     </div>
 
-                    {/* User Menu */}
                     <div className="relative">
                         <button
                             onClick={() => setShowUserMenu(!showUserMenu)}
@@ -118,23 +115,15 @@ const AdminHeader = () => {
                                     <p className="text-sm font-medium">Admin User</p>
                                     <p className="text-xs text-gray-500">admin@marketingauto.vn</p>
                                     <span className="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full mt-2">
-                                Administrator
-                            </span>
+                    Administrator
+                  </span>
                                 </div>
                                 <div className="py-2">
-                                    <Link
-                                        to="/admin/profile"
-                                        className="flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100"
-                                        onClick={() => setShowUserMenu(false)}
-                                    >
+                                    <Link to="/admin/profile" className="flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100" onClick={() => setShowUserMenu(false)}>
                                         <User size={16} />
                                         <span>Hồ sơ Admin</span>
                                     </Link>
-                                    <Link
-                                        to="/admin/settings"
-                                        className="flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100"
-                                        onClick={() => setShowUserMenu(false)}
-                                    >
+                                    <Link to="/admin/settings" className="flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100" onClick={() => setShowUserMenu(false)}>
                                         <Settings size={16} />
                                         <span>Cài đặt hệ thống</span>
                                     </Link>
@@ -152,6 +141,11 @@ const AdminHeader = () => {
             </div>
         </header>
     );
+};
+
+AdminHeader.propTypes = {
+    collapsed: PropTypes.bool.isRequired,
+    onToggleSidebar: PropTypes.func.isRequired,
 };
 
 export default AdminHeader;

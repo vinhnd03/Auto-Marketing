@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
 import {
     TrendingUp,
     Users,
@@ -11,8 +11,24 @@ import {
     CheckCircle,
     Package,
 } from "lucide-react";
+import {getRevenueStats} from "../../service/revenueService";
 
 const AdminDashboard = () => {
+    const [dash, setDash] = useState(null);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const d = await getRevenueStats();
+                setDash(d);
+            } catch (e) {
+                console.error("Lỗi khi lấy revenue stats:", e);
+            }
+        })();
+    }, []);
+
+    const toVND = (n) => (n ?? 0).toLocaleString("vi-VN") + "đ";
+
     const stats = [
         {
             name: "Tổng người dùng",
@@ -25,21 +41,21 @@ const AdminDashboard = () => {
         },
         {
             name: "Doanh thu tháng",
-            value: "₫152.5M",
-            change: "+8.2%",
-            changeType: "increase",
+            value: dash ? toVND(dash.month.current) : "",
+            change: dash ? `${dash.month.changePercent.toFixed(1)}%` : "",
+            changeType: dash ? dash.month.changeType : "",
             icon: DollarSign,
             color: "green",
             description: "So với tháng trước",
         },
         {
-            name: "Chiến dịch đang chạy",
-            value: "456",
-            change: "+15.3%",
+            name: "Tổng doanh thu năm",
+            value: dash ? toVND(dash.year) : "₫0",
+            change: "", // hoặc có thể để so sánh với năm trước nếu BE có trả về
             changeType: "increase",
-            icon: Target,
-            color: "purple",
-            description: "Chiến dịch hoạt động",
+            icon: Package,
+            color: "orange",
+            description: "Tổng doanh thu năm nay",
         },
         {
             name: "Gói Premium",
@@ -176,11 +192,11 @@ const AdminDashboard = () => {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            active: { color: "bg-green-100 text-green-800", text: "Hoạt động" },
-            pending: { color: "bg-yellow-100 text-yellow-800", text: "Chờ xử lý" },
-            completed: { color: "bg-green-100 text-green-800", text: "Thành công" },
-            failed: { color: "bg-red-100 text-red-800", text: "Thất bại" },
-            blocked: { color: "bg-red-100 text-red-800", text: "Bị khóa" },
+            active: {color: "bg-green-100 text-green-800", text: "Hoạt động"},
+            pending: {color: "bg-yellow-100 text-yellow-800", text: "Chờ xử lý"},
+            completed: {color: "bg-green-100 text-green-800", text: "Thành công"},
+            failed: {color: "bg-red-100 text-red-800", text: "Thất bại"},
+            blocked: {color: "bg-red-100 text-red-800", text: "Bị khóa"},
         };
 
         const config = statusConfig[status] || statusConfig.pending;
@@ -195,9 +211,9 @@ const AdminDashboard = () => {
 
     const getPlanBadge = (plan) => {
         const planConfig = {
-            Starter: { color: "bg-gray-100 text-gray-800" },
-            Professional: { color: "bg-blue-100 text-blue-800" },
-            Premium: { color: "bg-purple-100 text-purple-800" },
+            Starter: {color: "bg-gray-100 text-gray-800"},
+            Professional: {color: "bg-blue-100 text-blue-800"},
+            Premium: {color: "bg-purple-100 text-purple-800"},
         };
 
         const config = planConfig[plan] || planConfig.Starter;
@@ -213,13 +229,13 @@ const AdminDashboard = () => {
     const getAlertIcon = (type) => {
         switch (type) {
             case "error":
-                return <AlertTriangle className="text-red-500" size={16} />;
+                return <AlertTriangle className="text-red-500" size={16}/>;
             case "warning":
-                return <AlertTriangle className="text-yellow-500" size={16} />;
+                return <AlertTriangle className="text-yellow-500" size={16}/>;
             case "info":
-                return <CheckCircle className="text-blue-500" size={16} />;
+                return <CheckCircle className="text-blue-500" size={16}/>;
             default:
-                return <CheckCircle className="text-gray-500" size={16} />;
+                return <CheckCircle className="text-gray-500" size={16}/>;
         }
     };
 
@@ -228,8 +244,10 @@ const AdminDashboard = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                    <p className="text-gray-600">Tổng quan hệ thống MarketingAuto</p>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
+                        Admin Dashboard
+                    </h1>
+                    <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
                 </div>
                 <div className="flex items-center space-x-2 bg-red-100 text-red-800 px-3 py-1 rounded-full">
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -269,14 +287,14 @@ const AdminDashboard = () => {
                                                     : "from-orange-500 to-orange-600"
                                     } rounded-lg flex items-center justify-center`}
                                 >
-                                    <Icon className="text-white" size={24} />
+                                    <Icon className="text-white" size={24}/>
                                 </div>
                             </div>
                             <div className="flex items-center mt-4">
                                 {stat.changeType === "increase" ? (
-                                    <ArrowUp className="text-green-500 mr-1" size={16} />
+                                    <ArrowUp className="text-green-500 mr-1" size={16}/>
                                 ) : (
-                                    <ArrowDown className="text-red-500 mr-1" size={16} />
+                                    <ArrowDown className="text-red-500 mr-1" size={16}/>
                                 )}
                                 <span
                                     className={`text-sm font-medium ${
@@ -322,7 +340,7 @@ const AdminDashboard = () => {
                                                         : "from-orange-500 to-orange-600"
                                         } rounded-lg flex items-center justify-center flex-shrink-0`}
                                     >
-                                        <Icon className="text-white" size={20} />
+                                        <Icon className="text-white" size={20}/>
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-gray-900 group-hover:text-red-600">
@@ -357,7 +375,8 @@ const AdminDashboard = () => {
                         {recentUsers.map((user) => (
                             <div key={user.id} className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
-                                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                    <div
+                                        className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs font-medium">
                       {user.name.charAt(0)}
                     </span>
@@ -463,7 +482,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
                     <div className="text-center">
-                        <TrendingUp className="mx-auto text-gray-400 mb-2" size={32} />
+                        <TrendingUp className="mx-auto text-gray-400 mb-2" size={32}/>
                         <p className="text-gray-500">
                             Biểu đồ doanh thu sẽ được hiển thị ở đây
                         </p>
