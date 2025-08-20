@@ -26,7 +26,7 @@ import {
 } from "../../service/topic_service";
 
 import dayjs from "dayjs";
-import {getWorkspaceDetail} from "../../service/workspace/workspace_service";
+import { getWorkspaceDetail } from "../../service/workspace/workspace_service";
 import campaignService from "../../service/campaignService";
 
 const WorkspaceDetailPage = () => {
@@ -65,16 +65,25 @@ const WorkspaceDetailPage = () => {
   const [posts, setPosts] = useState(initialPosts);
 
   // Fetch campaigns from API
-  const fetchCampaigns = async () => {
-    try {
-      const campaignsData = await campaignService.findAllCampaigns( 0, 10, "", "", "");
-      setApiCampaigns(campaignsData);
-    } catch (err) {
-      setApiCampaigns([]);
-    }
-  };
 
   useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const campaignsData = await campaignService.findAllCampaign(
+          0,
+          10,
+          "",
+          "",
+          "",
+          workspaceId
+        );
+        setApiCampaigns(campaignsData.content);
+        console.log("detaiuls", apiCampaigns);
+      } catch (err) {
+        setApiCampaigns([]);
+      }
+    };
+
     fetchCampaigns();
   }, []);
 
@@ -88,7 +97,6 @@ const WorkspaceDetailPage = () => {
       setTopicsPageByCampaign(initialPages);
     }
   }, [workspace]);
-
 
   // Mock data - trong thực tế sẽ lấy từ API dựa trên workspaceId
   const initialWorkspace = {
@@ -583,17 +591,25 @@ const WorkspaceDetailPage = () => {
       setLoadingWorkspace(true);
       try {
         // 1. Lấy workspace từ API
-        const wsData = await getWorkspaceDetail(workspaceId);  // bạn cần có hàm này
+        const wsData = await getWorkspaceDetail(workspaceId); // bạn cần có hàm này
 
         // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
-        const campaignsData = wsData.campaigns ?? await campaignService.findAllCampaigns(0, 10, "", "", "");
-
+        const campaignsData =
+          wsData.campaigns ??
+          (await campaignService.findAllCampaign(
+            0,
+            10,
+            "",
+            "",
+            "",
+            workspaceId
+          )).content;
         // 3. Với mỗi campaign => lấy topics
         const campaignsWithTopics = await Promise.all(
-            campaignsData.map(async (campaign) => {
-              const topicsList = await getTopicsByCampaign(campaign.id);
-              return { ...campaign, topicsList: topicsList || [] };
-            })
+          campaignsData.map(async (campaign) => {
+            const topicsList = await getTopicsByCampaign(campaign.id);
+            return { ...campaign, topicsList: topicsList || [] };
+          })
         );
 
         setWorkspace({

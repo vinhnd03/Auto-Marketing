@@ -9,9 +9,10 @@ const findAllCampaign = async (
   endDate = "",
   workspaceId = 0
 ) => {
-  const params = { page, size, name, startDate, endDate,workspaceId };
+  const params = { page, size, name, startDate, endDate, workspaceId };
   try {
-    const resp = await axios.get(URL, { params });
+    const resp = await axios.get(URL, { params, withCredentials: true });
+    console.log("resp", resp.data);
     return {
       content: resp.data.content || [],
       totalElements: resp.data.totalElements || 0,
@@ -24,7 +25,7 @@ const findAllCampaign = async (
 
 const create = async (dto) => {
   try {
-    const res = await axios.post(URL, dto);
+    const res = await axios.post(URL, dto,{withCredentials:true});
     return { data: res.data, errors: null };
   } catch (error) {
     if (error.response && error.response.status === 400) {
@@ -73,7 +74,7 @@ const update = async (id, dto) => {
 
 const softDelete = async (id) => {
   try {
-    const res = await axios.delete(`${URL}/${id}`);
+    const res = await axios.delete(`${URL}/${id}`, {withCredentials:true});
     return { success: true, message: res.data };
   } catch (error) {
     if (error.response) {

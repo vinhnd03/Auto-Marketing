@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { X, Wand2, Sparkles } from "lucide-react";
 import { getAllCampaigns } from "../../service/campaign_service";
 import { generateTopicsWithAI } from "../../service/topic_service";
+import { useParams } from "react-router-dom";
+import campaignService from "../../service/campaignService";
 
 const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
   const [selectedCampaign, setSelectedCampaign] = useState("");
@@ -16,6 +18,7 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
     contentStyle: "professional", // friendly, professional, creative
     targetAudience: "general", // specific, general, broad
   });
+  const { workspaceId } = useParams();
 
   const creativityOptions = [
     {
@@ -64,8 +67,15 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
     setLoading(true);
     setError(null);
     try {
-      const campaignsData = await getAllCampaigns();
-      setCampaigns(campaignsData);
+      const campaignsData = await campaignService.findAllCampaign(
+                0,
+                10,
+                "",
+                "",
+                "",
+                workspaceId
+              );
+      setCampaigns(campaignsData.content);
     } catch (err) {
       console.error("Error fetching campaigns:", err);
 

@@ -153,7 +153,7 @@ const CampaignTable = ({ campaigns = [] }) => {
       const response = await CampaignService.update(campaignToEdit.id, values);
 
       if (response?.errors) {
-        console.error("Lỗi khi cập nhật campaign:", response.errors);
+        console.error("Lỗi khi cập nhật campaign:", response.errors); 
         return { data: null, errors: response.errors };
       }
 
@@ -169,7 +169,7 @@ const CampaignTable = ({ campaigns = [] }) => {
       setTotalRecords(totalElements);
 
       setShowEditModal(false);
-      toast.error("Cập nhật chiến dịch thất bại");
+      toast.success("Cập nhật chiến dịch thành công");
       return { data: response.data, errors: null };
     } catch (error) {
       console.error("Lỗi khi cập nhật campaign:", error);
