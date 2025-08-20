@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import SchedulePostCalendar from "../../components/publish/SchedulePostCalendar";
 import ScheduledPostsList from "../../components/publish/ScheduledPostsList";
-import { getAllCampaigns } from "../../service/campaign_service";
 import {
   generateTopicsWithAI,
   approveTopic,
@@ -28,6 +27,7 @@ import {
 
 import dayjs from "dayjs";
 import {getWorkspaceDetail} from "../../service/workspace/workspace_service";
+import campaignService from "../../service/campaignService";
 
 const WorkspaceDetailPage = () => {
   const { workspaceId } = useParams();
@@ -67,7 +67,7 @@ const WorkspaceDetailPage = () => {
   // Fetch campaigns from API
   const fetchCampaigns = async () => {
     try {
-      const campaignsData = await getAllCampaigns();
+      const campaignsData = await campaignService.findAllCampaigns( 0, 10, "", "", "");
       setApiCampaigns(campaignsData);
     } catch (err) {
       setApiCampaigns([]);
@@ -586,7 +586,7 @@ const WorkspaceDetailPage = () => {
         const wsData = await getWorkspaceDetail(workspaceId);  // bạn cần có hàm này
 
         // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
-        const campaignsData = wsData.campaigns ?? await getAllCampaigns();
+        const campaignsData = wsData.campaigns ?? await campaignService.findAllCampaigns(0, 10, "", "", "");
 
         // 3. Với mỗi campaign => lấy topics
         const campaignsWithTopics = await Promise.all(
