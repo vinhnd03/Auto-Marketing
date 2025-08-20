@@ -49,6 +49,7 @@ public class User implements UserDetails {
     private String provider;
 
     private String providerId;
+
     private Boolean status;
     @Column(columnDefinition = "TEXT")
     private String accessToken;
