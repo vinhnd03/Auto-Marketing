@@ -1,5 +1,6 @@
 package com.codegym.auto_marketing_server.controller;
 
+import com.codegym.auto_marketing_server.dto.PackageDTO;
 import com.codegym.auto_marketing_server.dto.PackageStatsResponseDTO;
 import com.codegym.auto_marketing_server.service.ITransactionService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,29 +25,27 @@ public class PackageController {
      * API lấy số liệu thống kê (cards)
      */
     @GetMapping("/stats")
-    public ResponseEntity<?> getPackageStats() {
+    public ResponseEntity<PackageStatsResponseDTO> getPackageStats() {
         try {
             PackageStatsResponseDTO dto = transactionService.getPackageStats();
+            if (dto == null) dto = new PackageStatsResponseDTO();
             return ResponseEntity.ok(dto);
         } catch (Exception ex) {
-            // Trả về JSON lỗi và HTTP 500
-            Map<String, String> error = new HashMap<>();
-            error.put("error", ex.getMessage() != null ? ex.getMessage() : "Unexpected error");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+            return ResponseEntity.status(500).build();
         }
     }
-
     /**
      * API lấy dữ liệu chart
      */
     @GetMapping("/chart")
-    public ResponseEntity<?> getPackageChart(
+    public ResponseEntity<List<PackageDTO>> getPackageChart(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
 
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
     ) {
-        return ResponseEntity.ok(transactionService.getPackageChart(start, end));
+        List<PackageDTO> data = transactionService.getPackageChart(start, end);
+        return ResponseEntity.ok(data);
     }
 }

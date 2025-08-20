@@ -127,7 +127,7 @@ public class TransactionService implements ITransactionService {
 
     @Override
     public List<PackageDTO> getPackageChart(LocalDateTime start, LocalDateTime end) {
-        return transactionRepository.countPackageSalesByDateRange(start,end);
+        return transactionRepository.getPackageSales(start,end);
     }
 
 

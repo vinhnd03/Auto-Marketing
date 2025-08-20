@@ -133,15 +133,14 @@ public interface ITransactionRepository extends JpaRepository<Transaction, Long>
     List<Object[]> getSoldPackagesByDateRange(@Param("startDate") LocalDate startDate,
                                               @Param("endDate") LocalDate endDate);
 
-    @Query("SELECT new com.codegym.auto_marketing_server.dto.PackageDTO(p.name, COUNT(t.id)) " +
-            "FROM Transaction t JOIN t.plan p " +
-            "WHERE (:start IS NULL OR t.createdAt >= :start) " +
-            "AND (:end IS NULL OR t.createdAt <= :end) " +
-            "GROUP BY p.name " +
-            "ORDER BY COUNT(t.id) DESC")
-    List<PackageDTO> countPackageSalesByDateRange(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end
-    );
+    @Query(value = "SELECT p.name AS packageName, COUNT(t.id) AS sales " +
+            "FROM transactions t " +
+            "JOIN plans p ON t.plan_id = p.id " +
+            "WHERE (:start IS NULL OR t.created_at >= :start) " +
+            "AND (:end IS NULL OR t.created_at <= :end) " +
+            "GROUP BY p.name",
+            nativeQuery = true)
+    List<PackageDTO> getPackageSales(@Param("start") LocalDateTime start,
+                                   @Param("end") LocalDateTime end);
 }
 
