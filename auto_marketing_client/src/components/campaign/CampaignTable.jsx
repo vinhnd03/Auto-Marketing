@@ -5,6 +5,7 @@ import CreateCampaignForm from "../campaign/CreateCampaignForm";
 import DeleteConfirmationModal from "../ui/DeleteConfirmationModal";
 import EditCampaignForm from "../campaign/EditCampaignForm";
 import toast from "react-hot-toast";
+import { useParams } from "react-router-dom";
 const CampaignTable = ({ campaigns = [] }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [recordsPerPage, setRecordsPerPage] = useState(5);
@@ -20,7 +21,7 @@ const CampaignTable = ({ campaigns = [] }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [campaignToEdit, setCampaignToEdit] = useState(null);
   const [errors, setErrors] = useState({});
-
+  const { workspaceId } = useParams();
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -29,7 +30,8 @@ const CampaignTable = ({ campaigns = [] }) => {
         recordsPerPage,
         searchTerm,
         startDate,
-        endDate
+        endDate,
+        workspaceId,
       );
       setCampaignList(content);
       setTotalRecords(totalElements);
