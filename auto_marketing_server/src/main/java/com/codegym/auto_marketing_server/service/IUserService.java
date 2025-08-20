@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IUserService {
+
+    long count();
+
     Page<User> searchAndPage(String name,
                               String planName,
                               LocalDate startDate,

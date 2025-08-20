@@ -189,11 +189,11 @@ function ListUserByDate() {
                                 <td className="p-2">{customer.name}</td>
                                 <td className="p-2">{customer.email}</td>
                                 <td className="p-2">{formatDate(customer.createdAt)}</td>
-                                {/*<td className="p-2">*/}
-                                {/*    {customer.subscriptions.length > 0*/}
-                                {/*        ? customer.subscriptions.map(sub => sub.plan?.name).join(", ")*/}
-                                {/*        : "Chưa mua gói nào"}*/}
-                                {/*</td>*/}
+                                <td className="p-2">
+                                    {customer.subscriptions.length > 0
+                                        ? customer.subscriptions.map(sub => sub.plan?.name).join(", ")
+                                        : "Chưa mua gói nào"}
+                                </td>
 
                                 <td className="p-2 "> {customer.status ? "Đang hoạt động" : "Đang bị khóa"}</td>
                                 <td className="whitespace-nowrap px-6 py-4">
@@ -251,7 +251,7 @@ function ListUserByDate() {
                                 <span>{selectedUser.email}</span>
 
                                 <span className="font-semibold">Ngày tạo:</span>
-                                <span>{selectedUser.createDate}</span>
+                                <span>{selectedUser.createdAt}</span>
 
                                 <span className="font-semibold">Trạng thái tài khoản:</span>
                                 <span className={selectedUser.status ? "text-green-600" : "text-red-600"}>{selectedUser.status ? "Đang hoạt động" : "Đang bị khóa"}</span>
@@ -262,18 +262,24 @@ function ListUserByDate() {
                                 <span className="font-semibold">Gói dịch vụ đã mua:</span>
                                 {selectedUser.subscriptions?.length > 0 ? (
                                     <div className="space-y-2 mt-2">
-                                        {selectedUser.subscriptions.map((sub, idx) => (
-                                            <div key={idx} className="border p-3 rounded grid grid-cols-2">
-                                                <span>Gói:</span>
-                                                <span>{sub.planId?.name}</span>
+                                        {selectedUser.subscriptions.map((sub, idx) => {
+                                            const today = new Date();
+                                            const endDate = sub.endDate ? new Date(sub.endDate) : null;
+                                            const isExpired = endDate && endDate < today;
 
-                                                <span>Ngày mua:</span>
-                                                <span>{sub.startDate}</span>
+                                            return (
+                                                <div key={idx} className="border p-3 rounded grid grid-cols-2">
+                                                    <span>Gói:</span>
+                                                    <span>{sub.plan?.name} ({sub.plan?.durationDate} ngày) </span>
 
-                                                <span>Ngày hết hạn:</span>
-                                                <span>{sub.endDate}</span>
-                                            </div>
-                                        ))}
+                                                    <span>Ngày mua:</span>
+                                                    <span>{formatDate(sub.startDate)}</span>
+
+                                                    <span>Ngày hết hạn:</span>
+                                                    <span className={isExpired ? "text-red-500 font-semibold" : ""}>{isExpired ? "Đã hết hạn" : formatDate(sub.endDate)}</span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 ) : (
                                     <p>Chưa mua gói nào</p>

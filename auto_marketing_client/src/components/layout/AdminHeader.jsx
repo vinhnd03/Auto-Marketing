@@ -10,7 +10,7 @@ import {
     ChevronDown,
     Shield,
 } from "lucide-react";
-import {getNotifications} from "../../service/admin/notificationService";
+import {getUserCount,getNotifications} from "../../service/admin/notificationService";
 
 const AdminHeader = () => {
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -18,19 +18,27 @@ const AdminHeader = () => {
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
     const [showAllNotifications, setShowAllNotifications] = useState(false);
+    const [userCount, setUserCount] = useState(0);
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const data = await getNotifications();
-                setNotifications(data);
+                // Gọi song song 2 API
+                const [notifications, count] = await Promise.all([
+                    getNotifications(),
+                    getUserCount()
+                ]);
+
+                setNotifications(notifications);
+                setUserCount(count);
             } catch (e) {
-                console.error("Lỗi lấy thông báo:", e);
+                console.error("Lỗi khi fetch dữ liệu:", e);
             }
         }
 
         fetchData().then();
     }, [showAllNotifications]);
+
 
     return (
         <header
@@ -62,7 +70,7 @@ const AdminHeader = () => {
                     {/* Quick Stats */}
                     <div className="hidden lg:flex items-center space-x-4 text-sm">
                         <div className="text-center">
-                            <div className="font-semibold">1,234</div>
+                            <div className="font-semibold">{userCount}</div>
                             <div className="text-xs">Người dùng</div>
                         </div>
                         <div className="text-center">

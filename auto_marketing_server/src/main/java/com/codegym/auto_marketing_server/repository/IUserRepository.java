@@ -15,6 +15,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface IUserRepository extends JpaRepository<User, Long> {
+
+    long count();
+
     // Lấy danh sách người dùng và gói đã mua
 //    @Query("""
 //            SELECT DISTINCT u

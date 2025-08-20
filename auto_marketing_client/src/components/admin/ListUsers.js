@@ -64,6 +64,20 @@ function ListUsers() {
         }
     };
 
+    const handleClear = async () => {
+        // reset filter state
+        setKeyword("");
+        setSortKey("");
+        setShowLocked(null);
+        setPage(1);
+
+        const result = await search("", "", 1, 5, null, null, null);
+        setList(result.data);
+        setTotalPages(result.totalPages);
+    };
+
+
+
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -129,6 +143,12 @@ function ListUsers() {
                         className="px-5 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-300"
                     >
                         Tìm kiếm
+                    </button>
+                    <button
+                        onClick={handleClear}
+                        className="px-5 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-300"
+                    >
+                        Xóa bộ lọc
                     </button>
                 </div>
             </div>
@@ -231,28 +251,6 @@ function ListUsers() {
                                     className={selectedUser.status ? "text-green-600" : "text-red-600"}>{selectedUser.status ? "Đang hoạt động" : "Đang bị khóa"}</span>
                             </div>
 
-                            {/* Hiển thị gói dịch vụ */}
-                            {/*<div className="mt-6">*/}
-                            {/*    <span className="font-semibold">Gói dịch vụ đã mua:</span>*/}
-                            {/*    {selectedUser.subscriptions?.length > 0 ? (*/}
-                            {/*        <div className="space-y-2 mt-2">*/}
-                            {/*            {selectedUser.subscriptions.map((sub, idx) => (*/}
-                            {/*                <div key={idx} className="border p-3 rounded grid grid-cols-2">*/}
-                            {/*                    <span>Gói:</span>*/}
-                            {/*                    <span>{sub.plan?.name}</span>*/}
-
-                            {/*                    <span>Ngày mua:</span>*/}
-                            {/*                    <span>{formatDate(sub.startDate)}</span>*/}
-
-                            {/*                    <span>Ngày hết hạn:</span>*/}
-                            {/*                    <span>{formatDate(sub.endDate)}</span>*/}
-                            {/*                </div>*/}
-                            {/*            ))}*/}
-                            {/*        </div>*/}
-                            {/*    ) : (*/}
-                            {/*        <p>Chưa mua gói nào</p>*/}
-                            {/*    )}*/}
-                            {/*</div>*/}
                             <div className="mt-6">
                                 <span className="font-semibold">Gói dịch vụ đã mua:</span>
                                 {selectedUser.subscriptions?.length > 0 ? (

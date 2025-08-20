@@ -7,6 +7,7 @@ import com.codegym.auto_marketing_server.service.IUserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,10 +35,13 @@ public class RestUserController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) Boolean status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDir
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<User> usersPage = userService.searchAndPage(name, planName, startDate, endDate,status, pageable);
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        Pageable pageable = PageRequest.of(page, size,sort);
+        Page<User> usersPage = userService.searchAndPage(name, planName, startDate, endDate, status, pageable);
 
         if (usersPage.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -55,7 +59,7 @@ public class RestUserController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<User> addUser(@RequestBody User user){
+    public ResponseEntity<User> addUser(@RequestBody User user) {
         userService.save(user);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -113,6 +117,8 @@ public class RestUserController {
         return ResponseEntity.ok(response);
     }
 
+
+    //2 chức năng làm thêm
     @GetMapping("/notifications")
     public ResponseEntity<?> getNotifications() {
         try {
@@ -123,4 +129,8 @@ public class RestUserController {
         }
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<Long> getUserCount() {
+        return ResponseEntity.ok(userService.count());
+    }
 }

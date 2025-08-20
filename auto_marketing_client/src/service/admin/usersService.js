@@ -1,5 +1,27 @@
 import axios from "axios";
 
+
+export async function getAll() {
+    try {
+        const response = await axios.get("http://localhost:8080/api/users", {
+            params: {
+                page: 0,
+                size: 1000, // đủ lớn để lấy tất cả
+                sortBy: "createdAt",
+                sortDir: "DESC"
+            }
+        });
+
+        // Lấy ra danh sách user từ content
+        return response.data?.content ?? [];
+    } catch (e) {
+        console.error("Error in getAll:", e);
+        return [];
+    }
+}
+
+
+
 export async function updateUser(id, user) {
     try {
         const response = await axios.patch("http://localhost:8080/api/users/" + id, user);

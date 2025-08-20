@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
 import {
     TrendingUp,
     Users,
@@ -11,17 +11,47 @@ import {
     CheckCircle,
     Package,
 } from "lucide-react";
+import {getUserCount} from "../../service/admin/notificationService";
+import {getAll} from "../../service/admin/usersService";
+
 
 const AdminDashboard = () => {
+    const [userCount, setUserCount] = useState(0);
+    const [list, setList] = useState([]);
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const data = await getAll(); // getAll() đã return data từ axios
+                setList(data);
+            } catch (error) {
+                console.error("Lỗi khi fetch dữ liệu:", error);
+            }
+        };
+
+        fetchUsers().then();
+    }, []);
+
+
+
+    useEffect(() => {
+        async function fetchData() {
+            const count = await getUserCount();
+            setUserCount(count);
+        }
+
+        fetchData().then();
+    }, []);
+
+
     const stats = [
         {
             name: "Tổng người dùng",
-            value: "1,234",
+            value: userCount,
             change: "+12.5%",
             changeType: "increase",
             icon: Users,
             color: "blue",
-            description: "Người dùng hoạt động",
+            description: "đã đăng kí tài khoản",
         },
         {
             name: "Doanh thu tháng",
@@ -148,7 +178,7 @@ const AdminDashboard = () => {
             name: "Quản lý người dùng",
             description: "Xem và quản lý tài khoản người dùng",
             icon: Users,
-            href: "/admin/users",
+            href: "/admin/users/list",
             color: "blue",
         },
         {
@@ -176,11 +206,12 @@ const AdminDashboard = () => {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            active: { color: "bg-green-100 text-green-800", text: "Hoạt động" },
-            pending: { color: "bg-yellow-100 text-yellow-800", text: "Chờ xử lý" },
-            completed: { color: "bg-green-100 text-green-800", text: "Thành công" },
-            failed: { color: "bg-red-100 text-red-800", text: "Thất bại" },
-            blocked: { color: "bg-red-100 text-red-800", text: "Bị khóa" },
+            blocked: {color: "bg-red-100 text-red-800", text: "Bị khóa"},
+            active: {color: "bg-green-100 text-green-800", text: "Hoạt động"},
+            pending: {color: "bg-yellow-100 text-yellow-800", text: "Chờ xử lý"},
+            completed: {color: "bg-green-100 text-green-800", text: "Thành công"},
+            failed: {color: "bg-red-100 text-red-800", text: "Thất bại"},
+
         };
 
         const config = statusConfig[status] || statusConfig.pending;
@@ -195,9 +226,9 @@ const AdminDashboard = () => {
 
     const getPlanBadge = (plan) => {
         const planConfig = {
-            Starter: { color: "bg-gray-100 text-gray-800" },
-            Professional: { color: "bg-blue-100 text-blue-800" },
-            Premium: { color: "bg-purple-100 text-purple-800" },
+            Starter: {color: "bg-gray-100 text-gray-800"},
+            Professional: {color: "bg-blue-100 text-blue-800"},
+            Premium: {color: "bg-purple-100 text-purple-800"},
         };
 
         const config = planConfig[plan] || planConfig.Starter;
@@ -213,13 +244,13 @@ const AdminDashboard = () => {
     const getAlertIcon = (type) => {
         switch (type) {
             case "error":
-                return <AlertTriangle className="text-red-500" size={16} />;
+                return <AlertTriangle className="text-red-500" size={16}/>;
             case "warning":
-                return <AlertTriangle className="text-yellow-500" size={16} />;
+                return <AlertTriangle className="text-yellow-500" size={16}/>;
             case "info":
-                return <CheckCircle className="text-blue-500" size={16} />;
+                return <CheckCircle className="text-blue-500" size={16}/>;
             default:
-                return <CheckCircle className="text-gray-500" size={16} />;
+                return <CheckCircle className="text-gray-500" size={16}/>;
         }
     };
 
@@ -229,7 +260,7 @@ const AdminDashboard = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                    <p className="text-gray-600">Tổng quan hệ thống MarketingAuto</p>
+                    <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
                 </div>
                 <div className="flex items-center space-x-2 bg-red-100 text-red-800 px-3 py-1 rounded-full">
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -269,14 +300,14 @@ const AdminDashboard = () => {
                                                     : "from-orange-500 to-orange-600"
                                     } rounded-lg flex items-center justify-center`}
                                 >
-                                    <Icon className="text-white" size={24} />
+                                    <Icon className="text-white" size={24}/>
                                 </div>
                             </div>
                             <div className="flex items-center mt-4">
                                 {stat.changeType === "increase" ? (
-                                    <ArrowUp className="text-green-500 mr-1" size={16} />
+                                    <ArrowUp className="text-green-500 mr-1" size={16}/>
                                 ) : (
-                                    <ArrowDown className="text-red-500 mr-1" size={16} />
+                                    <ArrowDown className="text-red-500 mr-1" size={16}/>
                                 )}
                                 <span
                                     className={`text-sm font-medium ${
@@ -322,7 +353,7 @@ const AdminDashboard = () => {
                                                         : "from-orange-500 to-orange-600"
                                         } rounded-lg flex items-center justify-center flex-shrink-0`}
                                     >
-                                        <Icon className="text-white" size={20} />
+                                        <Icon className="text-white" size={20}/>
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-gray-900 group-hover:text-red-600">
@@ -347,34 +378,38 @@ const AdminDashboard = () => {
                             Người dùng mới
                         </h2>
                         <Link
-                            to="/admin/users"
+                            to="/admin/users/new"
                             className="text-red-600 hover:text-red-700 text-sm font-medium"
                         >
                             Xem tất cả
                         </Link>
                     </div>
                     <div className="space-y-4">
-                        {recentUsers.map((user) => (
-                            <div key={user.id} className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-medium">
-                      {user.name.charAt(0)}
-                    </span>
+                        {list.length > 0 ? (
+                            list.slice(0,4).map((user) => (
+                                <div key={user.id} className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-medium">
+                            {user.name?.charAt(0) || "?"}
+                        </span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                                            <p className="text-xs text-gray-500">{user.email}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">
-                                            {user.name}
-                                        </p>
-                                        <p className="text-xs text-gray-500">{user.email}</p>
+                                    <div className="text-right">
+                                        {user.subscriptions.length > 0
+                                            ? user.subscriptions.map(sub => sub.plan?.name).join(", ")
+                                            : "Chưa mua gói nào"}
+                                        <div className="mt-1">{getStatusBadge(user.status ? "active" : "blocked")}</div>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    {getPlanBadge(user.plan)}
-                                    <div className="mt-1">{getStatusBadge(user.status)}</div>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        ) : (
+                            <p className="text-sm text-gray-500">Chưa có dữ liệu người dùng</p>
+                        )}
                     </div>
                 </div>
 
@@ -442,34 +477,34 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </div>
-
+            <div></div>
             {/* Revenue Chart Placeholder */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                        Doanh thu theo thời gian
-                    </h2>
-                    <div className="flex space-x-2">
-                        <button className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-md">
-                            7 ngày
-                        </button>
-                        <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
-                            30 ngày
-                        </button>
-                        <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
-                            90 ngày
-                        </button>
-                    </div>
-                </div>
-                <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                        <TrendingUp className="mx-auto text-gray-400 mb-2" size={32} />
-                        <p className="text-gray-500">
-                            Biểu đồ doanh thu sẽ được hiển thị ở đây
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {/*<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">*/}
+            {/*    <div className="flex justify-between items-center mb-6">*/}
+            {/*        <h2 className="text-lg font-semibold text-gray-900">*/}
+            {/*            Doanh thu theo thời gian*/}
+            {/*        </h2>*/}
+            {/*        <div className="flex space-x-2">*/}
+            {/*            <button className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-md">*/}
+            {/*                7 ngày*/}
+            {/*            </button>*/}
+            {/*            <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md">*/}
+            {/*                30 ngày*/}
+            {/*            </button>*/}
+            {/*            <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md">*/}
+            {/*                90 ngày*/}
+            {/*            </button>*/}
+            {/*        </div>*/}
+            {/*    </div>*/}
+            {/*    <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">*/}
+            {/*        <div className="text-center">*/}
+            {/*            <TrendingUp className="mx-auto text-gray-400 mb-2" size={32} />*/}
+            {/*            <p className="text-gray-500">*/}
+            {/*                Biểu đồ doanh thu sẽ được hiển thị ở đây*/}
+            {/*            </p>*/}
+            {/*        </div>*/}
+            {/*    </div>*/}
+            {/*</div>*/}
         </div>
     );
 };

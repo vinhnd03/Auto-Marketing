@@ -23,6 +23,12 @@ import java.util.Optional;
 public class UserService implements IUserService {
     private final IUserRepository userRepository;
 
+
+    @Override
+    public long count() {
+        return userRepository.count();
+    }
+
     @Override
     public Page<User> searchAndPage(String name, String planName, LocalDate startDate, LocalDate endDate,Boolean status,Pageable pageable) {
         return userRepository.searchAndPage(name, planName, startDate, endDate, status,pageable);
