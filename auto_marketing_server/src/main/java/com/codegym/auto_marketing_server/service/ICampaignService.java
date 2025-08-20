@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ICampaignService {
-    Page<Campaign> findAll(String name, LocalDate startDate, LocalDate endDate, Pageable pageable);
+    Page<Campaign> findAll(String name, LocalDate startDate, LocalDate endDate,Long workSpaceId, Pageable pageable);
 
     Campaign findById(Long id);
 

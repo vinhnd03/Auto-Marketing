@@ -47,11 +47,12 @@ public class CampaignController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String name,
+            @RequestParam("workspaceId") Long workspaceId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Campaign> campaignList = campaignService.findAll(name, startDate, endDate, pageable);
+        Page<Campaign> campaignList = campaignService.findAll(name, startDate, endDate,workspaceId, pageable);
         System.out.println("startDate param = " + startDate);
         System.out.println("endDate param = " + endDate);
         if (campaignList.isEmpty()) {
