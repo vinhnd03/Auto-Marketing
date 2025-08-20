@@ -54,7 +54,8 @@ public class WorkspaceService implements IWorkspaceService {
     @Override
     public boolean existsByNameForUser(String name, Long userId) {
         Integer count = workspaceRepository.countWorkspaceByNameAndUser(name, userId);
-        return count != null && count > 0;
+
+        return  count > 0;
     }
 
     @Override

@@ -106,5 +106,4 @@ public class SubscriptionManagementService {
         sub.setStatus(SubscriptionStatus.SUCCESS);
         subscriptionRepository.save(sub);
     }
-
 }
