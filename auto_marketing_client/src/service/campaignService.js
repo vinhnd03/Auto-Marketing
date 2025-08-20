@@ -6,9 +6,10 @@ const findAllCampaign = async (
   size = 10,
   name = "",
   startDate = "",
-  endDate = ""
+  endDate = "",
+  workspaceId = 0
 ) => {
-  const params = { page, size, name, startDate, endDate };
+  const params = { page, size, name, startDate, endDate,workspaceId };
   try {
     const resp = await axios.get(URL, { params });
     return {
