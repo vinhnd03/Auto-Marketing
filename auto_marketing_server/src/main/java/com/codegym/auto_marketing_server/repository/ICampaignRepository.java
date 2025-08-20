@@ -9,13 +9,15 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 
-public interface ICampaignRepository extends JpaRepository<Campaign,Long> {
-    @Query(value= """
-            select c from Campaign c 
-            where (:name is null or c.name like concat ('%',:name,'%'))
-            and (:startDate is null or c.startDate >= :startDate)
-            and (:endDate is null or c.endDate <= :endDate)                  
-            """)
+public interface ICampaignRepository extends JpaRepository<Campaign, Long> {
+    @Query("""
+    select c from Campaign c
+    where (:name is null or c.name like concat('%', :name, '%'))
+    and (
+        (:startDate is null or c.endDate >= :startDate)
+        and (:endDate is null or c.startDate <= :endDate)
+    )
+    """)
     Page<Campaign> findCampaignByName(@Param("name") String name,
                                       @Param("startDate") LocalDate startDate,
                                       @Param("endDate") LocalDate endDate,

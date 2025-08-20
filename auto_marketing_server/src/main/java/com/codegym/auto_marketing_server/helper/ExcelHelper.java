@@ -19,6 +19,7 @@ public class ExcelHelper {
             super(message);
         }
     }
+
     public static final String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     public static boolean isExcelFile(MultipartFile file) {
@@ -32,14 +33,14 @@ public class ExcelHelper {
             List<String> errors = new ArrayList<>();
 
             for (Row row : sheet) {
-                if (row.getRowNum() == 0) continue; // Skip header
+                if (row.getRowNum() == 0) continue; // skip header
 
                 try {
                     CampaignDTO dto = new CampaignDTO();
                     validateAndParseRow(row, dto);
                     campaigns.add(dto);
                 } catch (ExcelValidationException e) {
-                    errors.add("Row " + (row.getRowNum() + 1) + ": " + e.getMessage());
+                    errors.add("Hàng " + (row.getRowNum() + 1) + ": " + e.getMessage());
                 }
             }
 
@@ -52,42 +53,84 @@ public class ExcelHelper {
     }
 
     private static void validateAndParseRow(Row row, CampaignDTO dto) throws ExcelValidationException {
-        // Validate và parse từng cell
-        dto.setName(getStringValue(row.getCell(0), "Name"));
-        dto.setDescription(getStringValue(row.getCell(1), "Description"));
-        dto.setStartDate(getDateValue(row.getCell(2), "Start Date"));
-        dto.setEndDate(getDateValue(row.getCell(3), "End Date"));
-        dto.setStatus(getStatusValue(row.getCell(4)));
+        List<String> rowErrors = new ArrayList<>();
 
-        if (dto.getEndDate().isBefore(dto.getStartDate())) {
-            throw new ExcelValidationException("End date must be after start date");
+        for (CampaignColumn column : CampaignColumn.values()) {
+            Cell cell = row.getCell(column.getIndex());
+            try {
+                switch (column.getType()) {
+                    case STRING -> {
+                        dtoSetString(dto, column, cell);
+                    }
+                    case NUMERIC -> {
+                        if (column == CampaignColumn.START_DATE) {
+                            dto.setStartDate(getDateValue(cell, column.getHeader()));
+                        } else if (column == CampaignColumn.END_DATE) {
+                            dto.setEndDate(getDateValue(cell, column.getHeader()));
+                        }
+                    }
+                    default -> {
+                        // ignore other types
+                    }
+                }
+            } catch (ExcelValidationException e) {
+                rowErrors.add(e.getMessage());
+            }
+        }
+
+        // Set default status
+        dto.setStatus(CampaignStatus.DRAFT);
+
+        // Validate logic startDate <= endDate
+        if (dto.getStartDate() != null && dto.getEndDate() != null) {
+            if (dto.getEndDate().isBefore(dto.getStartDate())) {
+                rowErrors.add("Ngày kết thúc nên đặt bằng hoặc sau ngày bắt đầu");
+            }
+        }
+
+        if (!rowErrors.isEmpty()) {
+            throw new ExcelValidationException(String.join("; ", rowErrors));
         }
     }
 
-    private static String getStringValue(Cell cell, String fieldName) throws ExcelValidationException {
+    private static void dtoSetString(CampaignDTO dto, CampaignColumn column, Cell cell) throws ExcelValidationException {
         if (cell == null || cell.getCellType() == CellType.BLANK) {
-            throw new ExcelValidationException(fieldName + " is required");
+            throw new ExcelValidationException(column.getHeader() + " không được để trống");
         }
-        return cell.getStringCellValue();
+        if (cell.getCellType() != CellType.STRING) {
+            throw new ExcelValidationException(column.getHeader() + " phải là chữ");
+        }
+        String value = cell.getStringCellValue().trim();
+        if (column == CampaignColumn.NAME) dto.setName(value);
+        else if (column == CampaignColumn.DESCRIPTION) dto.setDescription(value);
     }
 
     private static LocalDate getDateValue(Cell cell, String fieldName) throws ExcelValidationException {
-        if (cell == null) {
-            throw new ExcelValidationException(fieldName + " is required");
+        if (cell == null) throw new ExcelValidationException(fieldName + " không được để trống");
+        if (!DateUtil.isCellDateFormatted(cell)) {
+            throw new ExcelValidationException(fieldName + " phải là ngày hợp lệ");
         }
-        try {
-            return cell.getLocalDateTimeCellValue().toLocalDate();
-        } catch (Exception e) {
-            throw new ExcelValidationException(fieldName + " must be a valid date");
-        }
+        return cell.getLocalDateTimeCellValue().toLocalDate();
     }
 
-    private static CampaignStatus getStatusValue(Cell cell) throws ExcelValidationException {
-        String status = getStringValue(cell, "Status");
-        try {
-            return CampaignStatus.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new ExcelValidationException("Invalid status value: " + status);
+    public enum CampaignColumn {
+        NAME(0, "Tên chiến dịch", CellType.STRING),
+        DESCRIPTION(1, "Chi tiết", CellType.STRING),
+        START_DATE(2, "Ngày bắt đầu", CellType.NUMERIC),
+        END_DATE(3, "Ngày kết thúc", CellType.NUMERIC);
+
+        private final int index;
+        private final String header;
+        private final CellType type;
+
+        CampaignColumn(int index, String header, CellType type) {
+            this.index = index;
+            this.header = header;
+            this.type = type;
         }
+
+        public int getIndex() { return index; }
+        public String getHeader() { return header; }
+        public CellType getType() { return type; }
     }
 }

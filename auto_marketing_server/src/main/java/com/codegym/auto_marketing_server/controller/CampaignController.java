@@ -4,7 +4,7 @@ import com.codegym.auto_marketing_server.dto.CampaignDTO;
 import com.codegym.auto_marketing_server.entity.Campaign;
 import com.codegym.auto_marketing_server.entity.Workspace;
 import com.codegym.auto_marketing_server.enums.CampaignStatus;
-import com.codegym.auto_marketing_server.repository.IWorkspaceRepository;
+import com.codegym.auto_marketing_server.helper.ExcelHelper;
 import com.codegym.auto_marketing_server.service.ICampaignService;
 import com.codegym.auto_marketing_server.service.IWorkspaceService;
 import jakarta.validation.Valid;
@@ -15,20 +15,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/campaign")
 public class CampaignController {
     private final ICampaignService campaignService;
@@ -56,6 +52,8 @@ public class CampaignController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Campaign> campaignList = campaignService.findAll(name, startDate, endDate, pageable);
+        System.out.println("startDate param = " + startDate);
+        System.out.println("endDate param = " + endDate);
         if (campaignList.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -63,7 +61,9 @@ public class CampaignController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody CampaignDTO dto, BindingResult bindingResult) {
+    public ResponseEntity<?> create(@RequestBody CampaignDTO dto, BindingResult bindingResult) {
+        new CampaignDTO().validate(dto, bindingResult);
+
         if (bindingResult.hasErrors()) {
             Map<String, String> errors = new HashMap<>();
             bindingResult.getFieldErrors()
@@ -143,8 +143,41 @@ public class CampaignController {
         return new ResponseEntity<>("Đã xóa Campaign thành công", HttpStatus.OK);
     }
 
+    @PostMapping("/upload-excel")
+    public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file, @RequestParam("workspaceId") Long workspaceId) {
+        if (!ExcelHelper.isExcelFile(file)) {
+            return ResponseEntity.badRequest().body("File không hợp lệ, chỉ chấp nhận Excel (.xlsx)");
+        }
 
+        try {
+            List<CampaignDTO> dtos = ExcelHelper.excelToCampaigns(file.getInputStream());
 
+            Workspace workspace = workspaceService.getWorkspaceById(workspaceId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Workspace"));
+
+            List<Campaign> savedCampaigns = new ArrayList<>();
+            for (CampaignDTO dto : dtos) {
+                Campaign campaign = new Campaign();
+                BeanUtils.copyProperties(dto, campaign);
+
+                campaign.setWorkspace(workspace);
+                campaign.setCreatedAt(LocalDate.now());
+                campaign.setUpdatedAt(null);
+                campaign.setSoftDel(false);
+
+                savedCampaigns.add(campaignService.save(campaign));
+            }
+
+            return ResponseEntity.ok(savedCampaigns);
+
+        } catch (ExcelHelper.ExcelValidationException e) {
+            return ResponseEntity.badRequest().body("Lỗi dữ liệu Excel:\n" + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Có lỗi xảy ra: " + e.getMessage());
+        }
+    }
 
 
 }
