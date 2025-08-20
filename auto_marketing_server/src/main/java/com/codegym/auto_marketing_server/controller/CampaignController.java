@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
-@RequestMapping("/campaign")
+@RequestMapping("/api/campaign")
 //@RequestMapping("/api/v1/campaigns")
 @RequiredArgsConstructor
 public class CampaignController {

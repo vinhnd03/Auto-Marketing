@@ -172,7 +172,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
                                     htmlFor="workspace-name"
                                     className="block text-gray-700 font-medium text-sm"
                                 >
-                                    Tên Workspace
+                                    Tên Workspace <span className="text-red-500">*</span>
                                 </label>
                                 <Field
                                     id="workspace-name"
@@ -191,7 +191,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
                                     htmlFor="workspace-description"
                                     className="block text-gray-700 font-medium text-sm"
                                 >
-                                    Mô tả
+                                    Mô tả <span className="text-red-500">*</span>
                                 </label>
                                 <Field
                                     as="textarea"

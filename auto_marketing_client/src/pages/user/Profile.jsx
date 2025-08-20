@@ -60,22 +60,30 @@ export default function Profile() {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Kiểm tra MIME type
-      if (!file.type.startsWith("image/")) {
-        toast.error("Vui lòng chọn đúng định dạng ảnh (jpg, png, jpeg, ...)");
-        return;
-      }
-
-      // Nếu đúng là ảnh thì preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, avatar: reader.result }));
-      };
-      reader.readAsDataURL(file);
+  const file = e.target.files[0];
+  if (file) {
+    // Kiểm tra MIME type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Vui lòng chọn đúng định dạng ảnh (jpg, png, jpeg, ...)");
+      return;
     }
-  };
+
+    // Kiểm tra dung lượng file (ví dụ: max 2MB)
+    const maxSizeInMB = 5;
+    const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+    if (file.size > maxSizeInBytes) {
+      toast.error(`Dung lượng ảnh không được vượt quá ${maxSizeInMB}MB`);
+      return;
+    }
+
+    // Nếu đúng là ảnh và dung lượng hợp lệ thì preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({ ...prev, avatar: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  }
+};
   const handleOpenFileDialog = () => {
     fileInputRef.current.click();
   };
@@ -113,7 +121,7 @@ export default function Profile() {
 
     phone: Yup.string()
       .required("Số điện thoại không được để trống")
-      .matches(/^0\d{9, 10}$/, "Số điện thoại không hợp lệ"),
+      .matches(/^0\d{9,10}$/, "Số điện thoại không hợp lệ"),
   });
 
   if (!user) return <Preloader />;

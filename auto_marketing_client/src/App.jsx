@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   useLocation,
+  Navigate,
 } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
@@ -75,11 +76,12 @@ const AppLayout = ({ children }) => {
   const isAdminPage = location.pathname.startsWith("/admin");
   const isLegalPage = ["/terms", "/privacy"].includes(location.pathname);
 
+  const isErrorPage = ["/not-found"].includes(location.pathname);
   // Hiển thị Navbar ở tất cả pages trừ auth pages, admin pages và legal pages
-  const shouldShowNavbar = !isAuthPage && !isAdminPage && !isLegalPage;
+  const shouldShowNavbar = !isAuthPage && !isAdminPage && !isLegalPage && !isErrorPage;
 
   // Hiển thị Footer ở tất cả pages trừ auth pages và admin pages (bao gồm cả legal pages)
-  const shouldShowFooter = !isAuthPage && !isAdminPage;
+  const shouldShowFooter = !isAuthPage && !isAdminPage && !isErrorPage;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -254,13 +256,14 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/*" element={<Navigate to="/not-found" replace />} />
               </Routes>
             </AppLayout>
           }
         />
 
         <Route path="/unauthorized" element={<ForbiddenPage />} />
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path="/not-found" element={<NotFoundPage />} />
       </Routes>
       <Toaster
         position="top-right"
