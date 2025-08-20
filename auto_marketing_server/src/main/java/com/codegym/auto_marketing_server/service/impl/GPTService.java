@@ -260,6 +260,14 @@ public class GPTService implements IGPTService {
         prompt.append("• Chủ đề: ").append(topic.getName()).append("\n");
         prompt.append("• Mô tả: ").append(topic.getDescription()).append("\n\n");
 
+        // THÊM YÊU CẦU VỀ TIÊU ĐỀ
+        prompt.append("YÊU CẦU TIÊU ĐỀ:\n");
+        prompt.append("• Tiêu đề bài viết PHẢI NỔI BẬT, SÚC TÍCH, TỐI ĐA 70 KÝ TỰ.\n");
+        prompt.append("• Nếu tiêu đề vượt quá 70 ký tự, HÃY NGAY LẬP TỨC rút ngắn lại còn tối đa 70 ký tự, KHÔNG giải thích, KHÔNG giữ lại emoji nếu bị cắt.\n");
+        prompt.append("• KHÔNG được bắt đầu title bằng các cụm từ dài dòng, lan man, hoặc quá chung chung như \"Trong thời đại công nghệ phát triển...\", \"🌟 Trong thời đại công nghệ số hiện nay...\".\n");
+        prompt.append("• Ưu tiên tiêu đề là một câu hoặc một cụm từ mạnh mẽ, truyền cảm hứng, KHÔNG lặp lại nội dung của phần mô tả.\n");
+        prompt.append("• KHÔNG sử dụng emoji ở đầu tiêu đề. Nếu sử dụng emoji, chỉ được đặt ở cuối tiêu đề và chỉ khi không bị cắt mất khi rút ngắn.\n\n");
+
         if (targetWordCount != null) {
             prompt.append("YÊU CẦU ĐỘ DÀI:\n");
             prompt.append("• Độ dài mục tiêu: ").append(targetWordCount).append(" từ (±10%)\n");
@@ -368,13 +376,22 @@ public class GPTService implements IGPTService {
         String vietnameseTone = mapToneToVietnamese(tone);
         String vietnameseContentType = mapContentTypeToVietnamese(contentType);
 
-        prompt.append("NHIỆM VỤ: Viết một bài đăng ").append(vietnameseContentType).append(" bằng TIẾNG VIỆT về chủ đề dưới đây, liền mạch như một câu chuyện hoặc chia sẻ, truyền cảm hứng, chuyên nghiệp, không chia phần, không đặt tiêu đề phụ, không lạm dụng emoji.\n\n");
+        prompt.append("NHIỆM VỤ: Viết một bài đăng ").append(vietnameseContentType)
+                .append(" bằng TIẾNG VIỆT về chủ đề dưới đây, liền mạch như một câu chuyện hoặc chia sẻ, truyền cảm hứng, chuyên nghiệp, không chia phần, không đặt tiêu đề phụ, không lạm dụng emoji.\n\n");
 
         prompt.append("THÔNG TIN CHỦ ĐỀ:\n");
         prompt.append("• Chủ đề: ").append(topic.getName()).append("\n");
         prompt.append("• Mô tả: ").append(topic.getDescription()).append("\n");
         prompt.append("• Tone: ").append(vietnameseTone).append("\n");
         prompt.append("• Loại nội dung: ").append(vietnameseContentType).append("\n\n");
+
+        // THÊM YÊU CẦU VỀ TIÊU ĐỀ
+        prompt.append("YÊU CẦU TIÊU ĐỀ:\n");
+        prompt.append("• Tiêu đề bài viết PHẢI NỔI BẬT, SÚC TÍCH, TỐI ĐA 70 KÝ TỰ.\n");
+        prompt.append("• Nếu tiêu đề vượt quá 70 ký tự, HÃY NGAY LẬP TỨC rút ngắn lại còn tối đa 70 ký tự, KHÔNG giải thích, KHÔNG giữ lại emoji nếu bị cắt.\n");
+        prompt.append("• KHÔNG được bắt đầu title bằng các cụm từ dài dòng, lan man, hoặc quá chung chung như \"Trong thời đại công nghệ phát triển...\", \"🌟 Trong thời đại công nghệ số hiện nay...\".\n");
+        prompt.append("• Ưu tiên tiêu đề là một câu hoặc một cụm từ mạnh mẽ, truyền cảm hứng, KHÔNG lặp lại nội dung của phần mô tả.\n");
+        prompt.append("• KHÔNG sử dụng emoji ở đầu tiêu đề. Nếu sử dụng emoji, chỉ được đặt ở cuối tiêu đề và chỉ khi không bị cắt mất khi rút ngắn.\n\n");
 
         if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
             prompt.append("YÊU CẦU BỔ SUNG:\n");
