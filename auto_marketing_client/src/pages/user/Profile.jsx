@@ -45,7 +45,8 @@ export default function Profile() {
           }
         }
       } catch (error) {
-        toast.error("Lỗi máy chủ");
+        console.log(error);
+        
       }
     };
     fetchData();
