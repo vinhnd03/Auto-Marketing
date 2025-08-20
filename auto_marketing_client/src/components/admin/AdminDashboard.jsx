@@ -12,8 +12,38 @@ import {
     Package,
 } from "lucide-react";
 import {getRevenueStats} from "../../service/revenueService";
+import {getUserCount} from "../../service/admin/notificationService";
+import {getAll} from "../../service/admin/usersService";
+
 
 const AdminDashboard = () => {
+    const [userCount, setUserCount] = useState(0);
+    const [list, setList] = useState([]);
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const data = await getAll(); // getAll() đã return data từ axios
+                setList(data);
+            } catch (error) {
+                console.error("Lỗi khi fetch dữ liệu:", error);
+            }
+        };
+
+        fetchUsers().then();
+    }, []);
+
+
+
+    useEffect(() => {
+        async function fetchData() {
+            const count = await getUserCount();
+            setUserCount(count);
+        }
+
+        fetchData().then();
+    }, []);
+
+
     const [dash, setDash] = useState(null);
 
     useEffect(() => {
@@ -32,12 +62,12 @@ const AdminDashboard = () => {
     const stats = [
         {
             name: "Tổng người dùng",
-            value: "1,234",
+            value: userCount,
             change: "+12.5%",
             changeType: "increase",
             icon: Users,
             color: "blue",
-            description: "Người dùng hoạt động",
+            description: "đã đăng kí tài khoản",
         },
         {
             name: "Doanh thu tháng",
@@ -65,41 +95,6 @@ const AdminDashboard = () => {
             icon: Package,
             color: "orange",
             description: "Đăng ký mới tháng này",
-        },
-    ];
-
-    const recentUsers = [
-        {
-            id: 1,
-            name: "Nguyễn Văn A",
-            email: "nguyenvana@email.com",
-            plan: "Premium",
-            joinDate: "2024-08-05",
-            status: "active",
-        },
-        {
-            id: 2,
-            name: "Trần Thị B",
-            email: "tranthib@email.com",
-            plan: "Professional",
-            joinDate: "2024-08-04",
-            status: "active",
-        },
-        {
-            id: 3,
-            name: "Lê Văn C",
-            email: "levanc@email.com",
-            plan: "Starter",
-            joinDate: "2024-08-03",
-            status: "pending",
-        },
-        {
-            id: 4,
-            name: "Phạm Thị D",
-            email: "phamthid@email.com",
-            plan: "Premium",
-            joinDate: "2024-08-02",
-            status: "active",
         },
     ];
 
@@ -164,7 +159,7 @@ const AdminDashboard = () => {
             name: "Quản lý người dùng",
             description: "Xem và quản lý tài khoản người dùng",
             icon: Users,
-            href: "/admin/users",
+            href: "/admin/users/list",
             color: "blue",
         },
         {
@@ -365,35 +360,38 @@ const AdminDashboard = () => {
                             Người dùng mới
                         </h2>
                         <Link
-                            to="/admin/users"
+                            to="/admin/users/new"
                             className="text-red-600 hover:text-red-700 text-sm font-medium"
                         >
                             Xem tất cả
                         </Link>
                     </div>
                     <div className="space-y-4">
-                        {recentUsers.map((user) => (
-                            <div key={user.id} className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    <div
-                                        className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-medium">
-                      {user.name.charAt(0)}
-                    </span>
+                        {list.length > 0 ? (
+                            list.slice(0,4).map((user) => (
+                                <div key={user.id} className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-medium">
+                            {user.name?.charAt(0) || "?"}
+                        </span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                                            <p className="text-xs text-gray-500">{user.email}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">
-                                            {user.name}
-                                        </p>
-                                        <p className="text-xs text-gray-500">{user.email}</p>
+                                    <div className="text-right">
+                                        {user.subscriptions.length > 0
+                                            ? user.subscriptions.map(sub => sub.plan?.name).join(", ")
+                                            : "Chưa mua gói nào"}
+                                        <div className="mt-1">{getStatusBadge(user.status ? "active" : "blocked")}</div>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    {getPlanBadge(user.plan)}
-                                    <div className="mt-1">{getStatusBadge(user.status)}</div>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        ) : (
+                            <p className="text-sm text-gray-500">Chưa có dữ liệu người dùng</p>
+                        )}
                     </div>
                 </div>
 
@@ -461,34 +459,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Revenue Chart Placeholder */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                        Doanh thu theo thời gian
-                    </h2>
-                    <div className="flex space-x-2">
-                        <button className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-md">
-                            7 ngày
-                        </button>
-                        <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
-                            30 ngày
-                        </button>
-                        <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
-                            90 ngày
-                        </button>
-                    </div>
-                </div>
-                <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                        <TrendingUp className="mx-auto text-gray-400 mb-2" size={32}/>
-                        <p className="text-gray-500">
-                            Biểu đồ doanh thu sẽ được hiển thị ở đây
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <div></div>
         </div>
     );
 };

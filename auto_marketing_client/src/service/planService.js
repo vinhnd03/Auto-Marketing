@@ -25,8 +25,7 @@ const getPlanById = async (id) => {
 
 const createPlan = async (plan) => {
     try {
-        const resp = await axios.post(URL, plan);
-        return resp.data;
+        return await axios.post(URL, plan);
     } catch (e) {
         console.log("Lỗi kết nối api", e);
         return {};
@@ -35,8 +34,7 @@ const createPlan = async (plan) => {
 
 const updatePlan = async (plan) => {
     try {
-        const resp = await axios.put(`${URL}/${plan.id}`, plan);
-        return resp.data;
+        return await axios.put(`${URL}/${plan.id}`, plan);
     } catch (e) {
         console.log("Lỗi kết nối api", e);
         return {};

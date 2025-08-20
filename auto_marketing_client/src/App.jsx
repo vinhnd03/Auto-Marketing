@@ -40,10 +40,11 @@ import AdminLayout from "./components/layout/AdminLayout";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import RevenueStatsPage from "./pages/admin/RevenueStatsPage";
 
-import ListCustomerComponent from "./components/admin/ListCustomerComponent";
-import ListCustomerByDateComponent from "./components/admin/ListCustomerByDateComponent";
-import NewCustomerStatisticsComponent from "./components/admin/NewCustomerStatisticsComponent";
-import TrendPage from "./components/admin/TrendAnalysis";
+import ListUsers from "./components/admin/ListUsers";
+import ListUserByDate from "./components/admin/ListUserByDate";
+import NewCustomerStatisticsComponent from "./components/admin/CustomersBuyNewPackagesStatistic";
+import TrendPage from "./components/admin/NewCustomerStatistic";
+import DetailUserComponent from "./components/admin/DetailUser";
 import PackageStatsPage from "./pages/admin/PackageStatsPage";
 import PlanList from "./pages/admin/PlanList";
 
@@ -96,97 +97,103 @@ function App() {
         setTimeout(() => setLoading(false), 1200);
     }, []);
     if (loading) return <Preloader/>;
-
     return (
         <Router>
-            <ScrollToTop/>
-            <Routes>
-                {/* Admin Routes - Separate layout */}
-                <Route
-                    path="/admin/*"
-                    element={
-                        <AdminLayout>
-                            <Routes>
-                                <Route index element={<AdminDashboard/>}/>
-                                <Route path="users/list" element={<ListCustomerComponent/>}/>
-                                <Route
-                                    path="users/new"
-                                    element={<ListCustomerByDateComponent/>}
-                                />
-                                <Route path="customers/trends" element={<TrendPage/>}/>
-                                <Route
-                                    path="customers/statistics"
-                                    element={<NewCustomerStatisticsComponent/>}
-                                />
-                                <Route path="revenue" element={<RevenueStatsPage/>}/>
-                                <Route path="packages" element={<PackageStatsPage/>}/>
-                                <Route path="plans" element={<PlanList/>}/>
-                            </Routes>
-                            {/*<Toaster containerClassName="mt-10" position="top-right" reverseOrder={false} />*/}
-                        </AdminLayout>
-                    }
-                />
+            <AppLayout>
+                <Routes>
+                    <Route path="/" element={<Home/>}/>
 
-                {/* Regular Routes with AppLayout */}
-                <Route
-                    path="/*"
-                    element={
-                        <AppLayout>
-                            <Routes>
-                                <Route path="/" element={<Home/>}/>
-                                <Route path="/about" element={<AboutPage/>}/>
-                                <Route path="/blog" element={<BlogPage/>}/>
-                                <Route path="/help" element={<HelpPage/>}/>
-                                <Route path="/faq" element={<FAQPage/>}/>
-                                <Route path="/guide" element={<GuidePage/>}/>
-                                <Route path="/sitemap" element={<SitemapPage/>}/>
-                                <Route path="/login" element={<LoginPage/>}/>
-                                <Route path="/register" element={<RegisterPage/>}/>
-                                <Route
-                                    path="/forgot-password"
-                                    element={<ForgotPasswordPage/>}
-                                />
-                                <Route path="/reset-password" element={<ResetPasswordPage/>}/>
-                                <Route path="/terms" element={<TermsPage/>}/>
-                                <Route path="/privacy" element={<PrivacyPage/>}/>
-                                <Route path="/contact" element={<ContactPage/>}/>
-                                <Route path="/features" element={<FeaturesPage/>}/>
-                                <Route path="/pricing" element={<ListComponent/>}/>
-                                <Route
-                                    path="/payment-result"
-                                    element={<PaymentResultComponent/>}
-                                />
-                                <Route path="/campaign-manager" element={<CampaignManager/>}/>
-                                <Route path="/profile" element={<Profile/>}/>
-                                <Route path="/settings" element={<Settings/>}/>
-                                <Route path="/workspace" element={<WorkspacePage/>}/>
-                                <Route
-                                    path="/workspaces/:workspaceId"
-                                    element={<WorkspaceDetailPage/>}
-                                />
-                            </Routes>
+                    {/* Auth Routes */}
+                    <Route path="/login" element={<LoginPage/>}/>
+                    <Route path="/register" element={<RegisterPage/>}/>
+                    <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
+                    <Route path="/reset-password" element={<ResetPasswordPage/>}/>
 
-                        </AppLayout>
-                    }
-                />
-            </Routes>
+                    {/* Legal Routes */}
+                    <Route path="/terms" element={<TermsPage/>}/>
+                    <Route path="/privacy" element={<PrivacyPage/>}/>
+
+                    <Route path="/pricing" element={<ListComponent/>}/>
+                    <Route path="/payment-result" element={<PaymentResultComponent/>}/>
+                    {/* Application Routes */}
+                    <Route path="/campaign-manager" element={<CampaignManager/>}/>
+                    <Route path="/profile" element={<Profile/>}/>
+                    <Route path="/settings" element={<Settings/>}/>
+                    <Route path="/workspace" element={<WorkspacePage/>}/>
+                    <Route
+                        path="/workspaces/:workspaceId"
+                        element={<WorkspaceDetailPage/>}
+                    />
+                    {/* Admin Routes */}
+                    <Route
+                        path="/admin/*"
+                        element={
+                            <AdminLayout>
+                                <Routes>
+                                    <Route index element={<AdminDashboard/>}/>
+                                    <Route path="users/list" element={<ListUsers/>}/>
+                                    <Route path="users/new" element={<ListUserByDate/>}/>
+                                    <Route path={"users/detail/:id"} element={<DetailUserComponent/>}/>
+                                    <Route path="customers/statistics_customer" element={<TrendPage/>}/>
+                                    <Route path="customers/statistics_packages"
+                                           element={<NewCustomerStatisticsComponent/>}/>
+                                    <Route path="revenue" element={<RevenueStatsPage/>}/>
+                                    <Route path="packages" element={<PackageStatsPage/>}/>
+                                    <Route path="plans" element={<PlanList/>}/>
+                                </Routes>
+                            </AdminLayout>
+                        }
+                    />
+                    <Route path="/" element={<Home/>}/>
+                    <Route path="/about" element={<AboutPage/>}/>
+                    <Route path="/blog" element={<BlogPage/>}/>
+                    <Route path="/help" element={<HelpPage/>}/>
+                    <Route path="/faq" element={<FAQPage/>}/>
+                    <Route path="/guide" element={<GuidePage/>}/>
+                    <Route path="/sitemap" element={<SitemapPage/>}/>
+                    <Route path="/login" element={<LoginPage/>}/>
+                    <Route path="/register" element={<RegisterPage/>}/>
+                    <Route
+                        path="/forgot-password"
+                        element={<ForgotPasswordPage/>}
+                    />
+                    <Route path="/reset-password" element={<ResetPasswordPage/>}/>
+                    <Route path="/terms" element={<TermsPage/>}/>
+                    <Route path="/privacy" element={<PrivacyPage/>}/>
+                    <Route path="/contact" element={<ContactPage/>}/>
+                    <Route path="/features" element={<FeaturesPage/>}/>
+                    <Route path="/pricing" element={<ListComponent/>}/>
+                    <Route
+                        path="/payment-result"
+                        element={<PaymentResultComponent/>}
+                    />
+                    <Route path="/campaign-manager" element={<CampaignManager/>}/>
+                    <Route path="/profile" element={<Profile/>}/>
+                    <Route path="/settings" element={<Settings/>}/>
+                    <Route path="/workspace" element={<WorkspacePage/>}/>
+                    <Route
+                        path="/workspaces/:workspaceId"
+                        element={<WorkspaceDetailPage/>}
+                    />
+                </Routes>
+            </AppLayout>
             <Toaster
                 position="top-right"
                 toastOptions={{
-                    duration: 2500,
+                    duration: 4000,
                     style: {
                         background: "#363636",
                         color: "#fff",
                     },
                     success: {
-                        duration: 2500,
+                        duration: 3000,
                         style: {
                             background: "#10B981",
                             color: "#fff",
                         },
                     },
                     error: {
-                        duration: 2500,
+                        duration: 4000,
                         style: {
                             background: "#EF4444",
                             color: "#fff",

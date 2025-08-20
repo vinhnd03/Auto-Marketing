@@ -1,8 +1,20 @@
 import React, {useState, useEffect} from "react";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {
-    LayoutDashboard, Users, Target, BarChart3, CreditCard, Settings, Shield,
-    FileText, Database, Mail, TrendingUp, Package, UserCheck, ChevronDown, ChevronRight
+    LayoutDashboard,
+    Users,
+    Target,
+    BarChart3,
+    CreditCard,
+    Settings,
+    Shield,
+    FileText,
+    Database,
+    Mail,
+    TrendingUp,
+    Package,
+    UserCheck,
+    ChevronRight
 } from "lucide-react";
 import PropTypes from "prop-types";
 
@@ -22,21 +34,22 @@ const AdminSidebar = ({collapsed}) => {
         {
             name: "Quản lý người dùng", icon: Users,
             children: [
-                {name: "Tất cả người dùng", href: "/admin/users/list", icon: Users},
-                {name: "Người dùng mới", href: "/admin/users/new", icon: UserCheck},
+                { name: "Tất cả người dùng", href: "/admin/users/list", icon: Users },
+                { name: "Người dùng mới", href: "/admin/users/new", icon: UserCheck }
+            ],
+        },
+        {
+            name: "Thống kê khách hàng",
+            icon: BarChart3,
+            children: [
+                { name: "Theo lượt mua gói mới", href: "/admin/customers/statistics_packages" },
+                { name: "Theo lượt đăng kí mới", href: "/admin/customers/statistics_customer" },
             ],
         },
         {
             name: "Thống kê doanh thu",
             icon: TrendingUp,
             children: [{name: "Tổng quan doanh thu", href: "/admin/revenue"}]
-        },
-        {
-            name: "Thống kê khách hàng", icon: BarChart3,
-            children: [
-                {name: "Thống kê tăng trưởng", href: "/admin/customers/statistics"},
-                {name: "Phân tích xu hướng", href: "/admin/customers/trends"},
-            ],
         },
         {
             name: "Quản lý gói dịch vụ",

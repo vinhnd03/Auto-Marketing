@@ -3,8 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import {
     LayoutDashboard,
         Users,
-    Target,
     BarChart3,
+    Target,
     CreditCard,
     Settings,
     Shield,
@@ -38,8 +38,8 @@ const AdminSidebar = () => {
             name: "Thống kê khách hàng",
             icon: BarChart3,
             children: [
-                { name: "Tăng trường trong năm", href: "/admin/customers/quarterly" },
-                { name: "Phân tích xu hướng", href: "/admin/customer/trends" },
+                { name: "Theo lượt mua gói mới", href: "/admin/customers/quarterly" },
+                { name: "Theo lượt đăng kí mới", href: "/admin/customer/trends" },
             ],
         },
         {

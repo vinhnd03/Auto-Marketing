@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from "react";
-import {getAll, getStatisticByMonthYear} from "../../service/statistics_service";
-import {Bar} from "react-chartjs-2";
-import {Chart, registerables} from "chart.js";
+import React, { useEffect, useState } from "react";
+import { getStatisticByMonthYear } from "../../service/admin/statisticsPackagesService";
+import { Bar } from "react-chartjs-2";
+import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
 
@@ -11,7 +11,7 @@ function CustomerStatsDashboard() {
     const [weeklyChartData, setWeeklyChartData] = useState(null);
     const [monthlyChartData, setMonthlyChartData] = useState(null);
     const [quarterlyChartData, setQuarterlyChartData] = useState(null);
-    const [allStatistic, setAllStatistic] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const years = [];
     for (let i = 2020; i <= new Date().getFullYear(); i++) {
@@ -20,60 +20,133 @@ function CustomerStatsDashboard() {
 
     useEffect(() => {
         async function fetchData() {
-            const all = await getAll();
-            setAllStatistic(all);
+            setLoading(true);
+            try {
+                let monthlyData = Array(12).fill(0); // Dữ liệu tháng (12 tháng)
+                let quarterlyData = [0, 0, 0, 0]; // Dữ liệu quý (Q1–Q4)
+                let weeklyData = null;
 
-            if (selectedMonth === "all") {
-                const filtered = all.filter(item => item.year === parseInt(selectedYear)).sort((a, b) => a.month - b.month);
+                if (selectedMonth === "all") {
+                    // Gọi API cho từng tháng (1–12) để lấy dữ liệu tuần
+                    const promises = [];
+                    for (let m = 1; m <= 12; m++) {
+                        promises.push(
+                            getStatisticByMonthYear(m, selectedYear)
+                                .then((data) => {
+                                    // Nếu dữ liệu không null, tính tổng tuần thành tháng
+                                    if (data && data.weekly && data.weekly.datasets[0].data) {
+                                        const weeklyArr = data.weekly.datasets[0].data.map(val => Number(val || 0));
+                                        monthlyData[m - 1] = weeklyArr.reduce((sum, val) => sum + val, 0);
+                                    } else {
+                                        monthlyData[m - 1] = 0; // Nếu null, tháng đó bằng 0
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.error(`Lỗi khi lấy dữ liệu tháng ${m}/${selectedYear}:`, error);
+                                    monthlyData[m - 1] = 0; // Xử lý lỗi, đặt tháng bằng 0
+                                })
+                        );
+                    }
+                    await Promise.all(promises);
 
-                // --- DỮ LIỆU BIỂU ĐỒ THEO THÁNG (12 THÁNG) ---
-                const monthlyLabels = filtered.map(item => `Tháng ${item.month}`);
-                const monthlyData = filtered.map(item => item.monthTotal);
+                    // Tính quý từ tháng
+                    for (let i = 0; i < 12; i++) {
+                        const quarterIndex = Math.floor(i / 3); // Tháng 1–3 -> Q1, 4–6 -> Q2, v.v.
+                        quarterlyData[quarterIndex] += monthlyData[i];
+                    }
 
-                setMonthlyChartData({
-                    labels: monthlyLabels,
-                    datasets: [
-                        {
-                            label: "Tổng số khách hàng theo tháng",
-                            data: monthlyData,
-                            backgroundColor: "rgba(153, 102, 255, 0.6)",
-                        },
-                    ],
-                });
+                    // Cập nhật monthlyChartData
+                    setMonthlyChartData({
+                        labels: Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`),
+                        datasets: [
+                            {
+                                label: `Tổng số khách hàng theo tháng (${selectedYear})`,
+                                data: monthlyData,
+                                backgroundColor: "rgba(153, 102, 255, 0.6)",
+                            },
+                        ],
+                    });
 
-                // --- DỮ LIỆU BIỂU ĐỒ THEO QUÝ (4 CỘT: Q1 -> Q4) ---
-                const quarterSums = [0, 0, 0, 0]; // Q1 -> Q4
+                    // Cập nhật quarterlyChartData
+                    setQuarterlyChartData({
+                        labels: ["Quý 1", "Quý 2", "Quý 3", "Quý 4"],
+                        datasets: [
+                            {
+                                label: `Tổng khách hàng theo quý (${selectedYear})`,
+                                data: quarterlyData,
+                                backgroundColor: "rgba(255, 159, 64, 0.6)",
+                            },
+                        ],
+                    });
 
-                filtered.forEach(item => {
-                    const quarterIndex = Math.floor((item.month - 1) / 3); // 0-3
-                    quarterSums[quarterIndex] += item.monthTotal;
-                });
-
-                setQuarterlyChartData({
-                    labels: ["Quý 1", "Quý 2", "Quý 3", "Quý 4"],
-                    datasets: [
-                        {
-                            label: "Tổng khách hàng theo quý",
-                            data: quarterSums,
-                            backgroundColor: "rgba(255, 159, 64, 0.6)",
-                        },
-                    ],
-                });
-
-                setWeeklyChartData(null);
-            } else {
-                const chartData = getStatisticByMonthYear(parseInt(selectedMonth), parseInt(selectedYear));
-                if (chartData) {
-                    setWeeklyChartData(chartData.weekly);
-                    setMonthlyChartData(chartData.monthly);
-                    setQuarterlyChartData(chartData.quarterly);
-                } else {
+                    // Không hiển thị biểu đồ tuần khi chọn "all"
                     setWeeklyChartData(null);
-                    setMonthlyChartData(null);
-                    setQuarterlyChartData(null);
+                } else {
+                    // Lấy dữ liệu cho tháng cụ thể
+                    const chartData = await getStatisticByMonthYear(parseInt(selectedMonth), parseInt(selectedYear));
+                    if (chartData && chartData.weekly && chartData.weekly.datasets[0].data) {
+                        // Dữ liệu tuần
+                        weeklyData = {
+                            labels: [
+                                `Tuần 1 - Tháng ${selectedMonth}`,
+                                `Tuần 2 - Tháng ${selectedMonth}`,
+                                `Tuần 3 - Tháng ${selectedMonth}`,
+                                `Tuần 4 - Tháng ${selectedMonth}`,
+                            ],
+                            datasets: [
+                                {
+                                    label: `Khách hàng mới trong tháng ${selectedMonth}/${selectedYear}`,
+                                    data: chartData.weekly.datasets[0].data.map(val => Number(val || 0)),
+                                    backgroundColor: "rgba(75, 192, 192, 0.6)",
+                                },
+                            ],
+                        };
+                        setWeeklyChartData(weeklyData);
+
+                        // Tính tổng tháng từ tuần
+                        const monthTotal = weeklyData.datasets[0].data.reduce((sum, val) => sum + val, 0);
+                        monthlyData[parseInt(selectedMonth) - 1] = monthTotal;
+
+                        // Tính quý từ tháng
+                        const quarterIndex = Math.floor((parseInt(selectedMonth) - 1) / 3);
+                        quarterlyData[quarterIndex] = monthTotal;
+
+                        // Cập nhật monthlyChartData (chỉ tháng được chọn có giá trị)
+                        setMonthlyChartData({
+                            labels: Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`),
+                            datasets: [
+                                {
+                                    label: `Tổng số khách hàng theo tháng (${selectedYear})`,
+                                    data: monthlyData,
+                                    backgroundColor: "rgba(153, 102, 255, 0.6)",
+                                },
+                            ],
+                        });
+
+                        // Cập nhật quarterlyChartData
+                        setQuarterlyChartData({
+                            labels: ["Quý 1", "Quý 2", "Quý 3", "Quý 4"],
+                            datasets: [
+                                {
+                                    label: `Tổng khách hàng theo quý (${selectedYear})`,
+                                    data: quarterlyData,
+                                    backgroundColor: "rgba(255, 159, 64, 0.6)",
+                                },
+                            ],
+                        });
+                    } else {
+                        setWeeklyChartData(null);
+                        setMonthlyChartData(null);
+                        setQuarterlyChartData(null);
+                    }
                 }
-                setMonthlyChartData(null); // Ẩn biểu đồ tháng
-                setQuarterlyChartData(null); // Ẩn biểu đồ quý
+            } catch (error) {
+                console.error("Lỗi khi lấy dữ liệu thống kê:", error);
+                setWeeklyChartData(null);
+                setMonthlyChartData(null);
+                setQuarterlyChartData(null);
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -82,7 +155,11 @@ function CustomerStatsDashboard() {
 
     return (
         <div className="container mx-auto p-4">
-            <h2 className="text-2xl font-bold mb-4">Thống kê khách hàng mới</h2>
+
+            <div
+                className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-green-50 p-4 rounded-lg shadow-md">
+                <p className="text-3xl font-bold">Thống kê khách hàng mua gói mới</p>
+            </div>
             <div className="flex space-x-4 mb-6">
                 <select
                     value={selectedMonth}
@@ -154,7 +231,6 @@ function CustomerStatsDashboard() {
                 )
             )}
 
-
             {/* Chỉ hiển thị biểu đồ tháng và quý khi chọn "Tất cả" */}
             {selectedMonth === "all" && monthlyChartData && quarterlyChartData && (
                 <div className="flex space-x-4 mb-8">
@@ -219,109 +295,8 @@ function CustomerStatsDashboard() {
                     </div>
                 </div>
             )}
-
-
         </div>
     );
 }
 
 export default CustomerStatsDashboard;
-
-
-// CustomerStatsDashboard.js
-// import React, { useState, useEffect } from 'react';
-// import { Bar } from 'react-chartjs-2';
-// import {
-//     Chart as ChartJS,
-//     CategoryScale,
-//     LinearScale,
-//     BarElement,
-//     Title,
-//     Tooltip,
-//     Legend,
-// } from 'chart.js';
-// import {getAll} from '../service/statistics_service.js';
-//
-// ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-//
-// function CustomerStatsDashboard() {
-//     const [timeFrame, setTimeFrame] = useState('weekly');
-//     const [data, setData] = useState(null); // ban đầu chưa có dữ liệu
-//
-//     useEffect(() => {
-//         async function fetchData() {
-//             const res = await getAll();
-//             // res là 1 mảng chứa 1 object => res[0]
-//             setData(res[0]);
-//         }
-//
-//         fetchData();
-//     }, []);
-//
-//     const chartOptions = {
-//         responsive: true,
-//         plugins: {
-//             legend: { position: 'top' },
-//             title: {
-//                 display: true,
-//                 text: `Thống kê khách hàng mới (${timeFrame === 'weekly' ? 'Tuần' : timeFrame === 'monthly' ? 'Tháng' : 'Quý'})`,
-//             },
-//         },
-//     };
-//
-//     if (!data) return <div className="p-4">Đang tải dữ liệu...</div>; // loading state
-//
-//     return (
-//         <div className="container mx-auto p-4 bg-gray-50 min-h-screen">
-//             {/* Tabs để chọn thời gian */}
-//             <div className="flex space-x-4 mb-6">
-//                 <button
-//                     onClick={() => setTimeFrame('weekly')}
-//                     className={`px-4 py-2 rounded ${timeFrame === 'weekly' ? 'bg-purple-500 text-white' : 'bg-gray-200'}`}
-//                 >
-//                     Tuần
-//                 </button>
-//                 <button
-//                     onClick={() => setTimeFrame('monthly')}
-//                     className={`px-4 py-2 rounded ${timeFrame === 'monthly' ? 'bg-purple-500 text-white' : 'bg-gray-200'}`}
-//                 >
-//                     Tháng
-//                 </button>
-//                 <button
-//                     onClick={() => setTimeFrame('quarterly')}
-//                     className={`px-4 py-2 rounded ${timeFrame === 'quarterly' ? 'bg-purple-500 text-white' : 'bg-gray-200'}`}
-//                 >
-//                     Quý
-//                 </button>
-//             </div>
-//
-//             {/* Biểu đồ */}
-//             <div className="bg-white p-6 rounded shadow mb-6">
-//                 <Bar data={data[timeFrame]} options={chartOptions} />
-//             </div>
-//
-//             {/* Bảng dữ liệu */}
-//             <div className="bg-white p-6 rounded shadow">
-//                 <h3 className="text-lg font-semibold mb-4">Danh sách chi tiết</h3>
-//                 <table className="w-full text-left">
-//                     <thead>
-//                     <tr className="bg-gray-100">
-//                         <th className="p-2 border-b">Thời gian</th>
-//                         <th className="p-2 border-b">Số lượng khách hàng mới</th>
-//                     </tr>
-//                     </thead>
-//                     <tbody>
-//                     {data[timeFrame].labels.map((label, index) => (
-//                         <tr key={index} className="border-b">
-//                             <td className="p-2">{label}</td>
-//                             <td className="p-2">{data[timeFrame].datasets[0].data[index]}</td>
-//                         </tr>
-//                     ))}
-//                     </tbody>
-//                 </table>
-//             </div>
-//         </div>
-//     );
-// }
-//
-// export default CustomerStatsDashboard;
