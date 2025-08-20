@@ -2,7 +2,7 @@ package com.codegym.auto_marketing_server.service.impl;
 
 
 import com.codegym.auto_marketing_server.dto.ContentGenerationRequestDTO;
-import com.codegym.auto_marketing_server.dto.GPTMessage;
+import com.codegym.auto_marketing_server.dto.GPTMessageDTO;
 import com.codegym.auto_marketing_server.dto.GPTRequestDTO;
 import com.codegym.auto_marketing_server.dto.GPTResponseDTO;
 import com.codegym.auto_marketing_server.entity.Campaign;
@@ -57,7 +57,7 @@ public class GPTService implements IGPTService {
             requestDTO.setModel(GPT_MODEL);
             requestDTO.setMax_tokens(1500);
             requestDTO.setTemperature(temperature); // dùng giá trị truyền vào từ UI
-            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, "Bạn là một chuyên gia marketing người Việt Nam với 10 năm kinh nghiệm. Bạn hiểu rõ thị trường Việt Nam, văn hóa, ngôn ngữ và hành vi tiêu dùng. Hãy tạo các chủ đề marketing bằng tiếng Việt thuần túy, phù hợp với người Việt. QUAN TRỌNG: Chỉ trả lời bằng tiếng Việt, không dùng tiếng Anh."), new GPTMessage(USER_ROLE, prompt)));
+            requestDTO.setMessages(Arrays.asList(new GPTMessageDTO(SYSTEM_ROLE, "Bạn là một chuyên gia marketing người Việt Nam với 10 năm kinh nghiệm. Bạn hiểu rõ thị trường Việt Nam, văn hóa, ngôn ngữ và hành vi tiêu dùng. Hãy tạo các chủ đề marketing bằng tiếng Việt thuần túy, phù hợp với người Việt. QUAN TRỌNG: Chỉ trả lời bằng tiếng Việt, không dùng tiếng Anh."), new GPTMessageDTO(USER_ROLE, prompt)));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String content = responseDTO.getChoices().get(0).getMessage().getContent();
@@ -98,7 +98,7 @@ public class GPTService implements IGPTService {
             requestDTO.setModel(GPT_MODEL);
             requestDTO.setMax_tokens(1200);
             requestDTO.setTemperature(0.8);
-            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, "Bạn là một copywriter chuyên nghiệp người Việt Nam, chuyên tạo nội dung marketing tiếng Việt. Bạn viết theo phong cách người Việt, sử dụng từ ngữ thân thiện, dễ hiểu. QUAN TRỌNG: Chỉ viết bằng tiếng Việt, không dùng tiếng Anh trừ khi cần thiết cho hashtag."), new GPTMessage(USER_ROLE, prompt)));
+            requestDTO.setMessages(Arrays.asList(new GPTMessageDTO(SYSTEM_ROLE, "Bạn là một copywriter chuyên nghiệp người Việt Nam, chuyên tạo nội dung marketing tiếng Việt. Bạn viết theo phong cách người Việt, sử dụng từ ngữ thân thiện, dễ hiểu. QUAN TRỌNG: Chỉ viết bằng tiếng Việt, không dùng tiếng Anh trừ khi cần thiết cho hashtag."), new GPTMessageDTO(USER_ROLE, prompt)));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String content = responseDTO.getChoices().get(0).getMessage().getContent();
@@ -145,8 +145,8 @@ public class GPTService implements IGPTService {
             requestDTO.setMax_tokens(calculateTokensForWordCount(request.getTargetWordCount()));
             requestDTO.setTemperature(0.7);
             requestDTO.setMessages(Arrays.asList(
-                    new GPTMessage(SYSTEM_ROLE, buildLongFormSystemPrompt(request)),
-                    new GPTMessage(USER_ROLE, prompt)
+                    new GPTMessageDTO(SYSTEM_ROLE, buildLongFormSystemPrompt(request)),
+                    new GPTMessageDTO(USER_ROLE, prompt)
             ));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
@@ -173,7 +173,7 @@ public class GPTService implements IGPTService {
             requestDTO.setModel(GPT_MODEL);
             requestDTO.setMax_tokens(300);
             requestDTO.setTemperature(0.6);
-            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, "Bạn là chuyên gia tạo prompt cho AI image generation. " + "Hãy tạo prompt tiếng Anh ngắn gọn, chính xác cho DALL-E hoặc Midjourney."), new GPTMessage(USER_ROLE, prompt)));
+            requestDTO.setMessages(Arrays.asList(new GPTMessageDTO(SYSTEM_ROLE, "Bạn là chuyên gia tạo prompt cho AI image generation. " + "Hãy tạo prompt tiếng Anh ngắn gọn, chính xác cho DALL-E hoặc Midjourney."), new GPTMessageDTO(USER_ROLE, prompt)));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String imagePrompt = responseDTO.getChoices().get(0).getMessage().getContent();
@@ -259,6 +259,14 @@ public class GPTService implements IGPTService {
         prompt.append("THÔNG TIN CHỦ ĐỀ:\n");
         prompt.append("• Chủ đề: ").append(topic.getName()).append("\n");
         prompt.append("• Mô tả: ").append(topic.getDescription()).append("\n\n");
+
+        // THÊM YÊU CẦU VỀ TIÊU ĐỀ
+        prompt.append("YÊU CẦU TIÊU ĐỀ:\n");
+        prompt.append("• Tiêu đề bài viết PHẢI NỔI BẬT, SÚC TÍCH, TỐI ĐA 70 KÝ TỰ.\n");
+        prompt.append("• Nếu tiêu đề vượt quá 70 ký tự, HÃY NGAY LẬP TỨC rút ngắn lại còn tối đa 70 ký tự, KHÔNG giải thích, KHÔNG giữ lại emoji nếu bị cắt.\n");
+        prompt.append("• KHÔNG được bắt đầu title bằng các cụm từ dài dòng, lan man, hoặc quá chung chung như \"Trong thời đại công nghệ phát triển...\", \"🌟 Trong thời đại công nghệ số hiện nay...\".\n");
+        prompt.append("• Ưu tiên tiêu đề là một câu hoặc một cụm từ mạnh mẽ, truyền cảm hứng, KHÔNG lặp lại nội dung của phần mô tả.\n");
+        prompt.append("• KHÔNG sử dụng emoji ở đầu tiêu đề. Nếu sử dụng emoji, chỉ được đặt ở cuối tiêu đề và chỉ khi không bị cắt mất khi rút ngắn.\n\n");
 
         if (targetWordCount != null) {
             prompt.append("YÊU CẦU ĐỘ DÀI:\n");
@@ -368,13 +376,22 @@ public class GPTService implements IGPTService {
         String vietnameseTone = mapToneToVietnamese(tone);
         String vietnameseContentType = mapContentTypeToVietnamese(contentType);
 
-        prompt.append("NHIỆM VỤ: Viết một bài đăng ").append(vietnameseContentType).append(" bằng TIẾNG VIỆT về chủ đề dưới đây, liền mạch như một câu chuyện hoặc chia sẻ, truyền cảm hứng, chuyên nghiệp, không chia phần, không đặt tiêu đề phụ, không lạm dụng emoji.\n\n");
+        prompt.append("NHIỆM VỤ: Viết một bài đăng ").append(vietnameseContentType)
+                .append(" bằng TIẾNG VIỆT về chủ đề dưới đây, liền mạch như một câu chuyện hoặc chia sẻ, truyền cảm hứng, chuyên nghiệp, không chia phần, không đặt tiêu đề phụ, không lạm dụng emoji.\n\n");
 
         prompt.append("THÔNG TIN CHỦ ĐỀ:\n");
         prompt.append("• Chủ đề: ").append(topic.getName()).append("\n");
         prompt.append("• Mô tả: ").append(topic.getDescription()).append("\n");
         prompt.append("• Tone: ").append(vietnameseTone).append("\n");
         prompt.append("• Loại nội dung: ").append(vietnameseContentType).append("\n\n");
+
+        // THÊM YÊU CẦU VỀ TIÊU ĐỀ
+        prompt.append("YÊU CẦU TIÊU ĐỀ:\n");
+        prompt.append("• Tiêu đề bài viết PHẢI NỔI BẬT, SÚC TÍCH, TỐI ĐA 70 KÝ TỰ.\n");
+        prompt.append("• Nếu tiêu đề vượt quá 70 ký tự, HÃY NGAY LẬP TỨC rút ngắn lại còn tối đa 70 ký tự, KHÔNG giải thích, KHÔNG giữ lại emoji nếu bị cắt.\n");
+        prompt.append("• KHÔNG được bắt đầu title bằng các cụm từ dài dòng, lan man, hoặc quá chung chung như \"Trong thời đại công nghệ phát triển...\", \"🌟 Trong thời đại công nghệ số hiện nay...\".\n");
+        prompt.append("• Ưu tiên tiêu đề là một câu hoặc một cụm từ mạnh mẽ, truyền cảm hứng, KHÔNG lặp lại nội dung của phần mô tả.\n");
+        prompt.append("• KHÔNG sử dụng emoji ở đầu tiêu đề. Nếu sử dụng emoji, chỉ được đặt ở cuối tiêu đề và chỉ khi không bị cắt mất khi rút ngắn.\n\n");
 
         if (additionalInstructions != null && !additionalInstructions.trim().isEmpty()) {
             prompt.append("YÊU CẦU BỔ SUNG:\n");
