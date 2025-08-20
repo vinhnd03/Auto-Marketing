@@ -21,6 +21,7 @@ public class SubscriptionExpiryChecker {
     private final EmailService emailService;
 
     @Scheduled(cron = "0 0 0 * * ?") // chạy mỗi ngày lúc 0h
+//    @Scheduled(cron = "0/10 * * * * ?", zone = "Asia/Ho_Chi_Minh")
     public void checkExpiredSubscriptions() {
         LocalDate today = LocalDate.now();
         List<Subscription> expiredSubs = subscriptionRepository
