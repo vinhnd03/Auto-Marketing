@@ -5,7 +5,7 @@ import CreateWorkspaceModal from "../../components/workspace/CreateWorkspaceModa
 import UpdateWorkspaceModal from "../../components/workspace/UpdateWorkspaceModal";
 import SelectPagesModal from "../../components/modal/SelectPagesModal";
 import SelectSocialNetwork from "./../../components/modal/SelectSocialNetwork";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../context/AuthContext";
 
 const WorkspacePage = () => {
     const [showUpdateModal, setShowUpdateModal] = useState(false);

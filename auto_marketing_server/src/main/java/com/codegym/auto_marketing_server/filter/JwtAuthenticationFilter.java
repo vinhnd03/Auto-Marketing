@@ -54,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             long now = System.currentTimeMillis();
             long remainingTime = expTime - now;
 
-            // Nếu còn < 10 phút thì refresh
+//             Nếu còn < 10 phút thì refresh
             if (remainingTime < 10 * 60 * 1000) {
                 String newToken = jwtService.refreshToken(token, 30 * 60 * 1000); // 30 phút
                 ResponseCookie cookie = ResponseCookie.from("jwt", newToken)
@@ -66,6 +66,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
             }
         }
+
+//        if (token != null) { // Chỉ kiểm tra nếu token có
+//            try {
+//                if (jwtService.validateToken(token)) {
+//                    String username = jwtService.getUsernameFromToken(token);
+//                    UserDetails user = userDetailsService.loadUserByUsername(username);
+//                    UsernamePasswordAuthenticationToken auth =
+//                            new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+//                    SecurityContextHolder.getContext().setAuthentication(auth);
+//                } else {
+//                    // Token invalid
+//                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//                    response.getWriter().write("Invalid token");
+//                    return;
+//                }
+//            } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+//                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//                response.getWriter().write("Token expired");
+//                return;
+//            }
+//        }
 
         filterChain.doFilter(request, response);
     }
