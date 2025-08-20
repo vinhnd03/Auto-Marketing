@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getStatisticByMonthYear } from "../../service/admin/statistics_packages_service";
+import { getStatisticByMonthYear } from "../../service/admin/statisticsPackagesService";
 import { Bar } from "react-chartjs-2";
 import { Chart, registerables } from "chart.js";
 
@@ -155,7 +155,11 @@ function CustomerStatsDashboard() {
 
     return (
         <div className="container mx-auto p-4">
-            <h2 className="text-2xl font-bold mb-4">Thống kê khách hàng mua gói mới</h2>
+
+            <div
+                className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-green-50 p-4 rounded-lg shadow-md">
+                <p className="text-3xl font-bold">Thống kê khách hàng mua gói mới</p>
+            </div>
             <div className="flex space-x-4 mb-6">
                 <select
                     value={selectedMonth}

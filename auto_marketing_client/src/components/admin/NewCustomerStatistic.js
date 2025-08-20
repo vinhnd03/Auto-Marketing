@@ -11,7 +11,7 @@ import {
     Legend,
 } from "chart.js";
 import { Chart } from "react-chartjs-2";
-import { getStatisticByMonthYear } from "../../service/admin/statistics_customer_service";
+import { getStatisticByMonthYear } from "../../service/admin/statisticsCustomerService";
 
 ChartJS.register(
     CategoryScale,
@@ -197,7 +197,7 @@ export default function TrendPage() {
     };
 
     useEffect(() => {
-        fetchData();
+        fetchData().then();
     }, [selectedMonth, selectedYear]);
 
     const options = {
@@ -228,7 +228,10 @@ export default function TrendPage() {
 
     return (
         <div className="container mx-auto p-4">
-            <h2 className="text-2xl font-bold mb-4">Thống kê khách hàng đăng kí mới</h2>
+            <div
+                className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-blue-50 p-4 rounded-lg shadow-md">
+                <p className="text-3xl font-bold">Thống kê khách hàng đăng kí mới</p>
+            </div>
 
             <div className="flex space-x-4 mb-4">
                 <select

@@ -9,7 +9,6 @@ import {
     Settings,
     Shield,
     FileText,
-    AlertTriangle,
     Database,
     Mail,
     TrendingUp,
@@ -39,16 +38,12 @@ const AdminSidebar = () => {
             children: [
                 { name: "Tất cả người dùng", href: "/admin/users/list", icon: Users },
                 { name: "Người dùng mới", href: "/admin/users/new", icon: UserCheck }
-                // { name: "Tài khoản bị khóa", href: "/admin/users/blocked", icon: AlertTriangle },
             ],
         },
         {
             name: "Thống kê khách hàng",
             icon: BarChart3,
             children: [
-                // { name: "Tăng trưởng theo tuần", href: "/admin/customers/weekly" },
-                // { name: "Tăng trưởng theo tháng", href: "/admin/customers/monthly" },
-                // { name: "Tăng trưởng theo quý", href: "/admin/customers/quarterly" },
                 { name: "Theo lượt mua gói mới", href: "/admin/customers/statistics_packages" },
                 { name: "Theo lượt đăng kí mới", href: "/admin/customers/statistics_customer" },
             ],

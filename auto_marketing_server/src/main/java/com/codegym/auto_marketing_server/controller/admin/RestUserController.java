@@ -1,0 +1,126 @@
+package com.codegym.auto_marketing_server.controller.admin;
+
+
+import com.codegym.auto_marketing_server.dto.StatisticResponse;
+import com.codegym.auto_marketing_server.entity.User;
+import com.codegym.auto_marketing_server.service.IUserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.Optional;
+
+@CrossOrigin("*")
+@RestController
+@RequestMapping("/api/users")
+public class RestUserController {
+    private final IUserService userService;
+
+    public RestUserController(IUserService userService) {
+        this.userService = userService;
+    }
+
+    @GetMapping("")
+    public ResponseEntity<Page<User>> searchAndPage(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String planName,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Boolean status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> usersPage = userService.searchAndPage(name, planName, startDate, endDate,status, pageable);
+
+        if (usersPage.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(usersPage, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Optional<User>> findUserById(@PathVariable Long id) {
+        Optional<User> usersOptional = userService.findById(id);
+        if (usersOptional.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 404 không tìm thấy
+        }
+        return new ResponseEntity<>(usersOptional, HttpStatus.OK);
+    }
+
+    @PostMapping("/add")
+    public ResponseEntity<User> addUser(@RequestBody User user){
+        userService.save(user);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<User> updateStatus(@PathVariable Long id, @RequestBody User users) {
+        Optional<User> usersOptional = userService.findById(id);
+        if (usersOptional.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        User user = usersOptional.get();
+        if (users.getStatus() != null) {  // chỉ cập nhật status
+            user.setStatus(users.getStatus());
+        }
+        userService.save(user);
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+
+    @GetMapping("/statistics")
+    public ResponseEntity<StatisticResponse> getStatistics(
+            @RequestParam int year,
+            @RequestParam(required = false) Integer month) {
+
+        StatisticResponse response = new StatisticResponse();
+        response.setMonthly(userService.getStatisticByMonth(year));
+        response.setQuarterly(userService.getStatisticByQuarter(year));
+
+        if (month != null) {
+            response.setWeekly(userService.getStatisticByWeek(year, month));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/statistics_packages")
+    public ResponseEntity<StatisticResponse> getStatisticsPackages(
+            @RequestParam int year,
+            @RequestParam(required = false) Integer month) {
+
+        StatisticResponse response = new StatisticResponse();
+
+        // Thống kê theo tháng dựa trên ngày mua gói (startDate)
+        response.setMonthly(userService.getStatisticPackagesByMonth(year));
+
+        // Thống kê theo quý dựa trên ngày mua gói (startDate)
+        response.setQuarterly(userService.getStatisticPackagesByQuarter(year));
+
+        // Nếu truyền tháng, thống kê theo tuần trong tháng dựa trên startDate
+        if (month != null) {
+            response.setWeekly(userService.getStatisticPackagesByWeek(year, month));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<?> getNotifications() {
+        try {
+            return ResponseEntity.ok(userService.getNotifications());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        }
+    }
+
+}

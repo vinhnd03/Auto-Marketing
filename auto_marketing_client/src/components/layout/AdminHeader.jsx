@@ -10,7 +10,7 @@ import {
     ChevronDown,
     Shield,
 } from "lucide-react";
-import {getNotifications} from "../../service/admin/notification_service";
+import {getNotifications} from "../../service/admin/notificationService";
 
 const AdminHeader = () => {
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -71,46 +71,9 @@ const AdminHeader = () => {
                         </div>
                     </div>
 
-                    {/* Notifications */}
-                    {/*<div className="relative">*/}
-                    {/*    <button*/}
-                    {/*        onClick={() => setShowNotifications(!showNotifications)}*/}
-                    {/*        className="p-2 hover:bg-white/20 rounded-lg relative"*/}
-                    {/*    >*/}
-                    {/*        <Bell size={20} />*/}
-                    {/*        {notifications.some((n) => n.unread) && (*/}
-                    {/*            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>*/}
-                    {/*        )}*/}
-                    {/*    </button>*/}
 
-                    {/*    {showNotifications && (*/}
-                    {/*        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 text-gray-900">*/}
-                    {/*            <div className="p-4 border-b border-gray-200">*/}
-                    {/*                <h3 className="text-lg font-semibold">Thông báo hệ thống</h3>*/}
-                    {/*            </div>*/}
-                    {/*            <div className="max-h-96 overflow-y-auto">*/}
-                    {/*                {notifications.map((notification) => (*/}
-                    {/*                    <div*/}
-                    {/*                        key={notification.id}*/}
-                    {/*                        className={`p-4 border-b border-gray-100 hover:bg-gray-50 ${*/}
-                    {/*                            notification.unread ? "bg-purple-50" : ""*/}
-                    {/*                        }`}*/}
-                    {/*                    >*/}
-                    {/*                        <p className="text-sm">{notification.message}</p>*/}
-                    {/*                        <p className="text-xs text-gray-500 mt-1">{notification.time}</p>*/}
-                    {/*                    </div>*/}
-                    {/*                ))}*/}
-                    {/*            </div>*/}
-                    {/*            <div className="p-4">*/}
-                    {/*                <button className="text-sm text-purple-600 hover:text-purple-800 font-medium">*/}
-                    {/*                    Xem tất cả thông báo*/}
-                    {/*                </button>*/}
-                    {/*            </div>*/}
-                    {/*        </div>*/}
-                    {/*    )}*/}
-                    {/*</div>*/}
                     <div className="relative flex items-center gap-4">
-                        {/* 🔔 Nút chuông */}
+                        {/*  Nút chuông */}
                         <div className="relative">
                             <button
                                 onClick={() => setShowNotifications(!showNotifications)}
@@ -122,18 +85,18 @@ const AdminHeader = () => {
                                 )}
                             </button>
 
-                            {/* 📌 Popup thông báo */}
+                            {/*  Popup thông báo */}
                             {showNotifications && (
                                 <div
                                     className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 text-gray-900">
-                                    <div className="p-4 border-b border-gray-200">
-                                        <h3 className="text-lg font-semibold">Thông báo hệ thống</h3>
+                                    <div className="p-4 border-b border-gray-200 ">
+                                        <h3 className="text-lg font-semibold ">Thông báo hệ thống</h3>
                                     </div>
                                     <div className="max-h-96 overflow-y-auto">
                                         {notifications.length > 0 ? (
-                                            notifications.map((notification, index) => (
+                                            notifications.slice(0,7).map((notification, index) => (
                                                 <div
-                                                    key={notification.id || notification._id || index}
+                                                    key={notification.id || notification.id || index}
                                                     className={`p-4 border-b border-gray-100 hover:bg-gray-50 ${
                                                         notification.unread ? "bg-purple-50" : ""
                                                     }`}

@@ -4,12 +4,13 @@ import "./index.css";
 import App from "./App.jsx";
 import reportWebVitals from "./reportWebVitals";
 import { AuthProvider } from "./hooks/useAuth";
+import ListUsers from "./components/admin/ListUsers";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <AuthProvider>
-      <App />
+        <App />
     </AuthProvider>
   </React.StrictMode>
 );

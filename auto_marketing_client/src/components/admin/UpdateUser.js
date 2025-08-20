@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { updateUser } from "../../service/admin/users_service";
+import { updateUser } from "../../service/admin/usersService";
 import { toast } from "react-toastify";
 
 export default function UpdateUserModal({ user, isShowModal, isCloseModal, onUpdateSuccess }) {

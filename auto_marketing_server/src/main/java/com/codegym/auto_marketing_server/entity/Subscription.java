@@ -1,6 +1,7 @@
 package com.codegym.auto_marketing_server.entity;
 
 import com.codegym.auto_marketing_server.enums.SubscriptionStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,6 +29,7 @@ public class Subscription {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 
     @ManyToOne

@@ -1,12 +1,10 @@
 import {useEffect, useState} from "react";
-import {findById, search} from "../../service/admin/users_service";
+import {findById, search} from "../../service/admin/usersService";
 import { Eye,Lock, Unlock } from "lucide-react";
 import UpdateUserModal from "./UpdateUser";
 
 function ListUserByDate() {
     const [list, setList] = useState([]);
-    const [keyword, setKeyWord] = useState("");
-    const [sortKey, setSortKey] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [page, setPage] = useState(1);
@@ -20,15 +18,32 @@ function ListUserByDate() {
     useEffect(() => {
         handleSearch().then();
     }, [page]);
+    const clearFilter = async () => {
+        // reset state
+        setStartDate("");
+        setEndDate("");
+        setErrors({ startDate: "", endDate: "" });
+        setPage(1);
+
+        // gọi lại API nhưng bỏ hết params lọc
+        const result = await search("", "", 1, 5, null, null, null);
+        setList(result.data);
+
+        setTotalPages(result.totalPages);
+    };
+
 
     const handleSearch = async () => {
-        const {data, totalPages} = await search(keyword, sortKey, page, 5, startDate, endDate);
+        const {data, totalPages} = await search(null, null, page, null, startDate, endDate);
         setList(data.map(c => ({
             ...c,
             status: c.status
         })));
         setTotalPages(totalPages);
     };
+
+
+
 
     const handleValid = () => {
         let valid = true;
@@ -136,8 +151,14 @@ function ListUserByDate() {
                         className="w-full sm:w-auto px-5 py-2 bg-blue-400 text-white rounded-lg hover:bg-green-400 transition">
                         Tìm kiếm
                     </button>
-
+                    <button
+                        onClick={clearFilter}
+                        className="px-5 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+                    >
+                        Xóa bộ lọc
+                    </button>
                 </div>
+
             </div>
 
             {/* Table */}
@@ -167,12 +188,13 @@ function ListUserByDate() {
                                 <td className="p-2">{(page - 1) * 5 + index + 1}</td>
                                 <td className="p-2">{customer.name}</td>
                                 <td className="p-2">{customer.email}</td>
-                                <td className="p-2">{formatDate(customer.createDate)}</td>
-                                <td className="p-2">
-                                    {customer.subscriptions.length > 0
-                                        ? customer.subscriptions.map(sub => sub.planId?.name).join(", ")
-                                        : "Chưa mua gói nào"}
-                                </td>
+                                <td className="p-2">{formatDate(customer.createdAt)}</td>
+                                {/*<td className="p-2">*/}
+                                {/*    {customer.subscriptions.length > 0*/}
+                                {/*        ? customer.subscriptions.map(sub => sub.plan?.name).join(", ")*/}
+                                {/*        : "Chưa mua gói nào"}*/}
+                                {/*</td>*/}
+
                                 <td className="p-2 "> {customer.status ? "Đang hoạt động" : "Đang bị khóa"}</td>
                                 <td className="whitespace-nowrap px-6 py-4">
                                     <div className="inline-flex items-center space-x-2 rounded-md px-3 py-1">

@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
-import {findById, search} from "../../service/admin/users_service";
-import {getAllServicePackages} from "../../service/admin/statistics_packages_service";
+import {findById, search} from "../../service/admin/usersService";
+import {getAllServicePackages} from "../../service/admin/statisticsPackagesService";
 import {Eye, Lock, Unlock} from "lucide-react";
 import UpdateUserModal from "./UpdateUser";
 
@@ -20,7 +20,7 @@ function ListUsers() {
         const fetchPackages = async () => {
             const pkgs = await getAllServicePackages();
             setPackages(pkgs);
-            console.log(packages)
+            //  console.log(packages)
         };
         fetchPackages().then();
         handleSearch().then();
@@ -41,20 +41,27 @@ function ListUsers() {
     const closeModal = () => setModalUser(null);
 
     const handleUpdateSuccess = (id, newStatus) => {
-        setList(prev => prev.map(u => u.id === id ? { ...u, status: newStatus } : u));
+        setList(prev => prev.map(u => u.id === id ? {...u, status: newStatus} : u));
     };
 
 
     const handleSearch = async () => {
-        const {data, totalPages} = await search(keyword, sortKey, page, 5);
-        let filteredData = data;
+        const {data, totalPages} = await search(
+            keyword,
+            sortKey,
+            page,
+            5,
+            null,
+            null,
+            showLocked // truyền thẳng cho backend
+        );
 
-        if (showLocked !== null) {
-            filteredData = filteredData.filter(c => c.status === showLocked);
-        }
-
-        setList(filteredData);
+        setList(data);
         setTotalPages(totalPages);
+
+        if (page > totalPages) {
+            setPage(1);
+        }
     };
 
 
@@ -150,13 +157,13 @@ function ListUsers() {
                     ) : (
                         list.map((customer, index) => (
                             <tr key={customer.id} className="border-b">
-                                <td className="p-2">{(page - 1) * 5 + index + 1}</td>
+                                <td className="p-2">{index + 1}</td>
                                 <td className="p-2">{customer.name}</td>
                                 <td className="p-2">{customer.email}</td>
-                                <td className="p-2">{formatDate(customer.createDate)}</td>
+                                <td className="p-2">{formatDate(customer.createdAt)}</td>
                                 <td className="p-2">
                                     {customer.subscriptions.length > 0
-                                        ? customer.subscriptions.map(sub => sub.planId?.name).join(", ")
+                                        ? customer.subscriptions.map(sub => sub.plan?.name).join(", ")
                                         : "Chưa mua gói nào"}
                                 </td>
                                 <td className="p-2 "> {customer.status ? "Đang hoạt động" : "Đang bị khóa"}</td>
@@ -165,7 +172,7 @@ function ListUsers() {
                                         <button
                                             onClick={() => handleViewDetail(customer.id)}
                                             className="text-gray-600 hover:text-blue-600 focus:outline-none transition-colors duration-200">
-                                            <Eye size={16} />
+                                            <Eye size={16}/>
                                         </button>
                                         <button
                                             onClick={() => openModal(customer)}
@@ -173,7 +180,7 @@ function ListUsers() {
                                                 customer.status ? "text-green-600 hover:text-green-800" : "text-red-600 hover:text-red-800"
                                             }`}
                                         >
-                                            {customer.status ? <Unlock size={16} /> : <Lock size={16} />}
+                                            {customer.status ? <Unlock size={16}/> : <Lock size={16}/>}
                                         </button>
                                     </div>
                                 </td>
@@ -203,8 +210,9 @@ function ListUsers() {
                             >
                                 ✕
                             </button>
-                            <h2 className="text-2xl font-bold mb-6">Chi tiết khách hàng</h2>
+                            <h2 className=" font-bold mb-6 text-4C51BF">Thông tin chi tiết khách hàng</h2>
 
+                            <hr></hr>
                             <div className="grid grid-cols-2 gap-y-3">
                                 <span className="font-semibold">ID:</span>
                                 <span>{selectedUser.id}</span>
@@ -216,34 +224,63 @@ function ListUsers() {
                                 <span>{selectedUser.email}</span>
 
                                 <span className="font-semibold">Ngày tạo:</span>
-                                <span>{selectedUser.createDate}</span>
+                                <span>{formatDate(selectedUser.createdAt)}</span>
 
                                 <span className="font-semibold">Trạng thái tài khoản:</span>
-                                <span className={selectedUser.status ? "text-green-600" : "text-red-600"}>{selectedUser.status ? "Đang hoạt động" : "Đang bị khóa"}</span>
+                                <span
+                                    className={selectedUser.status ? "text-green-600" : "text-red-600"}>{selectedUser.status ? "Đang hoạt động" : "Đang bị khóa"}</span>
                             </div>
 
                             {/* Hiển thị gói dịch vụ */}
+                            {/*<div className="mt-6">*/}
+                            {/*    <span className="font-semibold">Gói dịch vụ đã mua:</span>*/}
+                            {/*    {selectedUser.subscriptions?.length > 0 ? (*/}
+                            {/*        <div className="space-y-2 mt-2">*/}
+                            {/*            {selectedUser.subscriptions.map((sub, idx) => (*/}
+                            {/*                <div key={idx} className="border p-3 rounded grid grid-cols-2">*/}
+                            {/*                    <span>Gói:</span>*/}
+                            {/*                    <span>{sub.plan?.name}</span>*/}
+
+                            {/*                    <span>Ngày mua:</span>*/}
+                            {/*                    <span>{formatDate(sub.startDate)}</span>*/}
+
+                            {/*                    <span>Ngày hết hạn:</span>*/}
+                            {/*                    <span>{formatDate(sub.endDate)}</span>*/}
+                            {/*                </div>*/}
+                            {/*            ))}*/}
+                            {/*        </div>*/}
+                            {/*    ) : (*/}
+                            {/*        <p>Chưa mua gói nào</p>*/}
+                            {/*    )}*/}
+                            {/*</div>*/}
                             <div className="mt-6">
                                 <span className="font-semibold">Gói dịch vụ đã mua:</span>
                                 {selectedUser.subscriptions?.length > 0 ? (
                                     <div className="space-y-2 mt-2">
-                                        {selectedUser.subscriptions.map((sub, idx) => (
-                                            <div key={idx} className="border p-3 rounded grid grid-cols-2">
-                                                <span>Gói:</span>
-                                                <span>{sub.planId?.name}</span>
+                                        {selectedUser.subscriptions.map((sub, idx) => {
+                                            const today = new Date();
+                                            const endDate = sub.endDate ? new Date(sub.endDate) : null;
+                                            const isExpired = endDate && endDate < today;
 
-                                                <span>Ngày mua:</span>
-                                                <span>{sub.startDate}</span>
+                                            return (
+                                                <div key={idx} className="border p-3 rounded grid grid-cols-2">
+                                                    <span>Gói:</span>
+                                                    <span>{sub.plan?.name} ({sub.plan?.durationDate} ngày) </span>
 
-                                                <span>Ngày hết hạn:</span>
-                                                <span>{sub.endDate}</span>
-                                            </div>
-                                        ))}
+                                                    <span>Ngày mua:</span>
+                                                    <span>{formatDate(sub.startDate)}</span>
+
+                                                    <span>Ngày hết hạn:</span>
+                                                    <span className={isExpired ? "text-red-500 font-semibold" : ""}>{isExpired ? "Đã hết hạn" : formatDate(sub.endDate)}</span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 ) : (
                                     <p>Chưa mua gói nào</p>
                                 )}
                             </div>
+
                         </div>
                     </div>
                 )}

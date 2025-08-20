@@ -1,6 +1,6 @@
 import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
-import {findById} from "../../service/admin/users_service";
+import {findById} from "../../service/admin/usersService";
 
 const DetailUserComponent = () => {
     const {id} = useParams();
