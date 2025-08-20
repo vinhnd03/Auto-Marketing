@@ -12,7 +12,7 @@ import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import Preloader from "./../../components/ui/Preloader";
 import userService from "../../service/userService";
-import { Formik, Form } from "formik";
+import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
 export default function Profile() {
@@ -89,8 +89,8 @@ export default function Profile() {
       setUserData(value);
       setUser({
         ...user,
-        avatar: value.avatar
-      })
+        avatar: value.avatar,
+      });
     } else {
       toast.error("Có lỗi xảy ra khi cập nhật thông tin");
     }
@@ -104,12 +104,29 @@ export default function Profile() {
     setIsEditing(false);
   };
 
+  const profileValidation = Yup.object({
+    name: Yup.string().required("Tên không được để trống"),
+
+    email: Yup.string()
+      .required("Email không được để trống")
+      .email("Email không hợp lệ"),
+
+    phone: Yup.string()
+      .required("Số điện thoại không được để trống")
+      .matches(/^0\d{9, 10}$/, "Số điện thoại không hợp lệ"),
+  });
+
   if (!user) return <Preloader />;
 
   return (
     <div className="bg-gray-50 py-8">
-      <Formik enableReinitialize initialValues={formData} onSubmit={handleSave}>
-        {({ values, handleChange, isSubmitting }) => (
+      <Formik
+        enableReinitialize
+        initialValues={formData}
+        onSubmit={handleSave}
+        validationSchema={profileValidation}
+      >
+        {({ values, handleChange, isSubmitting, errors, touched }) => (
           <Form>
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               {/* Header */}
@@ -230,13 +247,20 @@ export default function Profile() {
                         Họ và tên
                       </label>
                       {isEditing ? (
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
+                        <>
+                          <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <ErrorMessage
+                            name="name"
+                            component="div"
+                            className="mt-1 text-sm text-red-600"
+                          />
+                        </>
                       ) : (
                         <p className="text-gray-900 py-2">{formData.name}</p>
                       )}
@@ -249,14 +273,21 @@ export default function Profile() {
                         Email
                       </label>
                       {isEditing ? (
-                        <input
-                          type="email"
-                          name="email"
-                          readOnly
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
+                        <>
+                          <input
+                            type="email"
+                            name="email"
+                            readOnly
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <ErrorMessage
+                            name="email"
+                            component="div"
+                            className="mt-1 text-sm text-red-600"
+                          />
+                        </>
                       ) : (
                         <p className="text-gray-900 py-2">{formData.email}</p>
                       )}
@@ -269,13 +300,20 @@ export default function Profile() {
                         Số điện thoại
                       </label>
                       {isEditing ? (
-                        <input
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
+                        <>
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <ErrorMessage
+                            name="phone"
+                            component="div"
+                            className="mt-1 text-sm text-red-600"
+                          />
+                        </>
                       ) : (
                         <p className="text-gray-900 py-2">{formData.phone}</p>
                       )}

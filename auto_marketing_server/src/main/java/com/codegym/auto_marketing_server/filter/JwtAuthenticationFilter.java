@@ -90,8 +90,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //            }
 //        }
 
-        System.out.println("here");
-
         filterChain.doFilter(request, response);
     }
 }
