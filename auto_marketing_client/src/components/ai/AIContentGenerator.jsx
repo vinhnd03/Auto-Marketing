@@ -334,7 +334,7 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
                 </h2>
                 <p className="text-sm text-gray-600">
                   Tự động tạo nội dung bài đăng cho topic:{" "}
-                  <span className="font-medium">
+                  <span className="font-bold">
                     {selectedTopic?.title ||
                       selectedTopic?.name ||
                       "Chưa có tên chủ đề"}

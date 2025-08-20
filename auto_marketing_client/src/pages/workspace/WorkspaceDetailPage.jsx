@@ -1,13 +1,8 @@
-import TopicContentList from "../../components/ai/TopicContentList";
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import TopicContentDetail from "./TopicContentDetail";
-import {
-  AITopicGenerator,
-  CampaignTable,
-  AIContentGenerator,
-} from "../../components";
+import { AITopicGenerator, CampaignTable } from "../../components";
 import {
   ArrowLeft,
   Target,
@@ -18,7 +13,6 @@ import {
   Settings,
   Play,
   MoreHorizontal,
-  Edit3,
   Send,
   Table,
 } from "lucide-react";
@@ -41,7 +35,6 @@ const WorkspaceDetailPage = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [showTopicGenerator, setShowTopicGenerator] = useState(false);
   const [newlyCreatedTopics, setNewlyCreatedTopics] = useState([]);
-  const [showContentGenerator, setShowContentGenerator] = useState(false);
   const [selectedTopicForContent, setSelectedTopicForContent] = useState(null);
   const [autoGeneratingTopics, setAutoGeneratingTopics] = useState(false);
   const [approvedTopics, setApprovedTopics] = useState(new Set());
@@ -452,20 +445,6 @@ const WorkspaceDetailPage = () => {
     } finally {
       setAutoGeneratingTopics(false);
     }
-  };
-
-  const handleContentGenerated = (generatedContent) => {
-    console.log("Content được tạo:", generatedContent);
-
-    // Tạo toast thông báo thành công
-    toast.success(`🎉 Đã tạo thành công ${generatedContent.length} nội dung!`);
-
-    // Đóng content generator
-    setShowContentGenerator(false);
-    setSelectedTopicForContent(null);
-
-    // Có thể thêm logic để cập nhật workspace data ở đây
-    // Ví dụ: cập nhật số lượng content trong campaign tương ứng
   };
 
   // Handle approve single topic
@@ -889,15 +868,6 @@ const WorkspaceDetailPage = () => {
                 <div className="space-y-6">
                   <div className="flex items-center justify-end">
                     <div className="flex space-x-3">
-                      {/* Nút để mở form tùy chỉnh */}
-                      <button
-                        onClick={() => setShowTopicGenerator(true)}
-                        className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-lg font-medium hover:from-green-700 hover:to-green-800 transition-all flex items-center"
-                      >
-                        <Settings size={16} className="mr-2" />
-                        Generate tùy chỉnh
-                      </button>
-
                       {/* Nút generate nhanh */}
                       {newlyCreatedTopics.length > 0 && (
                         <button
@@ -1076,8 +1046,7 @@ const WorkspaceDetailPage = () => {
                                 {newlyCreatedTopics.length} topics
                               </span>
                               <p className="text-xs mt-1">
-                                Chỉ những topics được chọn mới được lưu vào
-                                database
+                                Chỉ những topics được chọn mới được lưu
                               </p>
                             </div>
 
@@ -1384,9 +1353,6 @@ const WorkspaceDetailPage = () => {
             onClose={() => setShowTopicGenerator(false)}
             onGenerate={handleTopicGenerated}
           />
-          {/* AI Content Generator Modal */}
-          {/* Hiển thị danh sách content của topic đã chọn ngay trong tab Chủ đề */}
-          {/* ...đã render detail content trong tab Chủ đề, không cần modal cũ... */}
         </div>
       </div>
     </div>

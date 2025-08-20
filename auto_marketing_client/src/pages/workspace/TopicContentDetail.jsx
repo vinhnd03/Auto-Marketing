@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
+import AIContentGenerator from "../../components/ai/AIContentGenerator";
 import { Wand2 } from "lucide-react";
 import { getPostsByTopic } from "../../service/post_service";
 import dayjs from "dayjs";
 
 const TopicContentDetail = ({ topic, onBack }) => {
+  const [showGenContentModal, setShowGenContentModal] = useState(false);
   const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -35,12 +37,26 @@ const TopicContentDetail = ({ topic, onBack }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-      <button
-        className="mb-6 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
-        onClick={onBack}
-      >
-        ← Quay lại danh sách chủ đề
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <button
+          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
+          onClick={onBack}
+        >
+          ← Quay lại danh sách chủ đề
+        </button>
+        <button
+          className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all"
+          onClick={() => setShowGenContentModal(true)}
+        >
+          Tạo thêm nội dung
+        </button>
+      </div>
+      {/* Modal AIContentGenerator */}
+      <AIContentGenerator
+        isOpen={showGenContentModal}
+        onClose={() => setShowGenContentModal(false)}
+        selectedTopic={topic}
+      />
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           {topic.title || topic.name}
