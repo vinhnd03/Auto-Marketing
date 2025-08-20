@@ -18,9 +18,6 @@ export const useAxiosInterceptor = () => {
         if (error.response?.status === 401) {
           setUser(null);
 
-          // Xóa cookie JWT (nếu dùng cookie)
-          document.cookie = "jwt=; Max-Age=0; path=/;";
-
           toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.");
           navigate("/login", { replace: true });
         }

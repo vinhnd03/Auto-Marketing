@@ -4,4 +4,5 @@ import com.codegym.auto_marketing_server.entity.Plan;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface IPlanRepository extends JpaRepository<Plan, Long> {
+    Plan findByName(String name);
 }

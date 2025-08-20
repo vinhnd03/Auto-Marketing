@@ -14,6 +14,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService implements IUserService {
     private final IUserRepository userRepository;
+
+    @Override
+    public Long selectUserIdBySocialAccountId(Long id) {
+        return userRepository.selectUserIdBySocialAccountId(id);
+    }
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
 

@@ -40,6 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
+
+
         if (token != null && jwtService.validateToken(token)) {
             String username = jwtService.getUsernameFromToken(token);
             UserDetails user = userDetailsService.loadUserByUsername(username);
@@ -87,6 +89,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //                return;
 //            }
 //        }
+
+        System.out.println("here");
 
         filterChain.doFilter(request, response);
     }

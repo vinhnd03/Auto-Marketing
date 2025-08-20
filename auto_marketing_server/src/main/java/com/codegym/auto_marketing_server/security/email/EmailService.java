@@ -4,7 +4,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -12,6 +11,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -46,5 +46,23 @@ public class EmailService {
         }
     }
 
+    public void sendSubscriptionExpiryEmail(String to, String name, String planName, LocalDate endDate) throws MessagingException, UnsupportedEncodingException {
+        Context context = new Context();
+        context.setVariable("name", name);
+        context.setVariable("planName", planName);
+        context.setVariable("endDate", endDate);
+
+        String htmlContent = templateEngine.process("subscription-expiry", context);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom(fromEmail, "Auto Marketing System");
+        helper.setTo(to);
+        helper.setSubject("Gói " + planName + " của bạn đã hết hạn");
+        helper.setText(htmlContent, true);
+
+        mailSender.send(message);
+    }
 
 }

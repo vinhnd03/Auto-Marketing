@@ -46,7 +46,11 @@ apiClient.interceptors.response.use(
 // Get all campaigns
 export async function getAllCampaigns() {
   try {
-    const response = await apiClient.get("/campaigns");
+    const response = await apiClient.get("/campaigns",{
+      withCredentials: true,
+    });
+    console.log("/////////////////////////////////////////////////////////")
+    console.log(response.data)
     return response.data;
   } catch (error) {
     throw error;

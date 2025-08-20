@@ -26,6 +26,7 @@ import {
   getTopicsByCampaign,
 } from "../../service/topic_service";
 import dayjs from "dayjs";
+import {getWorkspaceDetail} from "../../service/workspace/workspace_service";
 const WorkspaceDetailPage = () => {
   const { workspaceId } = useParams();
   // Hooks phải nằm ở đầu function component
@@ -89,6 +90,7 @@ const WorkspaceDetailPage = () => {
       setTopicsPageByCampaign(initialPages);
     }
   }, [workspace]);
+
 
   // Mock data - trong thực tế sẽ lấy từ API dựa trên workspaceId
   const initialWorkspace = {
@@ -660,18 +662,22 @@ const WorkspaceDetailPage = () => {
     const fetchWorkspaceData = async () => {
       setLoadingWorkspace(true);
       try {
-        // Lấy campaigns thật từ API
-        const campaignsData = await getAllCampaigns();
+        // 1. Lấy workspace từ API
+        const wsData = await getWorkspaceDetail(workspaceId);  // bạn cần có hàm này
+
+        // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
+        const campaignsData = wsData.campaigns ?? await getAllCampaigns();
+
+        // 3. Với mỗi campaign => lấy topics
         const campaignsWithTopics = await Promise.all(
-          campaignsData.map(async (campaign) => {
-            const topicsList = await getTopicsByCampaign(campaign.id);
-            return { ...campaign, topicsList: topicsList || [] };
-          })
+            campaignsData.map(async (campaign) => {
+              const topicsList = await getTopicsByCampaign(campaign.id);
+              return { ...campaign, topicsList: topicsList || [] };
+            })
         );
+
         setWorkspace({
-          id: parseInt(workspaceId),
-          name: "Tên workspace từ API nếu có",
-          description: "Mô tả workspace từ API nếu có",
+          ...wsData,
           campaigns: campaignsWithTopics,
         });
       } catch (err) {

@@ -22,6 +22,7 @@ export default function Navbar() {
   const { user, setUser } = useAuth();
   // console.log(user);
 
+
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };

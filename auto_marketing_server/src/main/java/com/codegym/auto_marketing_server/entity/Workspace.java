@@ -28,4 +28,12 @@ public class Workspace {
     @Enumerated(EnumType.STRING)
     @Column(name="status")
     private WorkspaceStatus status = WorkspaceStatus.ACTIVE;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.avatar == null || this.avatar.isBlank()) {
+            this.avatar = "https://haycafe.vn/wp-content/uploads/2022/10/Hinh-anh-anime-nu-buon.jpg";
+        }
+        this.createdAt = LocalDate.now();
+    }
 }

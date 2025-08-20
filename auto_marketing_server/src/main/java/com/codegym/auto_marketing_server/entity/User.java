@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,7 +32,8 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String email;
     private String password;
-    @Column(nullable = false, updatable = false, columnDefinition = "DATE DEFAULT CURRENT_DATE")
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp  // Hibernate tự gán ngày hiện tại khi insert
     private LocalDate createdAt;
 
     private String phone;
@@ -60,12 +62,12 @@ public class User implements UserDetails {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    @PrePersist
-    protected void onCreate() {
-        if (this.createdAt == null) {
-            this.createdAt = LocalDate.now();
-        }
-    }
+//    @PrePersist
+//    protected void onCreate() {
+//        if (this.createdAt == null) {
+//            this.createdAt = LocalDate.now();
+//        }
+//    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
