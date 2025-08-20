@@ -2,7 +2,7 @@ package com.codegym.auto_marketing_server.service.impl;
 
 
 import com.codegym.auto_marketing_server.dto.ContentGenerationRequestDTO;
-import com.codegym.auto_marketing_server.dto.GPTMessage;
+import com.codegym.auto_marketing_server.dto.GPTMessageDTO;
 import com.codegym.auto_marketing_server.dto.GPTRequestDTO;
 import com.codegym.auto_marketing_server.dto.GPTResponseDTO;
 import com.codegym.auto_marketing_server.entity.Campaign;
@@ -57,7 +57,7 @@ public class GPTService implements IGPTService {
             requestDTO.setModel(GPT_MODEL);
             requestDTO.setMax_tokens(1500);
             requestDTO.setTemperature(temperature); // dùng giá trị truyền vào từ UI
-            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, "Bạn là một chuyên gia marketing người Việt Nam với 10 năm kinh nghiệm. Bạn hiểu rõ thị trường Việt Nam, văn hóa, ngôn ngữ và hành vi tiêu dùng. Hãy tạo các chủ đề marketing bằng tiếng Việt thuần túy, phù hợp với người Việt. QUAN TRỌNG: Chỉ trả lời bằng tiếng Việt, không dùng tiếng Anh."), new GPTMessage(USER_ROLE, prompt)));
+            requestDTO.setMessages(Arrays.asList(new GPTMessageDTO(SYSTEM_ROLE, "Bạn là một chuyên gia marketing người Việt Nam với 10 năm kinh nghiệm. Bạn hiểu rõ thị trường Việt Nam, văn hóa, ngôn ngữ và hành vi tiêu dùng. Hãy tạo các chủ đề marketing bằng tiếng Việt thuần túy, phù hợp với người Việt. QUAN TRỌNG: Chỉ trả lời bằng tiếng Việt, không dùng tiếng Anh."), new GPTMessageDTO(USER_ROLE, prompt)));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String content = responseDTO.getChoices().get(0).getMessage().getContent();
@@ -98,7 +98,7 @@ public class GPTService implements IGPTService {
             requestDTO.setModel(GPT_MODEL);
             requestDTO.setMax_tokens(1200);
             requestDTO.setTemperature(0.8);
-            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, "Bạn là một copywriter chuyên nghiệp người Việt Nam, chuyên tạo nội dung marketing tiếng Việt. Bạn viết theo phong cách người Việt, sử dụng từ ngữ thân thiện, dễ hiểu. QUAN TRỌNG: Chỉ viết bằng tiếng Việt, không dùng tiếng Anh trừ khi cần thiết cho hashtag."), new GPTMessage(USER_ROLE, prompt)));
+            requestDTO.setMessages(Arrays.asList(new GPTMessageDTO(SYSTEM_ROLE, "Bạn là một copywriter chuyên nghiệp người Việt Nam, chuyên tạo nội dung marketing tiếng Việt. Bạn viết theo phong cách người Việt, sử dụng từ ngữ thân thiện, dễ hiểu. QUAN TRỌNG: Chỉ viết bằng tiếng Việt, không dùng tiếng Anh trừ khi cần thiết cho hashtag."), new GPTMessageDTO(USER_ROLE, prompt)));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String content = responseDTO.getChoices().get(0).getMessage().getContent();
@@ -145,8 +145,8 @@ public class GPTService implements IGPTService {
             requestDTO.setMax_tokens(calculateTokensForWordCount(request.getTargetWordCount()));
             requestDTO.setTemperature(0.7);
             requestDTO.setMessages(Arrays.asList(
-                    new GPTMessage(SYSTEM_ROLE, buildLongFormSystemPrompt(request)),
-                    new GPTMessage(USER_ROLE, prompt)
+                    new GPTMessageDTO(SYSTEM_ROLE, buildLongFormSystemPrompt(request)),
+                    new GPTMessageDTO(USER_ROLE, prompt)
             ));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
@@ -173,7 +173,7 @@ public class GPTService implements IGPTService {
             requestDTO.setModel(GPT_MODEL);
             requestDTO.setMax_tokens(300);
             requestDTO.setTemperature(0.6);
-            requestDTO.setMessages(Arrays.asList(new GPTMessage(SYSTEM_ROLE, "Bạn là chuyên gia tạo prompt cho AI image generation. " + "Hãy tạo prompt tiếng Anh ngắn gọn, chính xác cho DALL-E hoặc Midjourney."), new GPTMessage(USER_ROLE, prompt)));
+            requestDTO.setMessages(Arrays.asList(new GPTMessageDTO(SYSTEM_ROLE, "Bạn là chuyên gia tạo prompt cho AI image generation. " + "Hãy tạo prompt tiếng Anh ngắn gọn, chính xác cho DALL-E hoặc Midjourney."), new GPTMessageDTO(USER_ROLE, prompt)));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String imagePrompt = responseDTO.getChoices().get(0).getMessage().getContent();
