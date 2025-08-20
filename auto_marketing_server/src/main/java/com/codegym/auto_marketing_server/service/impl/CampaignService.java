@@ -29,8 +29,8 @@ public class CampaignService implements ICampaignService {
     private final IWorkspaceRepository workspaceRepository;
 
     @Override
-    public Page<Campaign> findAll(String name, LocalDate startDate, LocalDate endDate, Pageable pageable) {
-        return campaignRepository.findCampaignByName(name,startDate, endDate, pageable);
+    public Page<Campaign> findAll(String name, LocalDate startDate, LocalDate endDate,Long workspaceId, Pageable pageable) {
+        return campaignRepository.findCampaignByName(name,startDate, endDate,workspaceId, pageable);
     }
 
     @Override

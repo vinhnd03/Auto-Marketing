@@ -60,7 +60,7 @@ public class CampaignControllerTest {
     @Test
     void findAll_shouldReturnNoContentWhenEmpty() throws Exception {
         Page<Campaign> emptyPage = Page.empty(PageRequest.of(0, 10));
-        when(campaignService.findAll("", null, null, PageRequest.of(0, 10)))
+        when(campaignService.findAll("", null, null,1L, PageRequest.of(0, 10)))
                 .thenReturn(emptyPage);
 
         mockMvc.perform(get("/campaign"))
@@ -74,7 +74,7 @@ public class CampaignControllerTest {
         campaign.setName("Test Campaign");
 
         Page<Campaign> page = new PageImpl<>(Collections.singletonList(campaign));
-        when(campaignService.findAll("", null, null, PageRequest.of(0, 10)))
+        when(campaignService.findAll("", null, null,1L, PageRequest.of(0, 10)))
                 .thenReturn(page);
 
         mockMvc.perform(get("/campaign"))
