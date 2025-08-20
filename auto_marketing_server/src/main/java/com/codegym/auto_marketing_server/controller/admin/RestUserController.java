@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin("*")
@@ -78,23 +80,25 @@ public class RestUserController {
         userService.save(user);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
-
-
     @GetMapping("/statistics")
     public ResponseEntity<StatisticResponse> getStatistics(
             @RequestParam int year,
             @RequestParam(required = false) Integer month) {
 
         StatisticResponse response = new StatisticResponse();
+
+        // Thống kê theo tháng
         response.setMonthly(userService.getStatisticByMonth(year));
+
+        // Thống kê theo quý
         response.setQuarterly(userService.getStatisticByQuarter(year));
 
-        if (month != null) {
-            response.setWeekly(userService.getStatisticByWeek(year, month));
-        }
+        // Nếu có tháng => thêm thống kê tuần
+        response.setWeekly(month != null ? userService.getStatisticByWeek(year, month) : null);
 
         return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/statistics_packages")
     public ResponseEntity<StatisticResponse> getStatisticsPackages(
@@ -103,19 +107,56 @@ public class RestUserController {
 
         StatisticResponse response = new StatisticResponse();
 
-        // Thống kê theo tháng dựa trên ngày mua gói (startDate)
+        // Thống kê theo tháng (dựa trên startDate của gói)
         response.setMonthly(userService.getStatisticPackagesByMonth(year));
 
-        // Thống kê theo quý dựa trên ngày mua gói (startDate)
+        // Thống kê theo quý
         response.setQuarterly(userService.getStatisticPackagesByQuarter(year));
 
-        // Nếu truyền tháng, thống kê theo tuần trong tháng dựa trên startDate
-        if (month != null) {
-            response.setWeekly(userService.getStatisticPackagesByWeek(year, month));
-        }
+        // Nếu có tháng => thêm thống kê tuần
+        response.setWeekly(month != null ? userService.getStatisticPackagesByWeek(year, month) : null);
 
         return ResponseEntity.ok(response);
     }
+
+
+//    @GetMapping("/statistics")
+//    public ResponseEntity<StatisticResponse> getStatistics(
+//            @RequestParam int year,
+//            @RequestParam(required = false) Integer month) {
+//
+//        StatisticResponse response = new StatisticResponse();
+//        response.setMonthly(userService.getStatisticByMonth(year));
+//        response.setQuarterly(userService.getStatisticByQuarter(year));
+//
+//        if (month != null) {
+//            response.setWeekly(userService.getStatisticByWeek(year, month));
+//        }
+//
+//        return ResponseEntity.ok(response);
+//    }
+//
+//
+//    @GetMapping("/statistics_packages")
+//    public ResponseEntity<StatisticResponse> getStatisticsPackages(
+//            @RequestParam int year,
+//            @RequestParam(required = false) Integer month) {
+//
+//        StatisticResponse response = new StatisticResponse();
+//
+//        // Thống kê theo tháng dựa trên ngày mua gói (startDate)
+//        response.setMonthly(userService.getStatisticPackagesByMonth(year));
+//
+//        // Thống kê theo quý dựa trên ngày mua gói (startDate)
+//        response.setQuarterly(userService.getStatisticPackagesByQuarter(year));
+//
+//        // Nếu truyền tháng, thống kê theo tuần trong tháng dựa trên startDate
+//        if (month != null) {
+//            response.setWeekly(userService.getStatisticPackagesByWeek(year, month));
+//        }
+//
+//        return ResponseEntity.ok(response);
+//    }
 
 
     //2 chức năng làm thêm
@@ -133,4 +174,27 @@ public class RestUserController {
     public ResponseEntity<Long> getUserCount() {
         return ResponseEntity.ok(userService.count());
     }
+
+    @GetMapping("/statistics/monthly-detail")
+    public ResponseEntity<Map<String, Object>> getMonthlyDetail(
+            @RequestParam int year,
+            @RequestParam int month) {
+
+        // --- Lấy dữ liệu tháng hiện tại ---
+        int currentCount = userService.countByMonth(year, month);
+
+        // --- Xác định tháng trước ---
+        int prevMonth = (month == 1) ? 12 : month - 1;
+        int prevYear = (month == 1) ? year - 1 : year;
+
+        int prevCount = userService.countByMonth(prevYear, prevMonth);
+
+        // --- Tạo response ---
+        Map<String, Object> response = new HashMap<>();
+        response.put("current", Map.of("year", year, "month", month, "count", currentCount));
+        response.put("previous", Map.of("year", prevYear, "month", prevMonth, "count", prevCount));
+
+        return ResponseEntity.ok(response);
+    }
+
 }
