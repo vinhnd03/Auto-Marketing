@@ -98,6 +98,13 @@ public class CampaignController {
         return new ResponseEntity<>(campaign, HttpStatus.OK);
     }
 
+    @GetMapping("/totalCampaign")
+    public ResponseEntity<Integer> totalCampaign(@RequestParam("userId") Long userId) {
+        int total = campaignService.countCampaignBySoftDel(userId);
+
+        return ResponseEntity.ok(total);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<?> update(
             @PathVariable Long id,

@@ -21,5 +21,8 @@ public interface ICampaignService {
     Campaign save(Campaign campaign);
 
     List<Campaign> importFromExcel(MultipartFile file, Long workspaceId);
+
     List<Campaign> findAll();
+    int countCampaignBySoftDel(Long id);
+
 }

@@ -28,4 +28,12 @@ public interface ICampaignRepository extends JpaRepository<Campaign, Long> {
                                       @Param("endDate") LocalDate endDate,
                                       @Param ("workspaceId") Long workspaceId,
                                       Pageable pageable);
+
+    @Query("""
+select count(*) from Campaign c join Workspace w on c.workspace.id=w.id
+join SocialAccountWorkspace saw on w.id = saw.workspace.id
+join SocialAccount s on s.id = saw.socialAccount.id
+where c.softDel = false and s.id = :userId
+""")
+    int getCampaignsBySoftDel(@Param("userId") Long id);
 }
