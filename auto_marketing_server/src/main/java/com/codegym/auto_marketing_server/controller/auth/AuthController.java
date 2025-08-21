@@ -124,6 +124,7 @@ public class AuthController {
         user.setEmail(req.getEmail());
         user.setPassword(req.getPassword());
         user.setName(req.getName());
+        user.setPhone(req.getPhone());
         user.setStatus(true);
         user.setRole(userRole);
         userService.save(user);
