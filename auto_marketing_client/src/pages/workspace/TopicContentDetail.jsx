@@ -56,6 +56,21 @@ const TopicContentDetail = ({ topic, onBack }) => {
         isOpen={showGenContentModal}
         onClose={() => setShowGenContentModal(false)}
         selectedTopic={topic}
+        onContentSaved={(newContents) => {
+          // Chuẩn hoá lại dữ liệu content mới để đảm bảo có trường content/text/body
+          const normalize = (item, idx) => ({
+            ...item,
+            content: item.content || item.text || item.body || "",
+            title: item.title || `Content #${item.id || idx + 1}`,
+            createdAt: item.createdAt || new Date().toISOString(),
+            hashtag: Array.isArray(item.hashtags) ? item.hashtags.join(", ") : (item.hashtag || ""),
+            imageUrl: item.imageUrl || (item.images && item.images[0]) || ""
+          });
+          const normalized = Array.isArray(newContents)
+            ? newContents.map(normalize)
+            : [normalize(newContents, 0)];
+          setContents((prev) => [...normalized, ...prev]);
+        }}
       />
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">

@@ -172,11 +172,15 @@ const AIContentGenerator = ({
       setGenerating(false);
       setShowResults(false); // Nếu muốn ẩn kết quả sau khi lưu
 
-      if (onContentSaved) {
+      // Gọi callback để cập nhật danh sách content ở component cha
+      if (typeof onContentSaved === "function") {
+        // Truyền về mảng content mới đã được duyệt
         onContentSaved(approvedPosts);
       }
-      // GỌI onClose để tắt modal AI gen content
-      onClose();
+      // Đóng modal sau khi lưu thành công
+      if (typeof onClose === "function") {
+        onClose();
+      }
     } catch (err) {
       setGenerating(false);
       toast.error("Lưu nội dung thất bại!", { style: { zIndex: 110000 } });
