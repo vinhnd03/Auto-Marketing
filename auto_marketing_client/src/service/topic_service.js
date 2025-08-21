@@ -106,6 +106,7 @@ export async function approveTopic(topicId) {
     const response = await apiClient.put(`/topics/${topicId}/approve`);
     return response.data;
   } catch (error) {
+    console.log(error);
     throw error;
   }
 }

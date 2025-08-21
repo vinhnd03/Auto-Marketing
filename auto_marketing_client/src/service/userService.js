@@ -28,12 +28,14 @@ const updateUserProfile = async (userProfile) => {
 
 const changePassword = async (value) => {
     try {
+        console.log(value);
         const resp = await api.put(`/user/changePassword`, value);
         return {
             success: resp.data.success,
             error: resp.data.error || "UNKNOWN_ERROR"
         }
     } catch (error) {
+        console.log(error);
         return {
             success: false,
             error: error.response?.data?.error || "UNKNOWN_ERROR"

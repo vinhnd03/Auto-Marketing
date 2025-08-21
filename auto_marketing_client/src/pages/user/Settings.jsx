@@ -79,6 +79,7 @@ export default function Settings() {
 
     if (data.success) {
       toast.success("Đã đổi mật khẩu");
+      resetForm();
     } else {
       if (data.error === "WRONG_PASSWORD") {
         setFieldError("currentPassword", "Mật khẩu không chính xác");
@@ -92,7 +93,6 @@ export default function Settings() {
       }
     }
 
-    resetForm();
     setSubmitting(false);
   };
 
