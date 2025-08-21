@@ -4,6 +4,7 @@ import CampaignService from "../../service/campaignService";
 import CreateCampaignForm from "../campaign/CreateCampaignForm";
 import DeleteConfirmationModal from "../ui/DeleteConfirmationModal";
 import EditCampaignForm from "../campaign/EditCampaignForm";
+import DetailCampaign from "../campaign/DetailCampaign";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
 const CampaignTable = ({ campaigns = [] }) => {
@@ -21,6 +22,8 @@ const CampaignTable = ({ campaigns = [] }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [campaignToEdit, setCampaignToEdit] = useState(null);
   const [errors, setErrors] = useState({});
+  const [campaignToView, setCampaignToView] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const { workspaceId } = useParams();
 
   const fetchData = async () => {
@@ -157,7 +160,7 @@ const CampaignTable = ({ campaigns = [] }) => {
       const response = await CampaignService.update(campaignToEdit.id, values);
 
       if (response?.errors) {
-        console.error("Lỗi khi cập nhật campaign:", response.errors); 
+        console.error("Lỗi khi cập nhật campaign:", response.errors);
         return { data: null, errors: response.errors };
       }
 
@@ -261,7 +264,7 @@ const CampaignTable = ({ campaigns = [] }) => {
 
                   <div className="flex flex-col w-full">
                     <label className="text-xs text-gray-500 mb-1">
-                      Hiển thị:
+                      Hiển thị
                     </label>
                     <select
                       value={recordsPerPage}
@@ -389,6 +392,10 @@ const CampaignTable = ({ campaigns = [] }) => {
                                 <button
                                   className="text-blue-600 hover:text-blue-800 transition-colors"
                                   title="Xem chi tiết"
+                                  onClick={() => {
+                                    setCampaignToView(campaign);
+                                    setShowDetailModal(true);
+                                  }}
                                 >
                                   <Eye size={16} />
                                 </button>
@@ -535,6 +542,55 @@ const CampaignTable = ({ campaigns = [] }) => {
                   initialData={campaignToEdit}
                   onSubmit={handleUpdateCampaign}
                   onCancel={() => setShowEditModal(false)}
+                />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {showDetailModal && campaignToView && (
+        <>
+          <div
+            className="modal-backdrop"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              backdropFilter: "blur(4px)",
+              zIndex: 99999,
+              margin: 0,
+              padding: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={() => setShowDetailModal(false)}
+          >
+            <div
+              className="modal-content"
+              style={{
+                backgroundColor: "white",
+                borderRadius: "8px",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                width: "100%",
+                maxWidth: "672px",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                margin: "16px",
+                position: "relative",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ padding: "24px" }}>
+                <DetailCampaign
+                  campaign={campaignToView}
+                  onClose={() => setShowDetailModal(false)}
                 />
               </div>
             </div>
