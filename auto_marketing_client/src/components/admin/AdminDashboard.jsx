@@ -11,9 +11,7 @@ import {
     CheckCircle,
     Package,
 } from "lucide-react";
-// import {getUserCount} from "../../service/admin/notificationService";
 import {getRevenueStats} from "../../service/revenueService";
-import {getUserCount} from "../../service/admin/notificationService";
 import {getAll} from "../../service/admin/usersService";
 import { getMonthlyDetail } from "../../service/admin/statisticsCustomerService";
 import {getPackageStats} from "../../service/packageService";
@@ -33,7 +31,7 @@ const AdminDashboard = () => {
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth() + 1;
-           // const { current, previous } = await getMonthlyDetail(2025, 1);
+            // const { current, previous } = await getMonthlyDetail(2025, 1);
 
             const { current, previous } = await getMonthlyDetail(currentYear, currentMonth);
 
@@ -66,14 +64,6 @@ const AdminDashboard = () => {
         fetchUsers().then();
     }, []);
 
-    useEffect(() => {
-        async function fetchData() {
-            const count = await getUserCount();
-            setUserCount(count);
-        }
-
-        fetchData().then();
-    }, []);
 
 
     useEffect(() => {
@@ -146,7 +136,7 @@ const AdminDashboard = () => {
             changeType: growthRate >= 0 ? "increase" : "decrease",
             icon: Package,
             color: "orange",
-            description: "Đăng ký mới trong tháng",
+            description: "Số lượng đã bán ra",
             compareLabel: "So với tháng trước"
         },
     ];
