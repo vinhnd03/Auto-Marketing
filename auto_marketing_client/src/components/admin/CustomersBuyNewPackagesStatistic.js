@@ -154,11 +154,14 @@ function CustomerStatsDashboard() {
     }, [selectedMonth, selectedYear]);
 
     return (
-        <div className="container mx-auto p-4">
-
-            <div
-                className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-green-50 p-4 rounded-lg shadow-md">
-                <p className="text-3xl font-bold">Thống kê khách hàng mua gói mới</p>
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
+                        Thống Kê Khách Hàng Mua Gói
+                    </h1>
+                    <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
+                </div>
             </div>
             <div className="flex space-x-4 mb-6">
                 <select

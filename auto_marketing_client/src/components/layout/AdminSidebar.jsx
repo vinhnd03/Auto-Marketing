@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useRef} from "react";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {
     LayoutDashboard,
@@ -23,6 +23,16 @@ const AdminSidebar = ({collapsed}) => {
     const [openMenus, setOpenMenus] = useState({});
     const navigate = useNavigate();
     const [hoverMenu, setHoverMenu] = useState(null);
+    const hoverTimeout = useRef(null);
+
+    const handleMouseEnter = (name) => {
+        if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+        setHoverMenu(name);
+    };
+
+    const handleMouseLeave = () => {
+        hoverTimeout.current = setTimeout(() => setHoverMenu(null), 150);
+    };
 
 
     const toggleMenu = (name) => {
@@ -34,16 +44,16 @@ const AdminSidebar = ({collapsed}) => {
         {
             name: "Quản lý người dùng", icon: Users,
             children: [
-                { name: "Tất cả người dùng", href: "/admin/users/list", icon: Users },
-                { name: "Người dùng mới", href: "/admin/users/new", icon: UserCheck }
+                {name: "Tất cả người dùng", href: "/admin/users/list", icon: Users},
+                {name: "Người dùng mới", href: "/admin/users/new", icon: UserCheck}
             ],
         },
         {
             name: "Thống kê khách hàng",
             icon: BarChart3,
             children: [
-                { name: "Theo lượt mua gói mới", href: "/admin/customers/statistics_packages" },
-                { name: "Theo lượt đăng kí mới", href: "/admin/customers/statistics_customer" },
+                {name: "Theo lượt mua gói mới", href: "/admin/customers/statistics_packages"},
+                {name: "Theo lượt đăng kí mới", href: "/admin/customers/statistics_customer"},
             ],
         },
         {
@@ -108,7 +118,11 @@ const AdminSidebar = ({collapsed}) => {
     ];
 
     const isActive = (href, exact = false) =>
-        href ? (exact ? location.pathname === href : location.pathname.startsWith(href)) : false;
+        href
+            ? exact
+                ? location.pathname === href
+                : location.pathname === href || location.pathname.startsWith(href + "/")
+            : false;
 
     useEffect(() => {
         const newOpen = {};
@@ -124,8 +138,10 @@ const AdminSidebar = ({collapsed}) => {
     const renderMenuItem = (item) => {
         const Icon = item.icon;
         const hasChildren = !!item.children;
-        const active = isActive(item.href, item.exact);
-
+        // chỉ set active cho cha khi collapsed = true
+        const active =
+            isActive(item.href, item.exact) ||
+            (collapsed && hasChildren && item.children.some((c) => isActive(c.href)));
         const handleParentClick = () => {
             if (collapsed) {
                 // thu gọn: click icon -> đi ngay
@@ -146,8 +162,8 @@ const AdminSidebar = ({collapsed}) => {
                 key={item.name}
                 title={collapsed ? item.name : undefined}
                 className="relative"
-                onMouseEnter={() => collapsed && hasChildren && setHoverMenu(item.name)}
-                onMouseLeave={() => collapsed && hasChildren && setHoverMenu(null)}
+                onMouseEnter={() => collapsed && hasChildren && handleMouseEnter(item.name)}
+                onMouseLeave={() => collapsed && hasChildren && handleMouseLeave()}
             >
                 <div
                     className={`group flex items-center ${collapsed ? "justify-center" : "justify-between"} 
@@ -161,9 +177,9 @@ const AdminSidebar = ({collapsed}) => {
                         {Icon && (
                             <Icon
                                 size={18}
-                                className={`mr-3 shrink-0 ${active
-                                    ? "text-white"
-                                    : "text-gray-500 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-500 group-hover:to-purple-600"}`}
+                                className={`mr-3 shrink-0 transition-colors duration-200 ${
+                                    active ? "text-white" : "text-gray-500 group-hover:text-blue-600"
+                                }`}
                             />
                         )}
                         {/* label ẩn khi thu gọn */}
@@ -202,19 +218,23 @@ const AdminSidebar = ({collapsed}) => {
                                 <Link
                                     key={child.name}
                                     to={child.href}
-                                    className={`block px-4 py-2 text-sm rounded transition-colors duration-200
-                            ${childActive
-                                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-                                        : "text-gray-600 hover:bg-gradient-to-r hover:from-blue-100 hover:to-purple-100"}`}
+                                    className={`group flex items-center px-4 py-2 text-sm whitespace-nowrap transition-colors duration-200 ${
+                                        childActive
+                                            ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md"
+                                            : "text-gray-600 hover:bg-gradient-to-r hover:from-blue-100 hover:to-purple-100"
+                                    }`}
                                 >
                                     {ChildIcon && (
                                         <ChildIcon
                                             size={14}
-                                            className={`inline mr-2 ${childActive ? "text-white" : "text-gray-500"}`}
+                                            className={`inline mr-2 transition-colors duration-200 ${
+                                                childActive ? "text-white" : "text-gray-500 group-hover:text-blue-600"
+                                            }`}
                                         />
                                     )}
                                     {child.name}
                                 </Link>
+
                             );
                         })}
                     </div>
@@ -225,7 +245,7 @@ const AdminSidebar = ({collapsed}) => {
                     <div
                         className="absolute left-full top-0 ml-1 bg-white border border-blue-200 rounded-md shadow-lg
                        py-2 min-w-[200px] z-[60]
-                       before:content-[''] before:absolute before:top-0 before:-left-1 before:w-1 before:h-full"
+                        before:content-[''] before:absolute before:top-0 before:-left-4 before:w-4 before:h-full before:bg-transparent"
                         onMouseEnter={() => setHoverMenu(item.name)}  // giữ mở khi rê vào flyout
                         onMouseLeave={() => setHoverMenu(null)}
                     >
@@ -236,19 +256,21 @@ const AdminSidebar = ({collapsed}) => {
                                 <Link
                                     key={child.name}
                                     to={child.href}
-                                    className={`flex items-center px-4 py-2 text-sm whitespace-nowrap transition-colors duration-200
-                            ${childActive
+                                    className={`group flex items-center px-4 py-2 text-sm whitespace-nowrap transition-colors duration-200 ${childActive
                                         ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                                         : "text-gray-600 hover:bg-gradient-to-r hover:from-blue-100 hover:to-purple-100"}`}
                                 >
                                     {ChildIcon && (
                                         <ChildIcon
                                             size={14}
-                                            className={`mr-2 ${childActive ? "text-white" : "text-gray-500"}`}
+                                            className={`mr-2 transition-colors duration-200 ${
+                                                childActive ? "text-white" : "text-gray-500 group-hover:text-blue-600"
+                                            }`}
                                         />
                                     )}
                                     {child.name}
                                 </Link>
+
                             );
                         })}
                     </div>
@@ -260,17 +282,20 @@ const AdminSidebar = ({collapsed}) => {
     return (
         <div
             className={`bg-white shadow-sm border-r-2 border-blue-200 fixed left-0 top-0 bottom-0 
-                  overflow-y-auto overflow-x-visible no-scrollbar transition-all duration-300 z-50
+                   flex flex-col transition-all duration-300 z-50
                   ${collapsed ? "w-16" : "w-64"}`}
         >
             {/* Logo */}
             <div className="p-6 border-b-2 border-blue-200 flex items-center">
                 <Link to="/admin" className="flex items-center space-x-2 w-full">
-                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <Shield size={18} className="text-white" />
+                    <div
+                        className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <Shield size={18} className="text-white"/>
                     </div>
-                    <div className={`transition-opacity duration-200 ${collapsed ? "opacity-0 invisible" : "opacity-100 visible"}`}>
-            <span className="text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                    <div
+                        className={`transition-opacity duration-200 ${collapsed ? "opacity-0 invisible" : "opacity-100 visible"}`}>
+            <span
+                className="text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
               Auto Marketing
             </span>
                         <div className="text-xs text-gray-500">Admin Panel</div>
@@ -279,9 +304,11 @@ const AdminSidebar = ({collapsed}) => {
             </div>
 
             {/* Menu */}
-            <nav className="py-4">
-                {menuItems.map((item) => renderMenuItem(item))}
-            </nav>
+            <div className="flex-1 overflow-y-auto overflow-x-visible no-scrollbar">
+                <nav className="py-4">
+                    {menuItems.map((item) => renderMenuItem(item))}
+                </nav>
+            </div>
         </div>
     );
 };

@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import PropTypes from "prop-types";
 import {getUserCount,getNotifications} from "../../service/admin/notificationService";
+import {getRevenueStats} from "../../service/revenueService";
 
 const AdminHeader = ({ collapsed, onToggleSidebar }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -14,6 +15,32 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
     const [notifications, setNotifications] = useState([]);
     const [showAllNotifications, setShowAllNotifications] = useState(false);
     const [userCount, setUserCount] = useState(0);
+    const [dash, setDash] = useState(null);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const d = await getRevenueStats();
+                setDash(d);
+            } catch (e) {
+                console.error("Lỗi khi lấy revenue stats:", e);
+            }
+        })();
+    }, []);
+    function formatMoneyShort(value) {
+        if (value === null || value === undefined) return "₫0";
+        if (value >= 1_000_000_000) {
+            return (value / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + " Tỷ";
+        }
+        if (value >= 1_000_000) {
+            return (value / 1_000_000).toFixed(1).replace(/\.0$/, "") + " Tr";
+        }
+        if (value >= 1_000) {
+            return (value / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
+        }
+        return value.toString();
+    }
+
 
     useEffect(() => {
         async function fetchData() {
@@ -75,7 +102,7 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
                             <div className="text-xs">Người dùng</div>
                         </div>
                         <div className="text-center">
-                            <div className="font-semibold text-green-200">₫152Tr</div>
+                            <div className="font-semibold text-green-200">{dash ? formatMoneyShort(dash.year) : "₫0"}</div>
                             <div className="text-xs">Doanh thu</div>
                         </div>
                     </div>

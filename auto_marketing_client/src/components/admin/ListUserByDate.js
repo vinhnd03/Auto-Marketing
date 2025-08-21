@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {findById, search} from "../../service/admin/usersService";
 import { Eye,Lock, Unlock } from "lucide-react";
 import UpdateUserModal from "./UpdateUser";
@@ -104,13 +104,15 @@ function ListUserByDate() {
     };
 
     return (
-        <div className="container mx-auto p-4 bg-gray-50 min-h-screen">
+        <div className="space-y-6">
             {/* Tiêu đề */}
-            <div
-                className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-green-50 p-4 rounded-lg shadow-md">
-                <p className="text-center sm:text-left text-3xl font-bold flex-1">
-                    Danh sách tài khoản theo ngày tạo
-                </p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
+                        Danh Sách Tài Khoản Theo Ngày tạo
+                    </h1>
+                    <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
+                </div>
             </div>
 
             {/* Form tìm kiếm */}
@@ -153,7 +155,7 @@ function ListUserByDate() {
                     </button>
                     <button
                         onClick={clearFilter}
-                        className="px-5 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+                        className="px-5 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-300"
                     >
                         Xóa bộ lọc
                     </button>

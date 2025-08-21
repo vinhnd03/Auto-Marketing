@@ -14,11 +14,16 @@ import {
 import {getRevenueStats} from "../../service/revenueService";
 import {getUserCount} from "../../service/admin/notificationService";
 import {getAll} from "../../service/admin/usersService";
+import {getPackageStats} from "../../service/packageService";
 
+const pad = (n) => (n < 10 ? `0${n}` : n);
 
 const AdminDashboard = () => {
     const [userCount, setUserCount] = useState(0);
     const [list, setList] = useState([]);
+    const [dash, setDash] = useState(null);
+    const [totalSold, setTotalSold] = useState(0);
+    const [growthRate, setGrowthRate] = useState(0);
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -28,11 +33,8 @@ const AdminDashboard = () => {
                 console.error("Lỗi khi fetch dữ liệu:", error);
             }
         };
-
         fetchUsers().then();
     }, []);
-
-
 
     useEffect(() => {
         async function fetchData() {
@@ -44,8 +46,6 @@ const AdminDashboard = () => {
     }, []);
 
 
-    const [dash, setDash] = useState(null);
-
     useEffect(() => {
         (async () => {
             try {
@@ -53,6 +53,25 @@ const AdminDashboard = () => {
                 setDash(d);
             } catch (e) {
                 console.error("Lỗi khi lấy revenue stats:", e);
+            }
+        })();
+    }, []);
+
+    // Fetch package stats (tháng hiện tại)
+    useEffect(() => {
+        const now = new Date();
+        const start = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01T00:00:00`;
+        const end = `${now.getFullYear()}-${pad(
+            now.getMonth() + 1
+        )}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}T23:59:59`;
+
+        (async () => {
+            try {
+                const resData = await getPackageStats(start, end);
+                setTotalSold(resData.totalSold ?? 0);
+                setGrowthRate(resData.growthRate ?? 0);
+            } catch (err) {
+                console.error("Lỗi khi lấy package stats:", err);
             }
         })();
     }, []);
@@ -68,6 +87,7 @@ const AdminDashboard = () => {
             icon: Users,
             color: "blue",
             description: "đã đăng kí tài khoản",
+            compareLabel: "Tài khoản đã đăng kí"
         },
         {
             name: "Doanh thu tháng",
@@ -77,6 +97,7 @@ const AdminDashboard = () => {
             icon: DollarSign,
             color: "green",
             description: "So với tháng trước",
+            compareLabel: "So với tháng trước"
         },
         {
             name: "Tổng doanh thu năm",
@@ -86,15 +107,17 @@ const AdminDashboard = () => {
             icon: Package,
             color: "orange",
             description: "Tổng doanh thu năm nay",
+            compareLabel: "Dữ liệu mới được cập nhập"
         },
         {
-            name: "Gói Premium",
-            value: "89",
-            change: "-2.1%",
-            changeType: "decrease",
+            name: "Tổng gói đã mua",
+            value: totalSold,
+            change: `${growthRate.toFixed(2)}%`,
+            changeType: growthRate >= 0 ? "increase" : "decrease",
             icon: Package,
             color: "orange",
-            description: "Đăng ký mới tháng này",
+            description: "Đăng ký mới trong tháng",
+            compareLabel: "So với tháng trước"
         },
     ];
 
@@ -285,25 +308,31 @@ const AdminDashboard = () => {
                                     <Icon className="text-white" size={24}/>
                                 </div>
                             </div>
-                            <div className="flex items-center mt-4">
-                                {stat.changeType === "increase" ? (
-                                    <ArrowUp className="text-green-500 mr-1" size={16}/>
-                                ) : (
-                                    <ArrowDown className="text-red-500 mr-1" size={16}/>
-                                )}
-                                <span
-                                    className={`text-sm font-medium ${
-                                        stat.changeType === "increase"
-                                            ? "text-green-600"
-                                            : "text-red-600"
-                                    }`}
-                                >
-                  {stat.change}
-                </span>
-                                <span className="text-sm text-gray-500 ml-1">
-                  so với tháng trước
-                </span>
-                            </div>
+                            {stat.change ? (
+                                <div className="flex items-center mt-4">
+                                    {stat.changeType === "increase" ? (
+                                        <ArrowUp className="text-green-500 mr-1" size={16} />
+                                    ) : (
+                                        <ArrowDown className="text-red-500 mr-1" size={16} />
+                                    )}
+                                    <span
+                                        className={`text-sm font-medium ${
+                                            stat.changeType === "increase"
+                                                ? "text-green-600"
+                                                : "text-red-600"
+                                        }`}
+                                    >
+      {stat.change}
+    </span>
+                                    <span className="text-sm text-gray-500 ml-1">
+      {stat.compareLabel}
+    </span>
+                                </div>
+                            ) : (
+                                <div className="mt-4 text-sm text-gray-400 italic">
+                                    {stat.compareLabel || "Không có dữ liệu so sánh"}
+                                </div>
+                            )}
                         </div>
                     );
                 })}
@@ -368,10 +397,11 @@ const AdminDashboard = () => {
                     </div>
                     <div className="space-y-4">
                         {list.length > 0 ? (
-                            list.slice(0,4).map((user) => (
+                            list.slice(0, 4).map((user) => (
                                 <div key={user.id} className="flex items-center justify-between">
                                     <div className="flex items-center space-x-3">
-                                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                        <div
+                                            className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-medium">
                             {user.name?.charAt(0) || "?"}
                         </span>

@@ -43,8 +43,7 @@ const updatePlan = async (plan) => {
 
 const deletePlan = async (id) => {
     try {
-        const resp = await axios.delete(`${URL}/${id}`);
-        return resp.data
+        return await axios.delete(`${URL}/${id}`);
     } catch (e) {
         console.log("Lỗi kết nối api", e);
         return {};

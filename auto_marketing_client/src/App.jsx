@@ -46,7 +46,7 @@ import NewCustomerStatisticsComponent from "./components/admin/CustomersBuyNewPa
 import TrendPage from "./components/admin/NewCustomerStatistic";
 import DetailUserComponent from "./components/admin/DetailUser";
 import PackageStatsPage from "./pages/admin/PackageStatsPage";
-import PlanList from "./pages/admin/PlanList";
+import PlanPage from "./pages/admin/PlanPage";
 
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
@@ -139,7 +139,7 @@ function App() {
                                            element={<NewCustomerStatisticsComponent/>}/>
                                     <Route path="revenue" element={<RevenueStatsPage/>}/>
                                     <Route path="packages" element={<PackageStatsPage/>}/>
-                                    <Route path="plans" element={<PlanList/>}/>
+                                    <Route path="plans" element={<PlanPage/>}/>
                                 </Routes>
                             </AdminLayout>
                         }
