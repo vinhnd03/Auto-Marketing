@@ -98,4 +98,8 @@ public class UserService implements IUserService {
 
         return all;
     }
+    @Override
+    public int countByMonth(int year, int month) {
+        return userRepository.countByYearAndMonth(year, month);
+    }
 }
