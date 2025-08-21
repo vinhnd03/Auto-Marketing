@@ -119,47 +119,7 @@ public class RestUserController {
         return ResponseEntity.ok(response);
     }
 
-
-//    @GetMapping("/statistics")
-//    public ResponseEntity<StatisticResponse> getStatistics(
-//            @RequestParam int year,
-//            @RequestParam(required = false) Integer month) {
-//
-//        StatisticResponse response = new StatisticResponse();
-//        response.setMonthly(userService.getStatisticByMonth(year));
-//        response.setQuarterly(userService.getStatisticByQuarter(year));
-//
-//        if (month != null) {
-//            response.setWeekly(userService.getStatisticByWeek(year, month));
-//        }
-//
-//        return ResponseEntity.ok(response);
-//    }
-//
-//
-//    @GetMapping("/statistics_packages")
-//    public ResponseEntity<StatisticResponse> getStatisticsPackages(
-//            @RequestParam int year,
-//            @RequestParam(required = false) Integer month) {
-//
-//        StatisticResponse response = new StatisticResponse();
-//
-//        // Thống kê theo tháng dựa trên ngày mua gói (startDate)
-//        response.setMonthly(userService.getStatisticPackagesByMonth(year));
-//
-//        // Thống kê theo quý dựa trên ngày mua gói (startDate)
-//        response.setQuarterly(userService.getStatisticPackagesByQuarter(year));
-//
-//        // Nếu truyền tháng, thống kê theo tuần trong tháng dựa trên startDate
-//        if (month != null) {
-//            response.setWeekly(userService.getStatisticPackagesByWeek(year, month));
-//        }
-//
-//        return ResponseEntity.ok(response);
-//    }
-
-
-    //2 chức năng làm thêm
+    //3 chức năng làm thêm
     @GetMapping("/notifications")
     public ResponseEntity<?> getNotifications() {
         try {
