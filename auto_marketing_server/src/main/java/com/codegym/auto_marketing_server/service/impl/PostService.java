@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.net.URL;
@@ -152,6 +153,28 @@ public class PostService implements IPostService {
     @Override
     public Post save(Post post) {
         return postRepository.save(post);
+    }
+
+    @Override
+    @Transactional // <-- Thêm annotation này để đảm bảo transaction
+    public List<PostResponseDTO> approveAndCleanPosts(Long topicId, List<Long> selectedPostIds) {
+        // Approve selected posts
+        List<Post> selectedPosts = postRepository.findAllById(selectedPostIds);
+        for (Post post : selectedPosts) {
+            post.setStatus(PostStatus.APPROVED);
+            post.setUpdatedAt(LocalDate.now());
+        }
+        postRepository.saveAll(selectedPosts); // <-- Đảm bảo gọi saveAll sau khi setStatus
+
+        // Delete unselected DRAFT posts for this topic
+        List<Post> draftPosts = postRepository.findByTopicIdAndStatus(topicId, PostStatus.DRAFT);
+        List<Post> toDelete = draftPosts.stream()
+                .filter(post -> !selectedPostIds.contains(post.getId()))
+                .toList();
+        postRepository.deleteAll(toDelete);
+
+        // Return approved posts as DTO
+        return selectedPosts.stream().map(this::mapToResponseDTO).toList();
     }
 
     private Post createPostFromGPTResponse(String gptResponse, Topic topic, ContentGenerationRequestDTO request) {

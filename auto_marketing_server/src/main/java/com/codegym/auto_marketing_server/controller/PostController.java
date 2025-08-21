@@ -1,5 +1,6 @@
 package com.codegym.auto_marketing_server.controller;
 
+import com.codegym.auto_marketing_server.dto.ApprovePostsRequestDTO;
 import com.codegym.auto_marketing_server.dto.ContentGenerationRequestDTO;
 import com.codegym.auto_marketing_server.dto.PostResponseDTO;
 import com.codegym.auto_marketing_server.enums.PostStatus;
@@ -94,5 +95,18 @@ public class PostController {
 
         PostResponseDTO post = postService.updatePostStatus(postId, status);
         return ResponseEntity.ok(post);
+    }
+
+    @PostMapping("/approve-and-clean")
+    @Operation(
+            summary = "Approve selected posts and delete unselected DRAFT posts",
+            description = "Approve selected posts (status = APPROVED), and delete all DRAFT posts from the topic that are not selected"
+    )
+    public ResponseEntity<List<PostResponseDTO>> approveAndCleanPosts(
+            @RequestParam Long topicId,
+            @RequestBody List<Long> selectedPostIds
+    ) {
+        List<PostResponseDTO> result = postService.approveAndCleanPosts(topicId, selectedPostIds);
+        return ResponseEntity.ok(result);
     }
 }
