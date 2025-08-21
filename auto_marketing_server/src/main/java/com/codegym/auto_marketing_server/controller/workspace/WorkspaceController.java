@@ -64,9 +64,9 @@ public class WorkspaceController {
         try {
             if (avatar != null && !avatar.isEmpty()) {
                 // Giới hạn dung lượng tối đa 500KB
-                long maxSize = 500 * 1024; // 500 KB
+                long maxSize = 5000 * 1024; // 500 KB
                 if (avatar.getSize() > maxSize) {
-                    return new ResponseEntity<>("File quá lớn. Vui lòng chọn ảnh <= 500KB", HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>("File quá lớn. Vui lòng chọn ảnh <= 5 MB", HttpStatus.BAD_REQUEST);
                 }
 
                 // Upload lên Cloudinary
@@ -142,9 +142,9 @@ public class WorkspaceController {
         try {
             if (avatar != null && !avatar.isEmpty()) {
                 // Giới hạn dung lượng 500KB
-                long maxSize = 500 * 1024; // 500 KB
+                long maxSize = 5000 * 1024; // 500 KB
                 if (avatar.getSize() > maxSize) {
-                    return new ResponseEntity<>("File quá lớn. Vui lòng chọn ảnh <= 500KB", HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>("File quá lớn. Vui lòng chọn ảnh <= 5 MB", HttpStatus.BAD_REQUEST);
                 }
 
                 // Upload lên cloudinary
