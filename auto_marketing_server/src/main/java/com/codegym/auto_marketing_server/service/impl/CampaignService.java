@@ -69,4 +69,9 @@ public class CampaignService implements ICampaignService {
             throw new RuntimeException("Lỗi đọc file Excel", e);
         }
     }
+
+    @Override
+    public int countCampaignBySoftDel(Long id) {
+        return campaignRepository.getCampaignsBySoftDel(id);
+    }
 }
