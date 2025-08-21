@@ -1,26 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { X, Wand2, FileText, Image, Sparkles, Eye, Edit } from "lucide-react";
 import SocialMediaPublisher from "./SocialMediaPublisher";
+import { generateContentWithAI } from "../../service/post_service";
+import toast from "react-hot-toast";
 
 const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
   const [generating, setGenerating] = useState(false);
   const [contentSettings, setContentSettings] = useState({
-    postCount: 3, // Thay đổi từ 5 thành 3
-    contentType: "mixed", // text, image, video, mixed
-    tone: "professional", // casual, professional, playful, urgent
+    postCount: 3,
+    contentType: "mixed",
+    tone: "professional",
     includeHashtags: true,
     includeCTA: true,
   });
-
-  const [generationStep, setGenerationStep] = useState(0);
+  const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [previewContent, setPreviewContent] = useState([]);
-  const [showResults, setShowResults] = useState(false); // State để hiển thị kết quả
+  const [showResults, setShowResults] = useState(false);
   const [selectedContentForDetail, setSelectedContentForDetail] =
-    useState(null); // Content được chọn để xem chi tiết
-  const [showContentDetail, setShowContentDetail] = useState(false); // Modal xem chi tiết
-  const [editingContent, setEditingContent] = useState(null); // Content đang được chỉnh sửa
-  const [selectedContentIds, setSelectedContentIds] = useState([]); // Danh sách ID content được chọn để publish
-  const [showPublisher, setShowPublisher] = useState(false); // Modal publish content
+    useState(null);
+  const [showContentDetail, setShowContentDetail] = useState(false);
+  const [editingContent, setEditingContent] = useState(null);
+  const [selectedContentIds, setSelectedContentIds] = useState([]);
+  const [showPublisher, setShowPublisher] = useState(false);
+  const [error, setError] = useState(null);
 
   const contentTypes = [
     { value: "text", label: "Chỉ văn bản", icon: FileText },
@@ -43,140 +45,59 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
     },
   ];
 
-  const handleGenerate = async () => {
+  // Remove step loading, just a simple spinner until BE done
+  const generateContent = async () => {
     setGenerating(true);
-    setGenerationStep(0);
+    setError(null);
     setShowResults(false);
 
-    const steps = [
-      "Phân tích topic và chiến dịch...",
-      "Nghiên cứu xu hướng nội dung...",
-      "Tạo ý tưởng nội dung...",
-      "Viết nội dung cho từng platform...",
-      "Tối ưu hashtags và CTA...",
-      "Đề xuất hình ảnh...",
-      "Hoàn thành!",
-    ];
+    const body = {
+      topicId: selectedTopic?.id,
+      numberOfPosts: contentSettings.postCount || 1,
+      tone: contentSettings.tone || "professional",
+      contentType: contentSettings.contentType, // <- lấy giá trị theo lựa chọn
+      targetWordCount: 800,
+      includeSections: true,
+      includeIntroConclusion: true,
+      includeBulletPoints: true,
+      includeCallToAction: contentSettings.includeCTA, // <-- map từ UI
+      includeStatistics: false,
+      includeCaseStudies: false,
+      includeImage: contentSettings.contentType !== "text", // <-- chỉ gửi true nếu không phải chỉ văn bản
+      includeHashtag: contentSettings.includeHashtags, // <-- map từ UI
+      additionalInstructions: additionalInstructions || "",
+      targetPlatform: "facebook",
+      targetAudience: "general",
+    };
 
-    for (let i = 0; i < steps.length; i++) {
-      setGenerationStep(i);
-      await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      const data = await generateContentWithAI(body);
+      // Đảm bảo mọi item đều có estimatedReach là số
+      const safeContent = Array.isArray(data)
+        ? data.map((item) => ({
+            ...item,
+            estimatedReach:
+              typeof item.estimatedReach === "number" ? item.estimatedReach : 0,
+          }))
+        : [
+            {
+              ...data,
+              estimatedReach:
+                typeof data.estimatedReach === "number"
+                  ? data.estimatedReach
+                  : 0,
+            },
+          ];
+      setPreviewContent(safeContent);
+      setSelectedContentIds(safeContent.map((c) => c.id));
+      setShowResults(true);
+      setGenerating(false);
+      toast.success("Tạo nội dung thành công!");
+    } catch (err) {
+      setError("Không thể tạo nội dung. Vui lòng thử lại.");
+      setGenerating(false);
+      toast.error("Tạo nội dung thất bại!");
     }
-
-    // Generate mock content
-    const generatedContent = await generateContentForTopic();
-    setPreviewContent(generatedContent);
-
-    // Mặc định chọn tất cả content mới tạo
-    setSelectedContentIds(generatedContent.map((content) => content.id));
-
-    // Hiển thị kết quả thay vì gọi onGenerate ngay
-    setShowResults(true);
-    setGenerating(false);
-  };
-
-  const generateContentForTopic = async () => {
-    // Mock AI content generation với độ đa dạng cao
-    const contentTemplates = [
-      {
-        type: "promotional",
-        template:
-          "🔥 Đừng bỏ lỡ cơ hội! {topic_name} với ưu đãi lên đến {discount}%!\n\n✨ {benefit_1}\n✨ {benefit_2}\n✨ {benefit_3}\n\n👉 {cta}",
-        images: ["product-showcase", "discount-banner", "lifestyle-shot"],
-        priority: 1, // Ưu tiên cao cho content khuyến mãi
-      },
-      {
-        type: "educational",
-        template:
-          "💡 Bạn có biết? {topic_name} có thể giúp bạn:\n\n📌 {tip_1}\n📌 {tip_2}\n📌 {tip_3}\n\nHãy thử ngay và chia sẻ kết quả nhé! 💪\n\n{cta}",
-        images: ["infographic", "step-by-step", "before-after"],
-        priority: 2, // Ưu tiên cao cho content giáo dục
-      },
-      {
-        type: "social_proof",
-        template:
-          '🌟 Khách hàng nói gì về {topic_name}?\n\n💬 "{testimonial}"\n- {customer_name}\n\n🎯 Kết quả: {result}\n⭐ Đánh giá: 5/5 sao\n\n{cta}',
-        images: ["customer-photo", "review-screenshot", "result-image"],
-        priority: 3,
-      },
-      {
-        type: "behind_scenes",
-        template:
-          "🎬 Hậu trường {topic_name}\n\n👀 Bạn có tò mò về quy trình tạo ra {product}?\n\n🔹 {process_1}\n🔹 {process_2}\n🔹 {process_3}\n\nCảm ơn team đã làm việc chăm chỉ! 👏\n\n{cta}",
-        images: ["behind-scenes", "team-work", "process-shot"],
-        priority: 4,
-      },
-      {
-        type: "trending",
-        template:
-          "📈 Xu hướng mới nhất về {topic_name}!\n\n🚀 Điều mọi người đang quan tâm:\n\n💫 {trend_1}\n💫 {trend_2}\n💫 {trend_3}\n\nBạn đã sẵn sàng bắt kịp xu hướng?\n\n{cta}",
-        images: ["trending-graphic", "stats-chart", "modern-design"],
-        priority: 5,
-      },
-    ];
-
-    const mockContent = [];
-
-    // Sắp xếp templates theo mức độ ưu tiên để đảm bảo content đa dạng
-    const sortedTemplates = contentTemplates.sort(
-      (a, b) => a.priority - b.priority
-    );
-
-    for (let i = 0; i < contentSettings.postCount; i++) {
-      // Đảm bảo luôn chọn template khác nhau cho mỗi bài đầu tiên
-      const templateIndex =
-        i < sortedTemplates.length ? i : i % sortedTemplates.length;
-      const template = sortedTemplates[templateIndex];
-
-      const content = {
-        id: Date.now() + i,
-        type: template.type,
-        topicId: selectedTopic.id,
-        topicName: selectedTopic.title,
-        content: template.template
-          .replace(/{topic_name}/g, selectedTopic.title)
-          .replace(/{discount}/g, Math.floor(Math.random() * 50) + 10)
-          .replace(/{benefit_1}/g, "Chất lượng cao đảm bảo")
-          .replace(/{benefit_2}/g, "Giá cả phải chăng")
-          .replace(/{benefit_3}/g, "Hỗ trợ 24/7")
-          .replace(/{tip_1}/g, "Tiết kiệm thời gian hiệu quả")
-          .replace(/{tip_2}/g, "Tăng năng suất làm việc")
-          .replace(/{tip_3}/g, "Cải thiện chất lượng cuộc sống")
-          .replace(/{testimonial}/g, "Sản phẩm tuyệt vời, tôi rất hài lòng!")
-          .replace(/{customer_name}/g, "Nguyễn Thị Lan")
-          .replace(/{result}/g, "Tăng 150% hiệu quả")
-          .replace(/{product}/g, selectedTopic.title.toLowerCase())
-          .replace(/{process_1}/g, "Nghiên cứu kỹ lưỡng")
-          .replace(/{process_2}/g, "Thiết kế tỉ mỉ")
-          .replace(/{process_3}/g, "Kiểm tra chất lượng")
-          .replace(/{trend_1}/g, "Công nghệ mới nhất")
-          .replace(/{trend_2}/g, "Thiết kế hiện đại")
-          .replace(/{trend_3}/g, "Trải nghiệm tối ưu")
-          .replace(
-            /{cta}/g,
-            contentSettings.includeCTA ? "👆 Đặt hàng ngay!" : ""
-          ),
-        hashtags: contentSettings.includeHashtags
-          ? [
-              `#${selectedTopic.title.replace(/\s+/g, "")}`,
-              "#Marketing",
-              "#Sale",
-              "#Quality",
-              "#Vietnam",
-            ]
-          : [],
-        suggestedImages: template.images,
-        estimatedReach: Math.floor(Math.random() * 10000) + 1000,
-        bestTimeToPost: "14:00 - 16:00",
-        aiSettings: contentSettings,
-        status: "generated",
-        createdDate: new Date().toISOString(),
-      };
-
-      mockContent.push(content);
-    }
-
-    return mockContent;
   };
 
   // Function để xử lý khi người dùng chọn xem chi tiết content
@@ -226,16 +147,12 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
 
   // Function để lưu chỉ những content được chọn
   const handleSaveSelectedContent = () => {
-    // Mở modal publish thay vì gọi onGenerate trực tiếp
     setShowPublisher(true);
   };
 
   // Function để xử lý khi publish thành công
   const handlePublishSuccess = (publishResult) => {
-    // Gọi onGenerate với content đã được publish
     onGenerate(publishResult.publishedContent);
-
-    // Đóng tất cả modals
     setShowPublisher(false);
     setShowResults(false);
     setPreviewContent([]);
@@ -243,6 +160,7 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
     setShowContentDetail(false);
     setEditingContent(null);
     setSelectedContentIds([]);
+    toast.success("Publish nội dung lên mạng xã hội thành công!");
   };
 
   // Function để quay lại form settings
@@ -256,16 +174,13 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
     setShowPublisher(false);
   };
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
-      // Save original values
       const originalBodyOverflow = document.body.style.overflow;
       const originalHtmlOverflow = document.documentElement.style.overflow;
       const originalBodyMargin = document.body.style.margin;
       const originalBodyPadding = document.body.style.padding;
 
-      // Apply modal styles
       document.body.style.overflow = "hidden";
       document.documentElement.style.overflow = "hidden";
       document.body.style.margin = "0";
@@ -274,7 +189,6 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
       document.body.style.width = "100vw";
 
       return () => {
-        // Restore original values
         document.body.style.overflow = originalBodyOverflow;
         document.documentElement.style.overflow = originalHtmlOverflow;
         document.body.style.margin = originalBodyMargin;
@@ -286,7 +200,6 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
   }, [isOpen]);
 
   if (!isOpen) return null;
-
   return (
     <>
       {/* Overlay phủ toàn bộ viewport */}
@@ -467,7 +380,10 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
                               </div>
                               <div className="text-xs text-gray-500 mt-1">
                                 Ước tính reach:{" "}
-                                {content.estimatedReach.toLocaleString()} người
+                                {content.estimatedReach
+                                  ? content.estimatedReach.toLocaleString()
+                                  : "0"}{" "}
+                                người
                               </div>
                             </div>
                           </div>
@@ -512,14 +428,15 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
                               Hashtags:
                             </h5>
                             <div className="flex flex-wrap gap-1">
-                              {content.hashtags.map((tag, i) => (
-                                <span
-                                  key={i}
-                                  className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
+                              {Array.isArray(content.hashtags) &&
+                                content.hashtags.map((tag, i) => (
+                                  <span
+                                    key={i}
+                                    className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
                             </div>
                           </div>
                         </div>
@@ -532,9 +449,11 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
                             </div>
                             <div className="text-green-700 font-medium">
                               Ước tính tương tác:{" "}
-                              {Math.floor(
-                                content.estimatedReach * 0.1
-                              ).toLocaleString()}
+                              {content.estimatedReach
+                                ? Math.floor(
+                                    content.estimatedReach * 0.1
+                                  ).toLocaleString()
+                                : "0"}
                             </div>
                           </div>
                         </div>
@@ -725,35 +644,15 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
 
                 {/* Generation Progress */}
                 {generating && (
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-600 mr-3"></div>
-                      <h4 className="font-medium text-green-900">
-                        AI đang tạo nội dung...
-                      </h4>
-                    </div>
-                    <div className="space-y-2">
-                      {[
-                        "Phân tích topic và chiến dịch...",
-                        "Nghiên cứu xu hướng nội dung...",
-                        "Tạo ý tưởng nội dung...",
-                        "Viết nội dung cho từng platform...",
-                        "Tối ưu hashtags và CTA...",
-                        "Đề xuất hình ảnh...",
-                        "Hoàn thành!",
-                      ].map((step, index) => (
-                        <div
-                          key={index}
-                          className={`text-sm ${
-                            index <= generationStep
-                              ? "text-green-700 font-medium"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {index <= generationStep ? "✅" : "⏳"} {step}
-                        </div>
-                      ))}
-                    </div>
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-green-600 mb-6"></div>
+                    <h4 className="font-medium text-green-900 text-lg mb-2">
+                      Đang tạo nội dung AI, vui lòng đợi...
+                    </h4>
+                    <p className="text-gray-500 text-sm">
+                      Quá trình này có thể mất vài phút tuỳ độ dài bài viết và
+                      số lượng bài.
+                    </p>
                   </div>
                 )}
 
@@ -793,7 +692,7 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
                 Hủy
               </button>
               <button
-                onClick={handleGenerate}
+                onClick={generateContent}
                 disabled={generating}
                 className={`px-6 py-2 text-sm font-medium rounded-lg transition-colors ${
                   generating
@@ -809,7 +708,7 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
                 ) : (
                   <>
                     <Wand2 className="mr-2 inline" size={16} />
-                    Tạo Nội Dung
+                    Tạo nội dung
                   </>
                 )}
               </button>
