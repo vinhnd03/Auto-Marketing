@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
-import { X, Camera, Upload, User } from "lucide-react";
-import { Formik, Form, Field } from "formik";
+import React, {useState, useRef, useEffect} from "react";
+import {X, Camera, Upload, User} from "lucide-react";
+import {Formik, Form, Field} from "formik";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
 import {
@@ -8,7 +8,7 @@ import {
     updateWorkspace,
 } from "../../service/workspace/workspace_service";
 
-const MAX_FILE_SIZE = 500 * 1024; // 500 KB
+const MAX_FILE_SIZE = 5000 * 1024; //5 MB
 
 const UpdateWorkspaceModal = ({
                                   isOpen,
@@ -17,6 +17,7 @@ const UpdateWorkspaceModal = ({
                                   workspace,
                                   userId,
                                   workspaces,
+                                  socialAccounts
                               }) => {
     const [avatarPreview, setAvatarPreview] = useState(null);
     const fileInputRef = useRef(null);
@@ -55,7 +56,7 @@ const UpdateWorkspaceModal = ({
             .max(225, "Mô tả không được vượt quá 225 ký tự"),
         avatar: Yup.mixed().nullable().test(
             "fileSize",
-            "Dung lượng ảnh tối đa 500 KB",
+            "Dung lượng ảnh tối đa 5 MB",
             (file) => {
                 if (!file) return true;
                 return file.size <= MAX_FILE_SIZE;
@@ -63,13 +64,14 @@ const UpdateWorkspaceModal = ({
         ),
     });
 
-    const handleSubmit = (values, { setSubmitting, resetForm }) => {
+    const handleSubmit = (values, {setSubmitting, resetForm}) => {
         const doUpdate = async () => {
             try {
+                console.log(socialAccounts)
                 const formData = new FormData();
                 formData.append("name", values.name);
                 formData.append("description", values.description);
-                formData.append("socialAccountId", socialAccountId);
+                formData.append("socialAccountId", socialAccounts[0].id);
 
                 if (values.avatar) {
                     formData.append("avatar", values.avatar);
@@ -100,12 +102,13 @@ const UpdateWorkspaceModal = ({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-4 sm:p-6 relative max-h-screen overflow-y-auto">
+            <div
+                className="bg-white rounded-lg shadow-lg w-full max-w-lg p-4 sm:p-6 relative max-h-screen overflow-y-auto">
                 <button
                     onClick={onClose}
                     className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
                 >
-                    <X size={20} />
+                    <X size={20}/>
                 </button>
 
                 <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900">
@@ -122,7 +125,7 @@ const UpdateWorkspaceModal = ({
                     validationSchema={WorkspaceSchema}
                     onSubmit={handleSubmit}
                 >
-                    {({ setFieldValue, isSubmitting, errors, touched }) => (
+                    {({setFieldValue, isSubmitting, errors, touched}) => (
                         <Form className="space-y-4">
                             {/* Avatar */}
                             <div className="flex flex-col items-center space-y-3">
@@ -139,9 +142,10 @@ const UpdateWorkspaceModal = ({
                                                     alt="Avatar Preview"
                                                     className="w-full h-full object-cover"
                                                 />
-                                                <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <div
+                                                    className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                     <div className="flex space-x-2">
-                                                        <Camera className="w-6 h-6 text-white" />
+                                                        <Camera className="w-6 h-6 text-white"/>
                                                         <button
                                                             type="button"
                                                             onClick={(e) => {
@@ -154,18 +158,19 @@ const UpdateWorkspaceModal = ({
                                                             }}
                                                             className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                                                         >
-                                                            <X className="w-4 h-4 text-white" />
+                                                            <X className="w-4 h-4 text-white"/>
                                                         </button>
                                                     </div>
                                                 </div>
                                             </>
                                         ) : (
                                             <div className="flex flex-col items-center space-y-2">
-                                                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-                                                    <User className="w-8 h-8 text-blue-600" />
+                                                <div
+                                                    className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                                                    <User className="w-8 h-8 text-blue-600"/>
                                                 </div>
                                                 <div className="text-center">
-                                                    <Upload className="w-4 h-4 text-blue-600 mx-auto mb-1" />
+                                                    <Upload className="w-4 h-4 text-blue-600 mx-auto mb-1"/>
                                                     <span className="text-xs text-blue-600 font-medium">
                                                         Tải ảnh lên (tùy chọn)
                                                     </span>

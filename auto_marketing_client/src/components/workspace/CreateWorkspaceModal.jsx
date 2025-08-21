@@ -5,12 +5,12 @@ import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { addWorkspace } from "../../service/workspace/workspace_service";
 
-const MAX_FILE_SIZE = 500 * 1024; // 500 KB
+const MAX_FILE_SIZE = 5000 * 1024; // 5MB
 
-const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
+const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces ,socialAccounts}) => {
     const [avatarPreview, setAvatarPreview] = useState(null);
     const fileInputRef = useRef(null);
-    const socialAccountId = 1;
+    const socialAccountId = 4;
 
     // Yup schema with duplicate name + file size check
     const WorkspaceSchema = Yup.object().shape({
@@ -29,7 +29,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
             .required("Vui lòng nhập mô tả cho workspace")
             .max(225, "Mô tả không được vượt quá 225 ký tự"),
         avatarFile: Yup.mixed().nullable()
-            .test("fileSize", "Dung lượng ảnh tối đa 500 KB", (file) => {
+            .test("fileSize", "Dung lượng ảnh tối đa 5 MB", (file) => {
                 if (!file) return true;
                 return file.size <= MAX_FILE_SIZE;
             }),
@@ -41,7 +41,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
                 const formData = new FormData();
                 formData.append("name", values.name);
                 formData.append("description", values.description);
-                formData.append("socialAccountId", socialAccountId);
+                formData.append("socialAccountId", socialAccounts[0].id);
                 if (values.avatarFile) {
                     formData.append("avatar", values.avatarFile);
                 }
@@ -172,7 +172,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
                                     htmlFor="workspace-name"
                                     className="block text-gray-700 font-medium text-sm"
                                 >
-                                    Tên Workspace
+                                    Tên Workspace <span className="text-red-500">*</span>
                                 </label>
                                 <Field
                                     id="workspace-name"
@@ -191,7 +191,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
                                     htmlFor="workspace-description"
                                     className="block text-gray-700 font-medium text-sm"
                                 >
-                                    Mô tả
+                                    Mô tả <span className="text-red-500">*</span>
                                 </label>
                                 <Field
                                     as="textarea"
