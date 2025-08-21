@@ -91,7 +91,7 @@ const UpdateWorkspaceModal = ({
                 onClose();
             } catch (err) {
                 console.error(err);
-                toast.error("Lỗi khi gọi API");
+                toast.error("Không thể kết nối đến hệ thống, vui lòng thử lại sau");
             }
             setSubmitting(false);
         };
