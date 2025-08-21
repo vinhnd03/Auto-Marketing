@@ -9,6 +9,10 @@ import {
   EyeSlashIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
+import { ErrorMessage, Form, Formik } from "formik";
+import userService from "../../service/userService";
+import toast from "react-hot-toast";
+import * as Yup from "yup";
 
 export default function Settings() {
   const [settings, setSettings] = useState({
@@ -65,19 +69,47 @@ export default function Settings() {
     // Thông báo lưu thành công
   };
 
-  const handleChangePassword = () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("Mật khẩu mới không khớp!");
-      return;
-    }
+  const handleChangePassword = async (
+    value,
+    { setSubmitting, setFieldError, resetForm }
+  ) => {
     // Logic đổi mật khẩu
-    console.log("Changing password...");
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+    console.log("Changing password...", value);
+    const data = await userService.changePassword(value);
+
+    if (data.success) {
+      toast.success("Đã đổi mật khẩu");
+    } else {
+      if (data.error === "WRONG_PASSWORD") {
+        setFieldError("currentPassword", "Mật khẩu không chính xác");
+      } else if (data.error === "SAME_OLD_PASSWORD") {
+        setFieldError(
+          "newPassword",
+          "Mật khẩu mới không được trùng mật khẩu cũ"
+        );
+      } else {
+        toast.error("Đổi mật khẩu không thành công do lỗi");
+      }
+    }
+
+    resetForm();
+    setSubmitting(false);
   };
+
+  const changePasswordValidation = Yup.object({
+    currentPassword: Yup.string().required("Vui lòng nhập mật khẩu"),
+    newPassword: Yup.string()
+      .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
+      .max(100, "Mật khẩu không được quá 100 ký tự")
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        "Mật khẩu phải có ít nhất 1 chữ thường, 1 chữ hoa và 1 số"
+      )
+      .required("Vui lòng nhập mật khẩu mới"),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("newPassword"), null], "Mật khẩu xác nhận không khớp")
+      .required("Vui lòng xác nhận mật khẩu"),
+  });
 
   const handleDeleteAccount = () => {
     if (
@@ -332,107 +364,145 @@ export default function Settings() {
             </div>
 
             {/* Change Password */}
-            <div className="border-t pt-6">
-              <h3 className="font-medium text-gray-900 mb-4">Đổi mật khẩu</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mật khẩu hiện tại
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword.current ? "text" : "password"}
-                      name="currentPassword"
-                      value={passwordData.currentPassword}
-                      onChange={handlePasswordChange}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowPassword((prev) => ({
-                          ...prev,
-                          current: !prev.current,
-                        }))
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword.current ? (
-                        <EyeSlashIcon className="w-4 h-4" />
-                      ) : (
-                        <EyeIcon className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+            <Formik
+              enableReinitialize
+              initialValues={passwordData}
+              onSubmit={handleChangePassword}
+              validationSchema={changePasswordValidation}
+            >
+              {({ values, handleChange, isSubmitting, errors, touched }) => (
+                <Form>
+                  <div className="border-t pt-6">
+                    <h3 className="font-medium text-gray-900 mb-4">
+                      Đổi mật khẩu
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Mật khẩu hiện tại
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPassword.current ? "text" : "password"}
+                            name="currentPassword"
+                            value={values.currentPassword}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowPassword((prev) => ({
+                                ...prev,
+                                current: !prev.current,
+                              }))
+                            }
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showPassword.current ? (
+                              <EyeSlashIcon className="w-4 h-4" />
+                            ) : (
+                              <EyeIcon className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                        <ErrorMessage
+                          name="currentPassword"
+                          component="div"
+                          className="mt-1 text-sm text-red-600"
+                        />
+                      </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mật khẩu mới
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword.new ? "text" : "password"}
-                      name="newPassword"
-                      value={passwordData.newPassword}
-                      onChange={handlePasswordChange}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowPassword((prev) => ({ ...prev, new: !prev.new }))
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword.new ? (
-                        <EyeSlashIcon className="w-4 h-4" />
-                      ) : (
-                        <EyeIcon className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Mật khẩu mới
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPassword.new ? "text" : "password"}
+                            name="newPassword"
+                            value={values.newPassword}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowPassword((prev) => ({
+                                ...prev,
+                                new: !prev.new,
+                              }))
+                            }
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showPassword.new ? (
+                              <EyeSlashIcon className="w-4 h-4" />
+                            ) : (
+                              <EyeIcon className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                        <ErrorMessage
+                          name="newPassword"
+                          component="div"
+                          className="mt-1 text-sm text-red-600"
+                        />
+                      </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Xác nhận mật khẩu mới
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword.confirm ? "text" : "password"}
-                      name="confirmPassword"
-                      value={passwordData.confirmPassword}
-                      onChange={handlePasswordChange}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowPassword((prev) => ({
-                          ...prev,
-                          confirm: !prev.confirm,
-                        }))
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword.confirm ? (
-                        <EyeSlashIcon className="w-4 h-4" />
-                      ) : (
-                        <EyeIcon className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Xác nhận mật khẩu mới
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPassword.confirm ? "text" : "password"}
+                            name="confirmPassword"
+                            value={values.confirmPassword}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowPassword((prev) => ({
+                                ...prev,
+                                confirm: !prev.confirm,
+                              }))
+                            }
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showPassword.confirm ? (
+                              <EyeSlashIcon className="w-4 h-4" />
+                            ) : (
+                              <EyeIcon className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                        <ErrorMessage
+                          name="confirmPassword"
+                          component="div"
+                          className="mt-1 text-sm text-red-600"
+                        />
+                      </div>
 
-                <button
-                  onClick={handleChangePassword}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Đổi mật khẩu
-                </button>
-              </div>
-            </div>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        {isSubmitting ? (
+                          <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                            Đang lưu...
+                          </div>
+                        ) : (
+                          "Đổi mật khẩu"
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </Form>
+              )}
+            </Formik>
           </div>
         </div>
 
@@ -464,14 +534,14 @@ export default function Settings() {
         </div>
 
         {/* Save Button */}
-        <div className="text-center">
+        {/* <div className="text-center">
           <button
             onClick={handleSaveSettings}
             className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
             Lưu tất cả cài đặt
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

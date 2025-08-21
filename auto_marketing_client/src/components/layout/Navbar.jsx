@@ -147,7 +147,7 @@ export default function Navbar() {
                   <img
                     src={
                       user?.avatar ||
-                      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+                      "https://tse3.mm.bing.net/th/id/OIP.Udgj6h-H7jNBYuwbaZkWsgHaHa?rs=1&pid=ImgDetMain&o=7&rm=3"
                     }
                     alt={user?.name || "User"}
                     className="w-8 h-8 rounded-full object-cover border-2 border-blue-500"
