@@ -22,21 +22,23 @@ const CampaignTable = ({ campaigns = [] }) => {
   const [campaignToEdit, setCampaignToEdit] = useState(null);
   const [errors, setErrors] = useState({});
   const { workspaceId } = useParams();
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    const { content, totalElements } = await CampaignService.findAllCampaign(
+      currentPage - 1,
+      recordsPerPage,
+      searchTerm,
+      startDate,
+      endDate,
+      workspaceId
+    );
+    setCampaignList(content);
+    setTotalRecords(totalElements);
+    setIsLoading(false);
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      const { content, totalElements } = await CampaignService.findAllCampaign(
-        currentPage - 1,
-        recordsPerPage,
-        searchTerm,
-        startDate,
-        endDate,
-        workspaceId,
-      );
-      setCampaignList(content);
-      setTotalRecords(totalElements);
-      setIsLoading(false);
-    };
     fetchData();
   }, [currentPage, recordsPerPage, searchTerm, startDate, endDate]);
 
@@ -70,18 +72,18 @@ const CampaignTable = ({ campaigns = [] }) => {
         return { data: null, errors: response.errors };
       }
 
-      setShowForm(false);
-
+      setCurrentPage(1);
       const { content, totalElements } = await CampaignService.findAllCampaign(
-        currentPage - 1,
+        0, // pageIndex = 0
         recordsPerPage,
         searchTerm,
         startDate,
-        endDate
+        endDate,
+        workspaceId
       );
-
       setCampaignList(content);
       setTotalRecords(totalElements);
+      setShowForm(false);
       toast.success("Thêm mới chiến dịch thành công");
 
       return { data: response.data, errors: null };
@@ -124,12 +126,14 @@ const CampaignTable = ({ campaigns = [] }) => {
       }
 
       // Reload dữ liệu sau khi xóa
+      setCurrentPage(1);
       const { content, totalElements } = await CampaignService.findAllCampaign(
-        currentPage - 1,
+        0, // pageIndex = 0
         recordsPerPage,
         searchTerm,
         startDate,
-        endDate
+        endDate,
+        workspaceId
       );
       setCampaignList(content);
       setTotalRecords(totalElements);
@@ -163,13 +167,13 @@ const CampaignTable = ({ campaigns = [] }) => {
         recordsPerPage,
         searchTerm,
         startDate,
-        endDate
+        endDate,
+        workspaceId
       );
       setCampaignList(content);
       setTotalRecords(totalElements);
-
       setShowEditModal(false);
-      toast.error("Cập nhật chiến dịch thất bại");
+      toast.success("Cập nhật chiến dịch thành công");
       return { data: response.data, errors: null };
     } catch (error) {
       console.error("Lỗi khi cập nhật campaign:", error);
@@ -189,6 +193,7 @@ const CampaignTable = ({ campaigns = [] }) => {
         <CreateCampaignForm
           onSubmit={handleCreateCampaign}
           onCancel={() => setShowForm(false)}
+          onUploadSuccess={fetchData}
           errors={errors}
         />
       ) : (
@@ -253,24 +258,24 @@ const CampaignTable = ({ campaigns = [] }) => {
                       className="px-3 py-2 border rounded-lg shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                     />
                   </div>
-                </div>
 
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600 whitespace-nowrap">
-                    Hiển thị:
-                  </span>
-                  <select
-                    value={recordsPerPage}
-                    onChange={(e) => {
-                      setRecordsPerPage(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    className="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value={5}>5 bản ghi</option>
-                    <option value={10}>10 bản ghi</option>
-                    <option value={20}>20 bản ghi</option>
-                  </select>
+                  <div className="flex flex-col w-full">
+                    <label className="text-xs text-gray-500 mb-1">
+                      Hiển thị:
+                    </label>
+                    <select
+                      value={recordsPerPage}
+                      onChange={(e) => {
+                        setRecordsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value={5}>5 bản ghi</option>
+                      <option value={10}>10 bản ghi</option>
+                      <option value={20}>20 bản ghi</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
