@@ -11,13 +11,42 @@ import {
     CheckCircle,
     Package,
 } from "lucide-react";
-import {getUserCount} from "../../service/admin/notificationService";
+// import {getUserCount} from "../../service/admin/notificationService";
 import {getAll} from "../../service/admin/usersService";
+import { getMonthlyDetail } from "../../service/admin/statisticsCustomerService";
 
 
 const AdminDashboard = () => {
     const [userCount, setUserCount] = useState(0);
     const [list, setList] = useState([]);
+    const [userGrowth, setUserGrowth] = useState("0%");
+
+    useEffect(() => {
+        async function fetchData() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+           // const { current, previous } = await getMonthlyDetail(2025, 1);
+
+            const { current, previous } = await getMonthlyDetail(currentYear, currentMonth);
+
+            setUserCount(current.count);
+
+            let growth = 0;
+            if (previous) {
+                if (previous.count === 0) {
+                    growth = current.count > 0 ? 100 : 0;
+                } else {
+                    growth = ((current.count - previous.count) / previous.count) * 100;
+                }
+            }
+            setUserGrowth(`${growth.toFixed(1)}%`);
+        }
+
+        fetchData().then();
+    }, []);
+
+
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -33,22 +62,22 @@ const AdminDashboard = () => {
 
 
 
-    useEffect(() => {
-        async function fetchData() {
-            const count = await getUserCount();
-            setUserCount(count);
-        }
-
-        fetchData().then();
-    }, []);
+    // useEffect(() => {
+    //     async function fetchData() {
+    //         const count = await getUserCount();
+    //         setUserCount(count);
+    //     }
+    //
+    //     fetchData().then();
+    // }, []);
 
 
     const stats = [
         {
-            name: "Tổng người dùng",
+            name: "Tổng người dùng tháng này",
             value: userCount,
-            change: "+12.5%",
-            changeType: "increase",
+            change: userGrowth,
+            changeType: parseFloat(userGrowth) >= 0 ? "increase" : "decrease",
             icon: Users,
             color: "blue",
             description: "đã đăng kí tài khoản",

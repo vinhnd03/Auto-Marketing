@@ -5,7 +5,7 @@ import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
 
-function CustomerStatsDashboard() {
+function NewPackagePurchased() {
     const [selectedMonth, setSelectedMonth] = useState("all");
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [weeklyChartData, setWeeklyChartData] = useState(null);
@@ -193,4 +193,4 @@ function CustomerStatsDashboard() {
     );
 }
 
-export default CustomerStatsDashboard;
+export default NewPackagePurchased;

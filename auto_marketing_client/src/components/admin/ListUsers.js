@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {findById, search} from "../../service/admin/usersService";
-import {getAllServicePackages} from "../../service/admin/statisticsPackagesService";
+import {getAllPackages} from "../../service/admin/statisticsPackagesService";
 import {Eye, Lock, Unlock} from "lucide-react";
 import UpdateUserModal from "./UpdateUser";
 
@@ -18,7 +18,7 @@ function ListUsers() {
 
     useEffect(() => {
         const fetchPackages = async () => {
-            const pkgs = await getAllServicePackages();
+            const pkgs = await getAllPackages();
             setPackages(pkgs);
             //  console.log(packages)
         };
