@@ -43,7 +43,6 @@ import RevenueStatsPage from "./pages/admin/RevenueStatsPage";
 import ListUsers from "./components/admin/ListUsers";
 import ListUserByDate from "./components/admin/ListUserByDate";
 import NewCustomerStatistic from "./components/admin/NewCustomerStatistic";
-import TrendPage from "./components/admin/NewCustomerStatistic";
 import DetailUserComponent from "./components/admin/DetailUser";
 import PackageStatsPage from "./pages/admin/PackageStatsPage";
 import PlanPage from "./pages/admin/PlanPage";

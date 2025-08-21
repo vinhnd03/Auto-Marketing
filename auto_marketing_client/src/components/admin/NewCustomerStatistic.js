@@ -147,76 +147,17 @@ export default function NewCustomerStatistic() {
             } else {
                 const monthNumber = Number(selectedMonth);
                 const res = await getStatisticByMonthYear(monthNumber, selectedYear);
-                console.log("API response:", res); // Log để kiểm tra dữ liệu API
-                const dailyData = res?.weekly?.datasets?.[0]?.data || [];
+                const weeklyFromApi = res?.weekly?.datasets?.[0]?.data || [];
 
-                // Kiểm tra nếu dailyData không phải mảng hoặc rỗng
-                if (!Array.isArray(dailyData) || dailyData.length === 0) {
-                    console.warn("Không có dữ liệu tuần từ API:", dailyData);
-                    setWeeklyChartData((prev) => ({
-                        ...prev,
-                        labels: [],
-                        datasets: [
-                            { ...prev.datasets[0], data: [] },
-                            { ...prev.datasets[1], data: [] },
-                        ],
-                    }));
-                    // --- monthly + quarterly vẫn lấy từ tổng tuần ---
-                    const monthlyPromises = Array.from({ length: 12 }, (_, i) =>
-                        getStatisticByMonthYear(i + 1, selectedYear)
-                            .then((res) => sum(res?.weekly?.datasets?.[0]?.data || []))
-                            .catch(() => 0)
-                    );
-                    const monthlyFromWeeks = await Promise.all(monthlyPromises);
-
-                    const quarterlyFromApi = [0, 0, 0, 0].map((_, qi) =>
-                        monthlyFromWeeks.slice(qi * 3, qi * 3 + 3).reduce((s, n) => s + n, 0)
-                    );
-
-                    setMonthlyChartData((prev) => ({
-                        ...prev,
-                        datasets: [
-                            { ...prev.datasets[0], data: monthlyFromWeeks },
-                            { ...prev.datasets[1], data: calcGrowthRates(monthlyFromWeeks) },
-                        ],
-                    }));
-
-                    setQuarterlyChartData((prev) => ({
-                        ...prev,
-                        datasets: [
-                            { ...prev.datasets[0], data: quarterlyFromApi },
-                            { ...prev.datasets[1], data: calcGrowthRates(quarterlyFromApi) },
-                        ],
-                    }));
-                    setLoading(false);
-                    return;
-                }
-
-                // Tính số tuần trong tháng
-                const daysInMonth = new Date(selectedYear, monthNumber, 0).getDate();
-                const maxWeeks = Math.ceil(daysInMonth / 7); // Số tuần tối đa
-
-                // Nhóm dữ liệu theo tuần (ngày 1-7: Tuần 1, ngày 8-14: Tuần 2, ...)
-                const weeklyData = Array(maxWeeks).fill(0);
-                dailyData.forEach((count, index) => {
-                    const dayOfMonth = index + 1; // Giả sử index 0 là ngày 1
-                    const weekNumber = Math.ceil(dayOfMonth / 7) - 1; // Tuần 0, 1, 2, ...
-                    if (weekNumber >= 0 && weekNumber < maxWeeks) {
-                        weeklyData[weekNumber] += Number(count || 0);
-                    }
-                });
-
-                // Tạo nhãn tuần
-                const weekLabels = Array.from({ length: maxWeeks }, (_, i) => `Tuần ${i + 1} - Tháng ${selectedMonth}`);
-
-                console.log("Weekly data:", weeklyData, "Labels:", weekLabels); // Log để kiểm tra dữ liệu tuần
+                // tự động tạo nhãn tuần dựa trên số lượng dữ liệu
+                const weekLabels = weeklyFromApi.map((_, i) => `Tuần ${i + 1} - Tháng ${selectedMonth}`);
 
                 setWeeklyChartData((prev) => ({
                     ...prev,
                     labels: weekLabels,
                     datasets: [
-                        { ...prev.datasets[0], data: weeklyData },
-                        { ...prev.datasets[1], data: calcGrowthRates(weeklyData) },
+                        { ...prev.datasets[0], data: weeklyFromApi },
+                        { ...prev.datasets[1], data: calcGrowthRates(weeklyFromApi) },
                     ],
                 }));
 
@@ -286,14 +227,10 @@ export default function NewCustomerStatistic() {
     ).reduce((a, b) => a + Number(b || 0), 0);
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
-                        Thống Kê Khách Hàng Đăng Kí Mới
-                    </h1>
-                    <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
-                </div>
+        <div className="container mx-auto p-4">
+            <div
+                className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-blue-50 p-4 rounded-lg shadow-md">
+                <p className="text-3xl font-bold">Thống kê khách hàng đăng kí mới</p>
             </div>
 
             <div className="flex space-x-4 mb-4">

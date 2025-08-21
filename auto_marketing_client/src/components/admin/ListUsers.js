@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {findById, search} from "../../service/admin/usersService";
 import {getAllPackages} from "../../service/admin/statisticsPackagesService";
 import {Eye, Lock, Unlock} from "lucide-react";
@@ -85,14 +85,10 @@ function ListUsers() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
-                        Danh Sách Tài Khoản
-                    </h1>
-                    <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
-                </div>
+        <div className="container mx-auto p-4 bg-gray-50 min-h-screen">
+            <div
+                className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-blue-50 p-4 rounded-lg shadow-md">
+                <p className="text-3xl font-bold">Danh sách các tài khoản hiện có</p>
             </div>
 
             {/* Form tìm kiếm */}
