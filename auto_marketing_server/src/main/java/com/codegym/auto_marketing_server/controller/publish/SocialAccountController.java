@@ -6,6 +6,7 @@ import com.codegym.auto_marketing_server.repository.IUserRepository;
 import com.codegym.auto_marketing_server.service.ISocialAccountService;
 import com.codegym.auto_marketing_server.service.IUserService;
 import com.codegym.auto_marketing_server.service.impl.SocialAccountService;
+import com.codegym.auto_marketing_server.service.impl.facebook.FacebookService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,19 +20,30 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("api/social")
+@RequestMapping("/api/social")
 @RequiredArgsConstructor
 public class SocialAccountController {
     private final ISocialAccountService socialAccountService;
     private final IUserRepository userRepository;
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final IUserService userService;
+    private final FacebookService facebookService;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
+
+    @Value("${app.facebook.appId}")
+    private String appId;
+    @Value("${app.facebook.appSecret}")
+    private String appSecret;
+    @Value("${app.facebook.redirectUri}")
+    private String redirectUri;
 
     @GetMapping("/check")
     public ResponseEntity<?> checkLinked(@RequestParam Long userId) {
@@ -58,8 +70,6 @@ public class SocialAccountController {
      * Gọi API Facebook để đổi sang Long-Lived Token
      */
     private String exchangeForLongLivedToken(String shortLivedToken) {
-        String appId = "784932350736349";
-        String appSecret = "732fed631b493a4a56ce183cf3f2cf3e";
 
         String url = "https://graph.facebook.com/v21.0/oauth/access_token" +
                 "?grant_type=fb_exchange_token" +
@@ -79,35 +89,48 @@ public class SocialAccountController {
         throw new RuntimeException("Could not get long-lived token");
     }
 
+
     @GetMapping("/connect/facebook")
-    public void connectFacebook(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        // Lấy OAuth2 token từ SecurityContext
-        OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) SecurityContextHolder
-                .getContext().getAuthentication();
-
-        if (oauthToken == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "No OAuth2 token found");
-            return;
-        }
-
-        OAuth2User oAuth2User = oauthToken.getPrincipal();
-
-        String accessToken = authorizedClientService
-                .loadAuthorizedClient(oauthToken.getAuthorizedClientRegistrationId(), oauthToken.getName())
-                .getAccessToken()
-                .getTokenValue();
-
-        String providerId = oAuth2User.getAttribute("id");
-        String name = oAuth2User.getAttribute("name");
-
-        User currentUser = userService.getCurrentUser(); // user đang đăng nhập vào app
+    public void connectFacebook(HttpServletResponse response) throws IOException {
+        User currentUser = userService.getCurrentUser(); // user đã login
         if (currentUser == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not logged in to app");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not logged in");
             return;
         }
+
+        System.out.println("hello");
+
+        String clientId = appId;
+        String state = currentUser.getId().toString(); // lưu userId
+
+        String url = "https://www.facebook.com/v17.0/dialog/oauth" +
+                "?client_id=" + clientId +
+                "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8) +
+                "&state=" + state +
+                "&scope=email,public_profile"
+                ;
+
+        response.sendRedirect(url);
+    }
+
+    @GetMapping("/connect/facebook/callback")
+    public ResponseEntity<?> facebookCallback(
+            @RequestParam String code,
+            @RequestParam String state) {
+
+        Long userId = Long.parseLong(state);
+        User currentUser = userService.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String accessToken = facebookService.getAccessTokenFromCode(code); // bạn tự implement exchange code -> token
+
+        Map<String, Object> fbUser = facebookService.getUserInfo(accessToken);
+        String providerId = fbUser.get("id").toString();
+        String name = fbUser.get("name").toString();
 
         socialAccountService.saveFacebookAccount(currentUser, accessToken, name, providerId);
 
-        response.sendRedirect(frontendUrl + "/facebook-connected");
+        return ResponseEntity.ok("Facebook linked successfully");
     }
+
 }

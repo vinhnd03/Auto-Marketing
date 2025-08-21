@@ -15,7 +15,7 @@ const SelectSocialNetwork = ({ isOpen, onClose }) => {
     }
 
     // Redirect tới backend để link Facebook (Option B)
-    window.location.href = `http://localhost:8080/api/auth/facebook/link?userId=${user.id}`;
+    window.location.href = `http://localhost:8080/api/social/connect/facebook`;
   };
 
   return (

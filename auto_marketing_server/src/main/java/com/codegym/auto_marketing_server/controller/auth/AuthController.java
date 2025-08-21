@@ -177,9 +177,14 @@ public class AuthController {
         return ResponseEntity.ok("OK");
     }
 
+//    @GetMapping("/google")
+//    public void googleLogin(HttpServletResponse response) throws IOException {
+//        // Redirect đến trang xác thực của Google
+//        response.sendRedirect("/oauth2/authorization/google");
+//    }
+
     @GetMapping("/google")
     public void googleLogin(HttpServletResponse response) throws IOException {
-        // Redirect đến trang xác thực của Google
         response.sendRedirect("/oauth2/authorization/google");
     }
 
