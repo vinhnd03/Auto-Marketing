@@ -4,6 +4,11 @@ import React from "react";
 const DeletePost = ({ post, onCancel, onConfirm }) => {
   if (!post) return null;
 
+  const postData = post.post || post; // lấy đúng dữ liệu
+  const scheduledTime = post.scheduledTime
+    ? dayjs(post.scheduledTime).format("HH:mm DD/MM/YYYY")
+    : "Chưa đặt lịch";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
@@ -12,10 +17,13 @@ const DeletePost = ({ post, onCancel, onConfirm }) => {
           Bạn có chắc chắn muốn xóa bài viết dưới đây không?
         </p>
 
-        <div className="bg-gray-100 rounded-md p-4 text-sm space-y-1">
-          <p><span className="font-medium">Nội dung:</span> {post.content}</p>
-          <p><span className="font-medium">Thời gian:</span> {dayjs(post.time).format("HH:mm DD/MM/YYYY")}</p>
-          <p><span className="font-medium">Nền tảng:</span> {post.platform}</p>
+        <div className="bg-gray-100 rounded-md p-4 text-sm space-y-2">
+          <p>
+            <span className="font-medium">Tiêu đề:</span> {postData.title || "-"}
+          </p>
+          <p>
+            <span className="font-medium">Thời gian:</span> {scheduledTime}
+          </p>
         </div>
 
         <div className="mt-5 flex justify-end gap-3">

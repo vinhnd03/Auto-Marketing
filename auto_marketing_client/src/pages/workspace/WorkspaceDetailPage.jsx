@@ -28,6 +28,7 @@ import {
 import dayjs from "dayjs";
 import { getWorkspaceDetail } from "../../service/workspace/workspace_service";
 import campaignService from "../../service/campaignService";
+import axios from "axios";
 
 const WorkspaceDetailPage = () => {
   const { workspaceId } = useParams();
@@ -559,33 +560,31 @@ const WorkspaceDetailPage = () => {
   // Lọc danh sách bài viết đã xác nhận (mock)
   // Ở đây mình giả sử confirmed = status === "active" và posts > 0
   // Lấy danh sách nội dung khả dụng (content) từ campaign đầu tiên làm ví dụ
-  const availableContents =
-    initialWorkspace.campaigns &&
-    initialWorkspace.campaigns[0] &&
-    Array.isArray(initialWorkspace.campaigns[0].topicsList)
-      ? initialWorkspace.campaigns[0].topicsList.map((topic) => ({
-          id: topic.id.toString(),
-          title: topic.title,
-          content: topic.description,
-        }))
-      : [];
-  // Hàm nhận dữ liệu post mới từ component con
+  const [availableContents, setAvailableContents] = useState([]);
+  
+// Lấy danh sách bài viết từ DB
+  useEffect(() => {
+    axios.get("http://localhost:8080/api/v1/posts/all", { withCredentials: true })
+      .then(res => {
+        const dataArray = Array.isArray(res.data) ? res.data : [];
+        const formattedData = dataArray.map(p => ({
+          id: p.id.toString(),
+          title: p.title,
+          content: p.content,
+          hashtag: p.hashtag,
+          tone: p.tone,
+          contentType: p.contentType,
+          targetAudience: p.targetAudience
+        }));
+        setAvailableContents(formattedData);
+      })
+      .catch(err => console.error(err));
+  }, []);
+
   const handleScheduleSubmit = (posts) => {
     console.log("Posts mới được lên lịch:", posts);
     setConfirmedPosts(posts);
-    // Ở đây bạn có thể gọi API lưu lên server hoặc xử lý tiếp
   };
-  // Xử lý chỉnh sửa bài đăng
-  const handleEditPost = (updatedPost) => {
-    setPosts((prev) =>
-      prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
-    );
-  };
-  // Xử lý xóa bài đăng
-  const handleDeletePost = (deletedPost) => {
-    setPosts((prev) => prev.filter((p) => p.id !== deletedPost.id));
-  };
-
   useEffect(() => {
     const fetchWorkspaceData = async () => {
       setLoadingWorkspace(true);
@@ -1334,11 +1333,7 @@ const WorkspaceDetailPage = () => {
               )}
 
               {activeTab === "publishedManager" && (
-                <ScheduledPostsList
-                  posts={posts}
-                  onEdit={handleEditPost}
-                  onDelete={handleDeletePost}
-                />
+                <ScheduledPostsList />
               )}
 
               {activeTab === "analytics" && (
