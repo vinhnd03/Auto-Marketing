@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { getStatisticByMonthYear } from "../../service/admin/statisticsPackagesService";
+import {getStatisticPackageByMonthYear} from "../../service/admin/statisticsPackagesService";
 import { Bar } from "react-chartjs-2";
 import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
 
-function CustomerStatsDashboard() {
+function NewPackagePurchased() {
     const [selectedMonth, setSelectedMonth] = useState("all");
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [weeklyChartData, setWeeklyChartData] = useState(null);
@@ -22,7 +22,7 @@ function CustomerStatsDashboard() {
         async function fetchData() {
             setLoading(true);
             try {
-                const data = await getStatisticByMonthYear(selectedMonth, selectedYear);
+                const data = await getStatisticPackageByMonthYear(selectedMonth, selectedYear);
 
                 if (!data) {
                     setWeeklyChartData(null);
@@ -193,4 +193,4 @@ function CustomerStatsDashboard() {
     );
 }
 
-export default CustomerStatsDashboard;
+export default NewPackagePurchased;

@@ -42,6 +42,7 @@ import RevenueStatsPage from "./pages/admin/RevenueStatsPage";
 
 import ListUsers from "./components/admin/ListUsers";
 import ListUserByDate from "./components/admin/ListUserByDate";
+import NewCustomerStatistic from "./components/admin/NewCustomerStatistic";
 import TrendPage from "./components/admin/NewCustomerStatistic";
 import DetailUserComponent from "./components/admin/DetailUser";
 import PackageStatsPage from "./pages/admin/PackageStatsPage";
@@ -134,9 +135,8 @@ function App() {
                                     <Route path="users/list" element={<ListUsers/>}/>
                                     <Route path="users/new" element={<ListUserByDate/>}/>
                                     <Route path={"users/detail/:id"} element={<DetailUserComponent/>}/>
-                                    <Route path="customers/statistics_customer" element={<TrendPage/>}/>
-                                    <Route path="customers/statistics_packages"
-                                           element={<NewPackagePurchased/>}/>
+                                    <Route path="customers/statistics_customer" element={<NewCustomerStatistic/>}/>
+                                    <Route path="customers/statistics_packages" element={<NewPackagePurchased/>}/>
                                     <Route path="revenue" element={<RevenueStatsPage/>}/>
                                     <Route path="packages" element={<PackageStatsPage/>}/>
                                     <Route path="plans" element={<PlanPage/>}/>

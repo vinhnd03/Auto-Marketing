@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export async function getAllServicePackages() {
+export async function getAllPackages() {
     try {
         const response = await axios.get("http://localhost:8080/api/plans");
         const plans = response.data?.data || response.data;
@@ -21,7 +21,7 @@ const BASE = "http://localhost:8080/api/users"; // giữ nguyên
  *   weekly?: [{ week: 1..52, count }] // khi có month
  * }
  */
-export async function getStatisticByMonthYear(month, year) {
+export async function getStatisticPackageByMonthYear(month, year) {
     try {
         const params = { year };
         if (month !== "all") params.month = Number(month);
@@ -68,21 +68,32 @@ export async function getStatisticByMonthYear(month, year) {
         }
 
         // ---- WEEKLY ----
-        const weeklyBuckets = [];
-        (data?.weekly || []).forEach(({ week, count }) => {
-            weeklyBuckets.push(Number(count) || 0);
+        const weeklyBuckets = new Array(5).fill(0); // Tuần 1–5 trong tháng
+        const weeklyData = data?.weekly || [];
+
+        weeklyData.forEach(({ week, count }) => {
+            if (week >= 1 && week <= 5) {
+                weeklyBuckets[week - 1] = Number(count) || 0;
+            }
         });
 
         const weekly = {
-            labels: weeklyBuckets.map((_, idx) => `Tuần ${idx + 1} - Tháng ${month}`),
+            labels: [
+                `Tuần 1 (1-7/${month})`,
+                `Tuần 2 (8-15/${month})`,
+                `Tuần 3 (16-22/${month})`,
+                `Tuần 4 (23-28/${month})`,
+                `Tuần 5 (29-31/${month})`,
+            ],
             datasets: [
                 {
-                    label: `Khách hàng mua gói trong tháng ${month}/${year}`,
+                    label: `Khách hàng mới trong tháng ${month}/${year}`,
                     data: weeklyBuckets,
                     backgroundColor: "rgba(75, 192, 192, 0.6)",
                 },
             ],
         };
+
 
         return { monthly, quarterly, weekly };
     } catch (err) {

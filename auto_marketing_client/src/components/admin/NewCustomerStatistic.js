@@ -24,7 +24,7 @@ ChartJS.register(
     Legend
 );
 
-export default function TrendPage() {
+export default function NewCustomerStatistic() {
     const [analysisType, setAnalysisType] = useState("weekly");
     const [loading, setLoading] = useState(true);
     const [selectedMonth, setSelectedMonth] = useState("all");
