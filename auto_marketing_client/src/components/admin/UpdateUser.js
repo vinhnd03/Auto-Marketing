@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { updateUser } from "../../service/admin/usersService";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 
 export default function UpdateUserModal({ user, isShowModal, isCloseModal, onUpdateSuccess }) {
     const [loading, setLoading] = useState(false);

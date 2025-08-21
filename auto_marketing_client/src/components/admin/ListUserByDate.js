@@ -108,8 +108,8 @@ function ListUserByDate() {
             {/* Tiêu đề */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
-                        Danh Sách Tài Khoản Theo Ngày tạo
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
+                        Danh sách tài khoản theo ngày tạo
                     </h1>
                     <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
                 </div>
