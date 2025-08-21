@@ -11,6 +11,7 @@ import {
     CheckCircle,
     Package,
 } from "lucide-react";
+// import {getUserCount} from "../../service/admin/notificationService";
 import {getRevenueStats} from "../../service/revenueService";
 import {getAll} from "../../service/admin/usersService";
 import { getMonthlyDetail } from "../../service/admin/statisticsCustomerService";
@@ -31,7 +32,7 @@ const AdminDashboard = () => {
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth() + 1;
-            // const { current, previous } = await getMonthlyDetail(2025, 1);
+           // const { current, previous } = await getMonthlyDetail(2025, 1);
 
             const { current, previous } = await getMonthlyDetail(currentYear, currentMonth);
 
@@ -107,7 +108,7 @@ const AdminDashboard = () => {
             icon: Users,
             color: "blue",
             description: "đã đăng kí tài khoản",
-            compareLabel: "Tài khoản đã đăng kí"
+            compareLabel: "so với tháng trước"
         },
         {
             name: "Doanh thu tháng",

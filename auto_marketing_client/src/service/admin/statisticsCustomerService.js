@@ -79,9 +79,9 @@ export async function getStatisticByMonthYear(month, year) {
         const weekly = {
             labels: [
                 `Tuần 1 (1-7/${month})`,
-                `Tuần 2 (8-15/${month})`,
-                `Tuần 3 (16-22/${month})`,
-                `Tuần 4 (23-28/${month})`,
+                `Tuần 2 (8-14/${month})`,
+                `Tuần 3 (15-21/${month})`,
+                `Tuần 4 (22-28/${month})`,
                 `Tuần 5 (29-31/${month})`,
             ],
             datasets: [
@@ -131,6 +131,5 @@ export async function getMonthlyDetail(year, month) {
         };
     }
 }
-
 
 

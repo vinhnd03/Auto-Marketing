@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -10,8 +10,8 @@ import {
     Tooltip,
     Legend,
 } from "chart.js";
-import { Chart } from "react-chartjs-2";
-import { getStatisticByMonthYear } from "../../service/admin/statisticsCustomerService";
+import {Chart} from "react-chartjs-2";
+import {getStatisticByMonthYear} from "../../service/admin/statisticsCustomerService";
 
 ChartJS.register(
     CategoryScale,
@@ -40,13 +40,13 @@ export default function NewCustomerStatistic() {
             const prev = Number(arr[i - 1]) || 0;
             const curr = Number(arr[i]) || 0;
             const rate = prev === 0 ? 0 : ((curr - prev) / prev) * 100;
-            rates.push(Number(rate.toFixed(2)));
+            rates.push(Number(rate.toFixed(1)));
         }
         return rates;
     };
 
     const [monthlyChartData, setMonthlyChartData] = useState({
-        labels: Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`),
+        labels: Array.from({length: 12}, (_, i) => `Tháng ${i + 1}`),
         datasets: [
             {
                 label: "Số lượng khách hàng mới",
@@ -109,7 +109,7 @@ export default function NewCustomerStatistic() {
         try {
             if (selectedMonth === "all") {
                 // --- lấy dữ liệu 12 tháng ---
-                const monthlyPromises = Array.from({ length: 12 }, (_, i) =>
+                const monthlyPromises = Array.from({length: 12}, (_, i) =>
                     getStatisticByMonthYear(i + 1, selectedYear)
                         .then((res) => sum(res?.weekly?.datasets?.[0]?.data || []))
                         .catch(() => 0)
@@ -123,16 +123,16 @@ export default function NewCustomerStatistic() {
                 setMonthlyChartData((prev) => ({
                     ...prev,
                     datasets: [
-                        { ...prev.datasets[0], data: monthlyFromWeeks },
-                        { ...prev.datasets[1], data: calcGrowthRates(monthlyFromWeeks) },
+                        {...prev.datasets[0], data: monthlyFromWeeks},
+                        {...prev.datasets[1], data: calcGrowthRates(monthlyFromWeeks)},
                     ],
                 }));
 
                 setQuarterlyChartData((prev) => ({
                     ...prev,
                     datasets: [
-                        { ...prev.datasets[0], data: quarterlyFromApi },
-                        { ...prev.datasets[1], data: calcGrowthRates(quarterlyFromApi) },
+                        {...prev.datasets[0], data: quarterlyFromApi},
+                        {...prev.datasets[1], data: calcGrowthRates(quarterlyFromApi)},
                     ],
                 }));
 
@@ -140,8 +140,8 @@ export default function NewCustomerStatistic() {
                     ...prev,
                     labels: [],
                     datasets: [
-                        { ...prev.datasets[0], data: [] },
-                        { ...prev.datasets[1], data: [] },
+                        {...prev.datasets[0], data: []},
+                        {...prev.datasets[1], data: []},
                     ],
                 }));
             } else {
@@ -156,13 +156,13 @@ export default function NewCustomerStatistic() {
                     ...prev,
                     labels: weekLabels,
                     datasets: [
-                        { ...prev.datasets[0], data: weeklyFromApi },
-                        { ...prev.datasets[1], data: calcGrowthRates(weeklyFromApi) },
+                        {...prev.datasets[0], data: weeklyFromApi},
+                        {...prev.datasets[1], data: calcGrowthRates(weeklyFromApi)},
                     ],
                 }));
 
                 // --- monthly + quarterly vẫn lấy từ tổng tuần ---
-                const monthlyPromises = Array.from({ length: 12 }, (_, i) =>
+                const monthlyPromises = Array.from({length: 12}, (_, i) =>
                     getStatisticByMonthYear(i + 1, selectedYear)
                         .then((res) => sum(res?.weekly?.datasets?.[0]?.data || []))
                         .catch(() => 0)
@@ -176,16 +176,16 @@ export default function NewCustomerStatistic() {
                 setMonthlyChartData((prev) => ({
                     ...prev,
                     datasets: [
-                        { ...prev.datasets[0], data: monthlyFromWeeks },
-                        { ...prev.datasets[1], data: calcGrowthRates(monthlyFromWeeks) },
+                        {...prev.datasets[0], data: monthlyFromWeeks},
+                        {...prev.datasets[1], data: calcGrowthRates(monthlyFromWeeks)},
                     ],
                 }));
 
                 setQuarterlyChartData((prev) => ({
                     ...prev,
                     datasets: [
-                        { ...prev.datasets[0], data: quarterlyFromApi },
-                        { ...prev.datasets[1], data: calcGrowthRates(quarterlyFromApi) },
+                        {...prev.datasets[0], data: quarterlyFromApi},
+                        {...prev.datasets[1], data: calcGrowthRates(quarterlyFromApi)},
                     ],
                 }));
             }
@@ -203,21 +203,21 @@ export default function NewCustomerStatistic() {
     const options = {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: { mode: "index", intersect: false },
+        interaction: {mode: "index", intersect: false},
         stacked: false,
         scales: {
             y: {
                 type: "linear",
                 display: true,
                 position: "left",
-                title: { display: true, text: "Số khách hàng" },
+                title: {display: true, text: "Số khách hàng"},
             },
             y1: {
                 type: "linear",
                 display: true,
                 position: "right",
-                title: { display: true, text: "Tăng trưởng (%)" },
-                grid: { drawOnChartArea: false },
+                title: {display: true, text: "Tăng trưởng (%)"},
+                grid: {drawOnChartArea: false},
             },
         },
     };
@@ -228,9 +228,10 @@ export default function NewCustomerStatistic() {
 
     return (
         <div className="space-y-6">
+
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
                         Thống kê khách hàng đăng kí mới
                     </h1>
                     <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
@@ -271,8 +272,8 @@ export default function NewCustomerStatistic() {
                     <div className="flex space-x-4 mb-8">
                         <div className="w-1/2">
                             <h3 className="text-lg font-semibold mb-2">Biểu đồ theo tuần</h3>
-                            <div style={{ maxWidth: "500px", height: "300px" }}>
-                                <Chart type="bar" data={weeklyChartData} options={options} />
+                            <div style={{maxWidth: "500px", height: "300px"}}>
+                                <Chart type="bar" data={weeklyChartData} options={options}/>
                             </div>
                         </div>
 
@@ -307,8 +308,8 @@ export default function NewCustomerStatistic() {
                 <div className="flex space-x-4 mb-8">
                     <div className="w-1/2">
                         <h3 className="text-lg font-semibold mb-2">Biểu đồ theo tháng</h3>
-                        <div style={{ maxWidth: "500px", height: "300px" }}>
-                            <Chart type="bar" data={monthlyChartData} options={options} />
+                        <div style={{maxWidth: "500px", height: "300px"}}>
+                            <Chart type="bar" data={monthlyChartData} options={options}/>
                         </div>
 
                         <div className="mt-4 bg-white p-4 rounded shadow">
@@ -336,8 +337,8 @@ export default function NewCustomerStatistic() {
 
                     <div className="w-1/2">
                         <h3 className="text-lg font-semibold mb-2">Biểu đồ theo quý</h3>
-                        <div style={{ maxWidth: "500px", height: "300px" }}>
-                            <Chart type="bar" data={quarterlyChartData} options={options} />
+                        <div style={{maxWidth: "500px", height: "300px"}}>
+                            <Chart type="bar" data={quarterlyChartData} options={options}/>
                         </div>
 
                         <div className="mt-4 bg-white p-4 rounded shadow">

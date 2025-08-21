@@ -86,10 +86,11 @@ function ListUsers() {
 
     return (
         <div className="space-y-6">
+
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
-                        Danh Sách Tài Khoản
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
+                        Danh sách các tài khoản hiện có
                     </h1>
                     <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
                 </div>

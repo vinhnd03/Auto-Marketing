@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { getStatisticPackageByMonthYear } from "../../service/admin/statisticsPackagesService";
-import { Bar } from "react-chartjs-2";
-import { Chart, registerables } from "chart.js";
+import React, {useEffect, useState} from "react";
+import {getStatisticPackageByMonthYear} from "../../service/admin/statisticsPackagesService";
+import {Bar} from "react-chartjs-2";
+import {Chart, registerables} from "chart.js";
 
 Chart.register(...registerables);
 
@@ -49,20 +49,20 @@ function NewPackagePurchased() {
             }
         }
 
-        fetchData();
+        fetchData().then();
     }, [selectedMonth, selectedYear]);
 
     return (
         <div className="space-y-6">
+
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
                         Thống kê khách hàng mua gói mới
                     </h1>
                     <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
                 </div>
             </div>
-
             {/* Bộ lọc */}
             <div className="flex space-x-4 mb-6">
                 <select
@@ -97,10 +97,10 @@ function NewPackagePurchased() {
                     <div className="flex space-x-4 mb-8">
                         <div className="w-1/2">
                             <h3 className="text-lg font-semibold mb-2">Biểu đồ theo tuần</h3>
-                            <div style={{ maxWidth: "500px", height: "300px" }}>
+                            <div style={{maxWidth: "500px", height: "300px"}}>
                                 <Bar
                                     data={weeklyChartData}
-                                    options={{ maintainAspectRatio: false }}
+                                    options={{maintainAspectRatio: false}}
                                 />
                             </div>
                         </div>
@@ -137,10 +137,10 @@ function NewPackagePurchased() {
                 <div className="flex space-x-4 mb-8">
                     <div className="w-1/2">
                         <h3 className="text-lg font-semibold mb-2">Biểu đồ theo tháng</h3>
-                        <div style={{ maxWidth: "500px", height: "300px" }}>
+                        <div style={{maxWidth: "500px", height: "300px"}}>
                             <Bar
                                 data={monthlyChartData}
-                                options={{ maintainAspectRatio: false }}
+                                options={{maintainAspectRatio: false}}
                             />
                         </div>
                         <div className="mt-4 bg-white p-4 rounded shadow">
@@ -166,10 +166,10 @@ function NewPackagePurchased() {
 
                     <div className="w-1/2">
                         <h3 className="text-lg font-semibold mb-2">Biểu đồ theo quý</h3>
-                        <div style={{ maxWidth: "500px", height: "300px" }}>
+                        <div style={{maxWidth: "500px", height: "300px"}}>
                             <Bar
                                 data={quarterlyChartData}
-                                options={{ maintainAspectRatio: false }}
+                                options={{maintainAspectRatio: false}}
                             />
                         </div>
                         <div className="mt-4 bg-white p-4 rounded shadow">

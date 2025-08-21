@@ -111,32 +111,6 @@ public interface IUserRepository extends JpaRepository<User, Long> {
             "   ELSE 5 " +
             "END")
     List<WeekStatisticDTO> countByWeek(@Param("year") int year, @Param("month") int month);
-//    @Query("SELECT new com.codegym.auto_marketing_server.dto.MonthStatisticDTO(" +
-//            "MONTH(u.createdAt), COUNT(u)) " +
-//            "FROM User u " +
-//            "WHERE YEAR(u.createdAt) = :year " +
-//            "GROUP BY MONTH(u.createdAt), u.createdAt " +  // Thêm u.createDate vào GROUP BY
-//            "ORDER BY MONTH(u.createdAt)")
-//    List<MonthStatisticDTO> countByMonth(@Param("year") int year);
-//
-//    // Thống kê theo quý trong 1 năm
-//    @Query("SELECT new com.codegym.auto_marketing_server.dto.QuarterStatisticDTO(" +
-//            "QUARTER(u.createdAt), COUNT(u)) " +
-//            "FROM User u " +
-//            "WHERE YEAR(u.createdAt) = :year " +
-//            "GROUP BY QUARTER(u.createdAt), u.createdAt " +  // Thêm u.createDate vào GROUP BY
-//            "ORDER BY QUARTER(u.createdAt)")
-//    List<QuarterStatisticDTO> countByQuarter(@Param("year") int year);
-//
-//    // Thống kê theo tuần trong 1 tháng (và 1 năm)
-//    @Query("SELECT new com.codegym.auto_marketing_server.dto.WeekStatisticDTO(" +
-//            "WEEK(u.createdAt), COUNT(u)) " +
-//            "FROM User u " +
-//            "WHERE YEAR(u.createdAt) = :year AND MONTH(u.createdAt) = :month " +
-//            "GROUP BY WEEK(u.createdAt), u.createdAt " +  // Thêm u.createDate vào GROUP BY
-//            "ORDER BY WEEK(u.createdAt)")
-//    List<WeekStatisticDTO> countByWeek(@Param("year") int year, @Param("month") int month);
-
 
     // Thống kê theo tháng trong 1 năm dựa trên startDate của Subscription
     @Query("SELECT new com.codegym.auto_marketing_server.dto.MonthStatisticDTO(" +
@@ -185,16 +159,6 @@ public interface IUserRepository extends JpaRepository<User, Long> {
             "   ELSE 5 " +
             "END")
     List<WeekStatisticDTO> countPackagesByWeek(@Param("year") int year, @Param("month") int month);
-
-
-    //    @Query("SELECT new com.codegym.auto_marketing_server.dto.WeekStatisticDTO(" +
-//            "WEEK(s.startDate), COUNT(s)) " +
-//            "FROM Subscription s " +
-//            "WHERE YEAR(s.startDate) = :year AND MONTH(s.startDate) = :month " +
-//            "GROUP BY WEEK(s.startDate) " +
-//            "ORDER BY WEEK(s.startDate)")
-//    List<WeekStatisticDTO> countPackagesByWeek(@Param("year") int year, @Param("month") int month);
-
 
     //thông báo
     @Query("""
