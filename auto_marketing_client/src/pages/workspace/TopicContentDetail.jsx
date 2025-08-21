@@ -5,6 +5,15 @@ import { getPostsByTopic } from "../../service/post_service";
 import dayjs from "dayjs";
 
 const TopicContentDetail = ({ topic, onBack }) => {
+  // Khi quay lại danh sách content, nếu content vừa xem là mới thì bỏ badge 'Mới'
+  const handleBackFromDetail = () => {
+    if (selectedContent && selectedContent.isNew) {
+      setContents((prev) =>
+        prev.map((c) => (c === selectedContent ? { ...c, isNew: false } : c))
+      );
+    }
+    setSelectedContent(null);
+  };
   const [showGenContentModal, setShowGenContentModal] = useState(false);
   const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -63,8 +72,11 @@ const TopicContentDetail = ({ topic, onBack }) => {
             content: item.content || item.text || item.body || "",
             title: item.title || `Content #${item.id || idx + 1}`,
             createdAt: item.createdAt || new Date().toISOString(),
-            hashtag: Array.isArray(item.hashtags) ? item.hashtags.join(", ") : (item.hashtag || ""),
-            imageUrl: item.imageUrl || (item.images && item.images[0]) || ""
+            hashtag: Array.isArray(item.hashtags)
+              ? item.hashtags.join(", ")
+              : item.hashtag || "",
+            imageUrl: item.imageUrl || (item.images && item.images[0]) || "",
+            isNew: true, // Đánh dấu content mới
           });
           const normalized = Array.isArray(newContents)
             ? newContents.map(normalize)
@@ -95,7 +107,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
             <button
               className="mb-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200"
-              onClick={() => setSelectedContent(null)}
+              onClick={handleBackFromDetail}
             >
               ← Quay lại danh sách content
             </button>
@@ -174,13 +186,22 @@ const TopicContentDetail = ({ topic, onBack }) => {
                 return (
                   <div
                     key={content.id || idx}
-                    className="bg-white border border-gray-200 rounded-lg p-4 shadow hover:shadow-lg cursor-pointer flex flex-col"
+                    className="bg-white border border-gray-200 rounded-lg p-4 shadow hover:shadow-lg cursor-pointer flex flex-col relative"
                     onClick={() => setSelectedContent(content)}
                   >
+                    {/* Badge Mới luôn nổi trên cùng */}
+                    {content.isNew && (
+                      <span
+                        className="absolute z-20 top-2 right-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow"
+                        style={{ pointerEvents: "none" }}
+                      >
+                        Mới
+                      </span>
+                    )}
                     {/* Hiển thị ảnh nếu có */}
                     {content.imageUrl && (
-                      <div className="mb-3 flex justify-center">
-                        <div className="relative group w-full max-w-xs">
+                      <div className="mb-3 flex justify-center relative z-10">
+                        <div className="group w-full max-w-xs">
                           <img
                             src={content.imageUrl}
                             alt="AI generated"
