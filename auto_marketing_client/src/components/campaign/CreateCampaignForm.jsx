@@ -7,7 +7,11 @@ import CampaignService from "../../service/campaignService";
 import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
-export default function CreateCampaignForm({ onSubmit, onCancel }) {
+export default function CreateCampaignForm({
+  onSubmit,
+  onCancel,
+  onUploadSuccess,
+}) {
   const { workspaceId } = useParams();
   const [dataSourceMethod, setDataSourceMethod] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -92,8 +96,7 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
           endDate: "",
           file: null,
         });
-        setPreviewData([]);
-        setUploadedFile(null);
+        if (onUploadSuccess) await onUploadSuccess();
         onCancel();
       } else if (res.errors) {
         setUploadError(res.errors);
@@ -172,7 +175,9 @@ export default function CreateCampaignForm({ onSubmit, onCancel }) {
       .required("Tên chiến dịch không được để trống")
       .min(3, "Tên chiến dịch phải có ít nhất 3 ký tự")
       .max(100, "Tên chiến dịch không được vượt quá 100 ký tự"),
-    description: Yup.string().max(500, "Mô tả không được vượt quá 500 ký tự"),
+    description: Yup.string()
+      .required("Chi tiết không được để trống")
+      .max(500, "Mô tả không được vượt quá 500 ký tự"),
 
     startDate: Yup.date().required("Vui lòng chọn ngày bắt đầu"),
 
