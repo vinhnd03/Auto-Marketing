@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { X, Wand2, FileText, Image, Sparkles, Eye, Edit } from "lucide-react";
 import SocialMediaPublisher from "./SocialMediaPublisher";
-import { generateContentWithAI } from "../../service/post_service";
+import {
+  generateContentWithAI,
+  approveAndCleanPosts,
+} from "../../service/post_service";
 import toast from "react-hot-toast";
 
-const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
+const AIContentGenerator = ({
+  isOpen,
+  onClose,
+  onGenerate,
+  selectedTopic,
+  onContentSaved,
+}) => {
   const [generating, setGenerating] = useState(false);
   const [contentSettings, setContentSettings] = useState({
     postCount: 3,
@@ -92,11 +101,11 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
       setSelectedContentIds(safeContent.map((c) => c.id));
       setShowResults(true);
       setGenerating(false);
-      toast.success("Tạo nội dung thành công!");
+      toast.success("Tạo nội dung thành công!", { style: { zIndex: 110000 } });
     } catch (err) {
       setError("Không thể tạo nội dung. Vui lòng thử lại.");
       setGenerating(false);
-      toast.error("Tạo nội dung thất bại!");
+      toast.error("Tạo nội dung thất bại!", { style: { zIndex: 110000 } });
     }
   };
 
@@ -145,11 +154,34 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
     setSelectedContentIds([]);
   };
 
-  // Function để lưu chỉ những content được chọn
-  const handleSaveSelectedContent = () => {
-    setShowPublisher(true);
-  };
+  const handleSaveSelectedContent = async () => {
+    try {
+      setGenerating(true);
 
+      const response = await approveAndCleanPosts(
+        selectedTopic?.id,
+        selectedContentIds
+      );
+      const approvedPosts = Array.isArray(response.data)
+        ? response.data
+        : [response.data];
+
+      setPreviewContent(approvedPosts);
+      setShowPublisher(false);
+      toast.success("Lưu nội dung thành công!", { style: { zIndex: 110000 } });
+      setGenerating(false);
+      setShowResults(false); // Nếu muốn ẩn kết quả sau khi lưu
+
+      if (onContentSaved) {
+        onContentSaved(approvedPosts);
+      }
+      // GỌI onClose để tắt modal AI gen content
+      onClose();
+    } catch (err) {
+      setGenerating(false);
+      toast.error("Lưu nội dung thất bại!", { style: { zIndex: 110000 } });
+    }
+  };
   // Function để xử lý khi publish thành công
   const handlePublishSuccess = (publishResult) => {
     onGenerate(publishResult.publishedContent);
@@ -489,7 +521,7 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
                         onClick={handleSaveSelectedContent}
                         className="px-6 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
                       >
-                        <span>🚀 Publish nội dung đã chọn</span>
+                        <span>💾 Lưu nội dung đã chọn</span>
                         <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
                           {selectedContentIds.length}
                         </span>
@@ -1010,16 +1042,6 @@ const AIContentGenerator = ({ isOpen, onClose, onGenerate, selectedTopic }) => {
           )}
         </div>
       </div>
-
-      {/* Social Media Publisher Modal */}
-      <SocialMediaPublisher
-        isOpen={showPublisher}
-        onClose={() => setShowPublisher(false)}
-        selectedContent={previewContent.filter((content) =>
-          selectedContentIds.includes(content.id)
-        )}
-        onPublishSuccess={handlePublishSuccess}
-      />
     </>
   );
 };

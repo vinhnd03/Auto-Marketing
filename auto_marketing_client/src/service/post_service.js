@@ -28,3 +28,10 @@ export async function generateContentWithAI(body) {
     throw error;
   }
 }
+
+export async function approveAndCleanPosts(topicId, selectedPostIds) {
+  return apiClient.post(
+    `/posts/approve-and-clean?topicId=${topicId}`,
+    selectedPostIds
+  );
+}
