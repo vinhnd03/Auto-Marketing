@@ -1,9 +1,11 @@
 package com.codegym.auto_marketing_server.security.oauth2;
 
 import com.codegym.auto_marketing_server.entity.Role;
+import com.codegym.auto_marketing_server.entity.SocialAccount;
 import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.security.jwt.service.JwtService;
 import com.codegym.auto_marketing_server.service.IRoleService;
+import com.codegym.auto_marketing_server.service.ISocialAccountService;
 import com.codegym.auto_marketing_server.service.IUserService;
 import com.codegym.auto_marketing_server.util.CloudinaryService;
 import jakarta.servlet.http.Cookie;
@@ -25,6 +27,8 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 
 @Component
@@ -35,6 +39,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     private final IRoleService roleService;
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final CloudinaryService cloudinaryService;
+    private final ISocialAccountService socialAccountService;
 
     @Value("${FACEBOOK_CLIENT_ID}")
     private String facebookClientId;
@@ -126,6 +131,8 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             user.setRole(userRole);
             user.setPassword("OAUTH2"); // tránh null
             user.setStatus(true);
+            userService.save(user);
+
         }
 
         // Cập nhật thông tin OAuth2
@@ -146,7 +153,24 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
                 }
             }
         }
-        userService.save(user);
+        User savedUser =  userService.save(user);
+
+        if ("facebook".equalsIgnoreCase(provider) && !socialAccountService.checkExistingSocialAccounts(savedUser.getId())) {
+            // đổi token sang long-lived
+            FacebookTokenData dataToken = exchangeFacebookToken(accessToken);
+
+            // tạo SocialAccount mới thay vì lưu vào User
+            SocialAccount socialAccount = new SocialAccount();
+            socialAccount.setPlatform("facebook");
+            socialAccount.setAccountName(name != null ? name : email.split("@")[0]);
+            socialAccount.setPlatformAccountId(providerId);
+            socialAccount.setAccessToken(dataToken.token());
+            socialAccount.setExpiresAt(dataToken.expiry() != null ? LocalDateTime.ofInstant(dataToken.expiry(), ZoneId.systemDefault()) : null);
+            socialAccount.setUser(user); // liên kết với user hiện tại
+
+            socialAccountService.save(socialAccount);
+        }
+
 
         // Tạo JWT lưu trong cookie
         String jwtToken = jwtService.generateToken(user);

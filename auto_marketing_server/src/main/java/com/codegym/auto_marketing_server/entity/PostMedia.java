@@ -2,6 +2,7 @@ package com.codegym.auto_marketing_server.entity;
 
 
 import com.codegym.auto_marketing_server.enums.PostMediaType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,5 +26,6 @@ public class PostMedia {
 
     @ManyToOne
     @JoinColumn(name="post_id")
+    @JsonBackReference
     private Post post;
 }

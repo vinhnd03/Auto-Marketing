@@ -9,4 +9,6 @@ public interface IFanpageRepository extends JpaRepository<Fanpage, Long> {
     List<Fanpage> findBySocialAccountId(Long socialAccountId);
 
     List<Fanpage> findByPageId(String pageId);
+
+
 }

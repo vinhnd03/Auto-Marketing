@@ -24,4 +24,6 @@ public interface IUserService {
     Optional<User> findById(Long id);
 
     void updateUserProfile(User user);
+
+    User getCurrentUser();
 }

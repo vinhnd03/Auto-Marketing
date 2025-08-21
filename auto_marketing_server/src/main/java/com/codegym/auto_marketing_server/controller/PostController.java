@@ -95,4 +95,14 @@ public class PostController {
         PostResponseDTO post = postService.updatePostStatus(postId, status);
         return ResponseEntity.ok(post);
     }
+
+    @GetMapping("/all")
+    @Operation(
+            summary = "Get all posts",
+            description = "Retrieve all posts stored in the database"
+    )
+    public ResponseEntity<List<PostResponseDTO>> getAllPosts() {
+        List<PostResponseDTO> posts = postService.getAllPosts();
+        return ResponseEntity.ok(posts);
+    }
 }

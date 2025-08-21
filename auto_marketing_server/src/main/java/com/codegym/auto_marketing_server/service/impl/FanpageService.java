@@ -1,10 +1,66 @@
 package com.codegym.auto_marketing_server.service.impl;
 
+import com.codegym.auto_marketing_server.entity.Fanpage;
+import com.codegym.auto_marketing_server.entity.SocialAccount;
 import com.codegym.auto_marketing_server.repository.IFanpageRepository;
+import com.codegym.auto_marketing_server.repository.ISocialAccountRepository;
 import com.codegym.auto_marketing_server.service.IFanpageService;
+import com.codegym.auto_marketing_server.service.impl.facebook.FacebookClient;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
 @RequiredArgsConstructor
 public class FanpageService implements IFanpageService {
     private final IFanpageRepository fanpageRepository;
+    private final FacebookClient facebookClient;
+    private final ISocialAccountRepository socialAccountRepository;
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    @Transactional
+    public List<Fanpage> syncUserPages(Long userId) {
+        SocialAccount socialAccount = socialAccountRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User chưa liên kết tài khoản Facebook"));
+        // Gọi Graph API /me/accounts để lấy danh sách page và page access token
+        var response = facebookClient.getUserPages(socialAccount.getAccessToken());
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Không lấy được danh sách fanpage từ Facebook");
+        }
+
+        List<Fanpage> saved = new ArrayList<>();
+        try {
+            JsonNode root = mapper.readTree(response.getBody());
+            for (JsonNode node: root.path("data")) {
+                String pageId = node.path("id").asText();
+                String pageName = node.path("name").asText();
+                String pageAccessToken = node.path("access_token").asText();
+
+                // upsert theo pageId + socialAccount
+                Fanpage fanpage = fanpageRepository.findBySocialAccountId(socialAccount.getId())
+                        .stream().filter(f -> pageId.equals(f.getPageId())).findFirst().orElse(new Fanpage());
+
+                fanpage.setPageId(pageId);
+                fanpage.setPageName(pageName);
+                fanpage.setPageAccessNameToken(pageAccessToken);
+                fanpage.setSocialAccount(socialAccount);
+                fanpage.setTokenExpireAt(null);
+                saved.add(fanpageRepository.save(fanpage));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Parse danh sách fanpage thất bại: " + e.getMessage());
+        }
+        return saved;
+    }
+
+    public List<Fanpage> listByUser(Long userId) {
+        SocialAccount socialAccount = socialAccountRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User chưa lin kết tài khoản facebook"));
+        return fanpageRepository.findBySocialAccountId(socialAccount.getId());
+    }
 }
