@@ -65,7 +65,6 @@ public class AuthController {
         }
 
         try {
-            System.out.println(request.getNewPassword());
             userService.changePassword(userToken.getUser().getId(), request.getNewPassword());
 
             // Vô hiệu hoá token sau khi sử dụng
@@ -144,7 +143,6 @@ public class AuthController {
             long maxAge = loginRequest.getRememberMe() ? 30 * 24 * 60 * 60 : 3600;
 
             String token = jwtService.generateToken((User) userDetails);
-            System.out.println(maxAge);
             // Tạo httpOnly cookie
             ResponseCookie cookie = ResponseCookie.from("jwt", token)
                     .httpOnly(true)

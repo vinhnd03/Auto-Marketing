@@ -28,34 +28,42 @@ public class PostController {
 
     private final IPostService postService;
 
+//    @PostMapping("/generate")
+//    @Operation(
+//            summary = "Generate post content using AI",
+//            description = "Generate marketing post content from an approved topic using AI. " +
+//                    "Supports various content types and customization options.",
+//            responses = {
+//                    @ApiResponse(responseCode = "200", description = "Content generated successfully",
+//                            content = @Content(schema = @Schema(implementation = PostResponseDTO.class))),
+//                    @ApiResponse(responseCode = "400", description = "Invalid request data"),
+//                    @ApiResponse(responseCode = "404", description = "Topic not found or not approved"),
+//                    @ApiResponse(responseCode = "500", description = "AI generation failed")
+//            }
+//    )
+//    public CompletableFuture<ResponseEntity<List<PostResponseDTO>>> generateContent(
+//            @Valid @RequestBody ContentGenerationRequestDTO request) {
+//
+//        log.info("🤖 Generating {} posts for topic ID: {}",
+//                request.getNumberOfPosts(), request.getTopicId());
+//
+//        return postService.generateContentWithAI(request)
+//                .thenApply(posts -> {
+//                    log.info("Successfully generated {} posts", posts.size());
+//                    return ResponseEntity.ok(posts);
+//                })
+//                .exceptionally(throwable -> {
+//                    log.error("Failed to generate content: {}", throwable.getMessage());
+//                    return ResponseEntity.internalServerError().build();
+//                });
+//    }
+
     @PostMapping("/generate")
-    @Operation(
-            summary = "Generate post content using AI",
-            description = "Generate marketing post content from an approved topic using AI. " +
-                    "Supports various content types and customization options.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Content generated successfully",
-                            content = @Content(schema = @Schema(implementation = PostResponseDTO.class))),
-                    @ApiResponse(responseCode = "400", description = "Invalid request data"),
-                    @ApiResponse(responseCode = "404", description = "Topic not found or not approved"),
-                    @ApiResponse(responseCode = "500", description = "AI generation failed")
-            }
-    )
-    public CompletableFuture<ResponseEntity<List<PostResponseDTO>>> generateContent(
+    public ResponseEntity<List<PostResponseDTO>> generateContent(
             @Valid @RequestBody ContentGenerationRequestDTO request) {
 
-        log.info("🤖 Generating {} posts for topic ID: {}",
-                request.getNumberOfPosts(), request.getTopicId());
-
-        return postService.generateContentWithAI(request)
-                .thenApply(posts -> {
-                    log.info("Successfully generated {} posts", posts.size());
-                    return ResponseEntity.ok(posts);
-                })
-                .exceptionally(throwable -> {
-                    log.error("Failed to generate content: {}", throwable.getMessage());
-                    return ResponseEntity.internalServerError().build();
-                });
+        List<PostResponseDTO> posts = postService.generateContentWithAI(request).join();
+        return ResponseEntity.ok(posts);
     }
 
     @GetMapping("/topic/{topicId}")
@@ -94,6 +102,19 @@ public class PostController {
 
         PostResponseDTO post = postService.updatePostStatus(postId, status);
         return ResponseEntity.ok(post);
+    }
+
+    @PostMapping("/approve-and-clean")
+    @Operation(
+            summary = "Approve selected posts and delete unselected DRAFT posts",
+            description = "Approve selected posts (status = APPROVED), and delete all DRAFT posts from the topic that are not selected"
+    )
+    public ResponseEntity<List<PostResponseDTO>> approveAndCleanPosts(
+            @RequestParam Long topicId,
+            @RequestBody List<Long> selectedPostIds
+    ) {
+        List<PostResponseDTO> result = postService.approveAndCleanPosts(topicId, selectedPostIds);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/all")

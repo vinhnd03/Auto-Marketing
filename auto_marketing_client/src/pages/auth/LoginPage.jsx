@@ -21,19 +21,6 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { fetchUser, user } = useAuth();
   const navigate = useNavigate();
-  const shownRef = useRef(false);
-  const location = useLocation();
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const error = params.get("error");
-    if (error === "ACCOUNT_DISABLED" && !shownRef.current) {
-      shownRef.current = true;
-      toast.error("Tài khoản này đã bị khóa");
-      // Xóa param error khỏi URL
-      navigate(location.pathname, { replace: true });
-    }
-  }, [location, navigate]);
 
   const initialValues = {
     email: "",
@@ -46,7 +33,8 @@ const LoginPage = () => {
       const result = await authService.login(values);
       if (result.success) {
         await fetchUser(); // 🚀 reload lại user từ server
-        toast.success("Đăng nhập thành công!");
+          toast.dismiss();
+          toast.success("Đăng nhập thành công!");
         if (user?.role?.name === "ADMIN") {
           navigate("/admin");
         } else {

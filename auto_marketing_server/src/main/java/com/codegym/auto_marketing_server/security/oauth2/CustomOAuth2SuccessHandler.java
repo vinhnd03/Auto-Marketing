@@ -182,7 +182,6 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         // Tạo JWT lưu trong cookie
         String jwtToken = jwtService.generateToken(user);
-        System.out.println(maxAge);
         // Tạo httpOnly cookie
         ResponseCookie cookie = ResponseCookie.from("jwt", jwtToken)
                 .httpOnly(true)
@@ -217,7 +216,6 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
                 long expiresInSec = ((Number) result.get("expires_in")).longValue();
                 expiry = Instant.now().plusSeconds(expiresInSec);
                 // lưu expiry vào user sau khi gọi hàm này
-                System.out.println("expiry: " + expiry);
             }
 
             return new FacebookTokenData(longLivedToken, expiry);

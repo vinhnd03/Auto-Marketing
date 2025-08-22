@@ -22,4 +22,6 @@ public interface IPostService {
     Post save(Post post);
 
     List<PostResponseDTO> getAllPosts();
+
+    List<PostResponseDTO> approveAndCleanPosts(Long topicId, List<Long> selectedPostIds);
 }

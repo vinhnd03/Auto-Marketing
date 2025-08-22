@@ -40,7 +40,6 @@ import PaymentResultComponent from "./components/pricing/PaymentResultComponent"
 import AdminLayout from "./components/layout/AdminLayout";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import RevenueStatsPage from "./pages/admin/RevenueStatsPage";
-
 import { ForbiddenPage, NotFoundPage } from "./pages/error/ErrorPage ";
 import AdminRoute from "./routes/AdminRoute";
 import GuestRoute from "./routes/GuestRoute";
@@ -54,6 +53,8 @@ import DetailUserComponent from "./components/admin/DetailUser";
 import PackageStatsPage from "./pages/admin/PackageStatsPage";
 import PlanPage from "./pages/admin/PlanPage";
 import NewPackagePurchased from "./components/admin/NewPackagePurchased";
+
+import GlobalScrollToTop from "./components/ui/GlobalScrollToTop";
 
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
@@ -213,8 +214,7 @@ function App() {
                   path="/workspace"
                   element={
                     <ProtectedRoute>
-                      {" "}
-                      <WorkspacePage />{" "}
+                      <WorkspacePage />
                     </ProtectedRoute>
                   }
                 />
@@ -226,12 +226,18 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/*" element={<Navigate to="/not-found" replace />} />
+                <Route
+                  path="/*"
+                  element={<Navigate to="/not-found" replace />}
+                />
               </Routes>
             </AppLayout>
           }
         />
+        <Route path="/unauthorized" element={<ForbiddenPage />} />
+        <Route path="/not-found" element={<NotFoundPage />} />
       </Routes>
+      <GlobalScrollToTop />
       <Toaster
         position="top-right"
         toastOptions={{
@@ -239,12 +245,14 @@ function App() {
           style: {
             background: "#363636",
             color: "#fff",
+            zIndex: 999999,
           },
           success: {
             duration: 2500,
             style: {
               background: "#10B981",
               color: "#fff",
+              zIndex: 999999,
             },
           },
           error: {
@@ -252,6 +260,7 @@ function App() {
             style: {
               background: "#EF4444",
               color: "#fff",
+              zIndex: 999999,
             },
           },
         }}
