@@ -246,40 +246,39 @@ const WorkspaceDetailPage = () => {
   const handleTopicGenerated = async (newTopics) => {
     console.log("Topics được tạo:", newTopics);
 
-    // Sử dụng topics từ AITopicGenerator
-    const createdTopicIds = newTopics.map((topic) => topic.id);
+    // Lấy campaignId từ topic đầu tiên (giả sử cùng campaign)
+    const campaignId = newTopics[0]?.campaignId;
+    if (!campaignId) {
+      toast.error("Không xác định được campaign để lấy topics mới!");
+      return;
+    }
 
-    // Cập nhật workspace với topics mới
-    setWorkspace((prevWorkspace) => {
-      const updatedWorkspace = { ...prevWorkspace };
-
-      // Tìm campaign tương ứng và thêm topics
-      newTopics.forEach((topic) => {
+    try {
+      // Gọi lại API lấy danh sách topic mới nhất từ BE
+      const latestTopics = await getTopicsByCampaign(campaignId);
+      setWorkspace((prevWorkspace) => {
+        const updatedWorkspace = { ...prevWorkspace };
         const campaignIndex = updatedWorkspace.campaigns.findIndex(
-          (c) => c.id === topic.campaignId
+          (c) => c.id === campaignId
         );
-
         if (campaignIndex !== -1) {
-          if (!updatedWorkspace.campaigns[campaignIndex].topicsList) {
-            updatedWorkspace.campaigns[campaignIndex].topicsList = [];
-          }
-          updatedWorkspace.campaigns[campaignIndex].topicsList.push({
-            ...topic,
-            isNew: true,
-            createdAt: new Date().toISOString().split("T")[0],
-            pendingPosts: Math.floor(Math.random() * 5) + 1, // Random số content cần tạo
-          });
-          updatedWorkspace.campaigns[campaignIndex].topics += 1;
+          updatedWorkspace.campaigns[campaignIndex].topicsList = latestTopics;
+          updatedWorkspace.campaigns[campaignIndex].topics =
+            latestTopics.length;
         }
+        return updatedWorkspace;
       });
+      setNewlyCreatedTopics(latestTopics.map((topic) => topic.id));
+      setActiveTab("topics");
+      toast.success(`Đã tạo thành công ${newTopics.length} topics mới!`);
 
-      return updatedWorkspace;
-    });
-
-    setNewlyCreatedTopics(createdTopicIds);
-    setActiveTab("topics");
-
-    toast.success(`Đã tạo thành công ${newTopics.length} topics mới!`);
+      // Reload workspace to ensure new campaigns/topics are shown
+      if (typeof fetchWorkspaceData === "function") {
+        fetchWorkspaceData();
+      }
+    } catch (err) {
+      toast.error("Không thể lấy danh sách topic mới từ server!");
+    }
   };
 
   const handleHideAITopics = () => {
@@ -593,48 +592,41 @@ const WorkspaceDetailPage = () => {
     setPosts((prev) => prev.filter((p) => p.id !== deletedPost.id));
   };
 
-  useEffect(() => {
-    const fetchWorkspaceData = async () => {
-      setLoadingWorkspace(true);
-      try {
-        // 1. Lấy workspace từ API
-        const wsData = await getWorkspaceDetail(workspaceId); // bạn cần có hàm này
+  // Expose fetchWorkspaceData so it can be called elsewhere
+  const fetchWorkspaceData = React.useCallback(async () => {
+    setLoadingWorkspace(true);
+    try {
+      // 1. Lấy workspace từ API
+      const wsData = await getWorkspaceDetail(workspaceId); // bạn cần có hàm này
 
-        // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
-        const campaignsData =
-          wsData.campaigns ??
-          (
-            await campaignService.findAllCampaign(
-              0,
-              10,
-              "",
-              "",
-              "",
-              workspaceId
-            )
-          ).content;
-        // 3. Với mỗi campaign => lấy topics
-        const campaignsWithTopics = await Promise.all(
-          campaignsData.map(async (campaign) => {
-            const topicsList = await getTopicsByCampaign(campaign.id);
-            return { ...campaign, topicsList: topicsList || [] };
-          })
-        );
+      // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
+      const campaignsData =
+        wsData.campaigns ??
+        (await campaignService.findAllCampaign(0, 10, "", "", "", workspaceId))
+          .content;
+      // 3. Với mỗi campaign => lấy topics
+      const campaignsWithTopics = await Promise.all(
+        campaignsData.map(async (campaign) => {
+          const topicsList = await getTopicsByCampaign(campaign.id);
+          return { ...campaign, topicsList: topicsList || [] };
+        })
+      );
 
-        setWorkspace({
-          ...wsData,
-          campaigns: campaignsWithTopics,
-        });
-      } catch (err) {
-        toast.error("Không thể tải dữ liệu workspace từ API");
-        setWorkspace(null);
-      } finally {
-        setLoadingWorkspace(false);
-      }
-    };
-
-    fetchWorkspaceData();
+      setWorkspace({
+        ...wsData,
+        campaigns: campaignsWithTopics,
+      });
+    } catch (err) {
+      toast.error("Không thể tải dữ liệu workspace từ API");
+      setWorkspace(null);
+    } finally {
+      setLoadingWorkspace(false);
+    }
   }, [workspaceId]);
+
+  useEffect(() => {
+    fetchWorkspaceData();
+  }, [workspaceId, fetchWorkspaceData]);
 
   if (loadingWorkspace) {
     return <div>Đang tải workspace...</div>;
