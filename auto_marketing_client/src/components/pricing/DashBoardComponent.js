@@ -2,11 +2,9 @@ import React, {useEffect, useState} from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import {useNavigate, useLocation} from "react-router-dom";
-import {useAuth} from "../../context/AuthContext";
+import {useAuth} from "../../context/AuthContext"
 import PaymentResultModal from "./PaymentResultComponent";
+import {useLocation, useNavigate} from "react-router-dom";
 // tách riêng modal
 
 const ListComponent = () => {
@@ -18,6 +16,11 @@ const ListComponent = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+
+    const handleCloseResult = () => {
+        setPaymentResult(null);
+    };
+
     // Fetch plans
     useEffect(() => {
         const fetchPlans = async () => {
@@ -28,7 +31,6 @@ const ListComponent = () => {
                 setPlans(Array.isArray(response.data) ? response.data : []);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách gói:", error);
-                toast.error("Không tải được danh sách gói.");
             }
         };
         fetchPlans();
@@ -90,6 +92,8 @@ const ListComponent = () => {
                         serviceName: plan.name,
                         amount: plan.price,
                         userId: user.id,
+                        maxWorkspace: plan.maxWorkspace,
+                        duration: plan.durationDate, // hoặc trường tương ứng
                     },
                     { withCredentials: true }
                 );
@@ -170,7 +174,7 @@ const ListComponent = () => {
                                         {plan?.planLevel === 2 && (
                                             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                                                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
-                                                    :fire: Phổ biến nhất
+                                                     Phổ biến nhất
                                                 </div>
                                             </div>
                                         )}

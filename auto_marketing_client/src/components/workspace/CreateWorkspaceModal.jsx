@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, {useState, useRef, useEffect} from "react";
 import { X, Camera, Upload, User } from "lucide-react";
 import toast from "react-hot-toast";
 import { Formik, Form, Field } from "formik";
