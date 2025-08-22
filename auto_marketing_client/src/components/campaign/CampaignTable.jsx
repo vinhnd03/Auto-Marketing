@@ -5,9 +5,11 @@ import CreateCampaignForm from "../campaign/CreateCampaignForm";
 import DeleteConfirmationModal from "../ui/DeleteConfirmationModal";
 import EditCampaignForm from "../campaign/EditCampaignForm";
 import DetailCampaign from "../campaign/DetailCampaign";
+import campaignService from "../../service/campaignService";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
-const CampaignTable = ({ campaigns = [] }) => {
+import { useAuth } from "../../context/AuthContext";
+const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [recordsPerPage, setRecordsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,8 +26,23 @@ const CampaignTable = ({ campaigns = [] }) => {
   const [errors, setErrors] = useState({});
   const [campaignToView, setCampaignToView] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [totalCampaign, setTotalCampaign] = useState(0);
   const { workspaceId } = useParams();
-
+  const { user } = useAuth();
+  const fetchCountCampaign = async () => {
+    try {
+      const campaignNumber = await campaignService.countCampaign(user.id);
+      setTotalCampaign(campaignNumber);
+      if (onTotalCampaignChange) {
+        onTotalCampaignChange(campaignNumber); // truyền ra ngoài
+      }
+    } catch (err) {
+      setTotalCampaign(null);
+      if (onTotalCampaignChange) {
+        onTotalCampaignChange(null);
+      }
+    }
+  };
   const fetchData = async () => {
     setIsLoading(true);
     const { content, totalElements } = await CampaignService.findAllCampaign(
@@ -39,10 +56,12 @@ const CampaignTable = ({ campaigns = [] }) => {
     setCampaignList(content);
     setTotalRecords(totalElements);
     setIsLoading(false);
+    fetchCountCampaign();
   };
 
   useEffect(() => {
     fetchData();
+    fetchCountCampaign();
   }, [currentPage, recordsPerPage, searchTerm, startDate, endDate]);
 
   const processedCampaigns = campaignList.filter((campaign) =>
@@ -88,7 +107,7 @@ const CampaignTable = ({ campaigns = [] }) => {
       setTotalRecords(totalElements);
       setShowForm(false);
       toast.success("Thêm mới chiến dịch thành công");
-
+      await fetchCountCampaign();
       return { data: response.data, errors: null };
     } catch (error) {
       console.error("Lỗi khi tạo campaign:", error);
@@ -143,6 +162,7 @@ const CampaignTable = ({ campaigns = [] }) => {
 
       setShowDeleteModal(false);
       setCampaignToDelete(null);
+      await fetchCountCampaign();
       toast.success("Xóa chiến dịch thành công");
     } catch (error) {
       console.error("Lỗi khi xóa campaign:", error);
