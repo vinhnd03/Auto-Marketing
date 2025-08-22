@@ -32,6 +32,9 @@ import { ArrowUpCircle } from "lucide-react";
 import campaignService from "../../service/campaignService";
 
 const WorkspaceDetailPage = () => {
+  // State cho tìm kiếm campaign
+  const [campaignSearch, setCampaignSearch] = useState("");
+  const [filteredCampaigns, setFilteredCampaigns] = useState([]);
   // Scroll to top button visibility
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -276,7 +279,9 @@ const WorkspaceDetailPage = () => {
       const latestTopics = await getTopicsByCampaign(campaignId);
 
       // Chỉ lấy các topic vừa tạo (lọc theo id)
-      const newGeneratedTopics = latestTopics.filter((topic) => generatedTopicIds.includes(topic.id));
+      const newGeneratedTopics = latestTopics.filter((topic) =>
+        generatedTopicIds.includes(topic.id)
+      );
 
       setWorkspace((prevWorkspace) => {
         const updatedWorkspace = { ...prevWorkspace };
@@ -293,7 +298,9 @@ const WorkspaceDetailPage = () => {
       setNewlyCreatedTopics(newGeneratedTopics.map((topic) => topic.id));
       setActiveTab("topics");
       toast.dismiss();
-      toast.success(`Đã tạo thành công ${newGeneratedTopics.length} topics mới!`);
+      toast.success(
+        `Đã tạo thành công ${newGeneratedTopics.length} topics mới!`
+      );
 
       // Reload workspace to ensure new campaigns/topics are shown
       if (typeof fetchWorkspaceData === "function") {
@@ -652,6 +659,23 @@ const WorkspaceDetailPage = () => {
     fetchWorkspaceData();
   }, [workspaceId, fetchWorkspaceData]);
 
+  // Lọc campaign theo tên khi search
+  useEffect(() => {
+    if (!workspace || !workspace.campaigns) {
+      setFilteredCampaigns([]);
+      return;
+    }
+    if (!campaignSearch.trim()) {
+      setFilteredCampaigns(workspace.campaigns);
+    } else {
+      setFilteredCampaigns(
+        workspace.campaigns.filter((c) =>
+          (c.name || "").toLowerCase().includes(campaignSearch.toLowerCase())
+        )
+      );
+    }
+  }, [campaignSearch, workspace]);
+
   if (loadingWorkspace) {
     return <div>Đang tải workspace...</div>;
   }
@@ -923,7 +947,15 @@ const WorkspaceDetailPage = () => {
 
               {activeTab === "topics" && (
                 <div className="space-y-6">
-                  <div className="flex items-center justify-end">
+                  {/* Thanh tìm kiếm campaign */}
+                  <div className="flex items-center justify-between mb-4">
+                    <input
+                      type="text"
+                      className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="Tìm kiếm tên chiến dịch  ..."
+                      value={campaignSearch}
+                      onChange={(e) => setCampaignSearch(e.target.value)}
+                    />
                     <div className="flex space-x-3">
                       {/* Nút generate nhanh */}
                       {newlyCreatedTopics.length > 0 && (
@@ -1070,8 +1102,8 @@ const WorkspaceDetailPage = () => {
                   ) : (
                     <>
                       {/* Danh sách các campaign và topic đã có */}
-                      {workspace.campaigns.map((campaign) => {
-                        // Lấy danh sách topic đã approved
+                      {filteredCampaigns.map((campaign) => {
+                        // ...existing code...
                         const topicsListArr = Array.isArray(campaign.topicsList)
                           ? campaign.topicsList
                           : [];
@@ -1087,11 +1119,13 @@ const WorkspaceDetailPage = () => {
                         const visibleTopics = approvedTopics.slice(0, pageSize);
                         const hasMore =
                           approvedTopics.length > visibleTopics.length;
+                        // ...existing code...
                         return (
                           <div
                             key={campaign.id}
                             className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6"
                           >
+                            {/* ...existing code... */}
                             <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">

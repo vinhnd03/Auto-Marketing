@@ -105,12 +105,19 @@ const TopicContentDetail = ({ topic, onBack }) => {
           <div className="text-red-500">{error}</div>
         ) : selectedContent ? (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-            <button
-              className="mb-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200"
-              onClick={handleBackFromDetail}
-            >
-              ← Quay lại danh sách content
-            </button>
+            <div className="flex items-center justify-between mb-4">
+              <button
+                className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200"
+                onClick={handleBackFromDetail}
+              >
+                ← Quay lại danh sách content
+              </button>
+              <span className="text-xs text-gray-500">
+                {selectedContent.createdAt
+                  ? dayjs(selectedContent.createdAt).format("DD-MM-YYYY")
+                  : ""}
+              </span>
+            </div>
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-bold text-lg text-gray-900">
@@ -119,11 +126,6 @@ const TopicContentDetail = ({ topic, onBack }) => {
                     selectedContent.body ||
                     selectedContent.content ||
                     `Content`}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {selectedContent.createdAt
-                    ? dayjs(selectedContent.createdAt).format("DD-MM-YYYY")
-                    : ""}
                 </span>
               </div>
               {/* CHỈ render duy nhất phần justify, bỏ phần không justify */}
