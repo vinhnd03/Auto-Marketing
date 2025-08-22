@@ -13,4 +13,7 @@ public interface IScheduledPostRepository extends JpaRepository<ScheduledPost, L
     List<ScheduledPost> findByScheduledTimeBetween(LocalDateTime start, LocalDateTime end);
 
     List<ScheduledPost> findByPostId(Long postId);
+
+    List<ScheduledPost> findByStatusAndScheduledTimeLessThanEqual(ScheduledPostStatus status, LocalDateTime time);
+    List<ScheduledPost> findByStatusOrderByScheduledTimeAsc(ScheduledPostStatus status);
 }

@@ -11,8 +11,10 @@ const ConfirmLogoutModal = ({onClose}) => {
   const handleLogout = async () => {
       const result = await authService.logout();
       if (result.success) {
-        setUser(null); // xóa user khỏi Context
         navigate("/"); // điều hướng về trang chủ
+        setUser(null); // xóa user khỏi Context
+        
+        onClose(true);
       } else {
         toast.error(result.error);
       }

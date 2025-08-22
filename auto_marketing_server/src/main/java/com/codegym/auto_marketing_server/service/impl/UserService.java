@@ -12,7 +12,10 @@ import com.codegym.auto_marketing_server.util.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -178,5 +181,34 @@ public class UserService implements IUserService {
     @Override
     public int countByMonth(int year, int month) {
         return userRepository.countByYearAndMonth(year, month);
+    }
+
+    @Override
+    public User getCurrentUser() {
+        // Lấy Authentication hiện tại
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        // Lấy username/email từ principal
+        Object principal = authentication.getPrincipal();
+
+        String email = null;
+
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails userDetails) {
+            email = userDetails.getUsername(); // nếu dùng UserDetailsService
+        } else if (principal instanceof User user) {
+            return user; // nếu lưu trực tiếp User trong principal
+        } else if (principal instanceof OAuth2User oauth2User) {
+            email = oauth2User.getAttribute("email");
+        }
+
+        if (email != null) {
+            return userRepository.findByEmail(email).orElse(null);
+        }
+
+        return null;
     }
 }

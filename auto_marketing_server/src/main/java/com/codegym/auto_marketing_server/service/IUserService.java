@@ -67,4 +67,6 @@ public interface IUserService {
     List<NotificationDTO> getNotifications();
     int countByMonth(int year, int month);
 
+
+    User getCurrentUser();
 }
