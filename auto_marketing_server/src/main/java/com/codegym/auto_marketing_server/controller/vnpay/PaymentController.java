@@ -30,7 +30,12 @@ public class PaymentController {
         int amount = ((Number) requestData.get("amount")).intValue();
         Long userId = ((Number) requestData.get("userId")).longValue();
 
-        String orderInfo = serviceName + "|" + userId;
+        Integer maxWorkspace = requestData.get("maxWorkspace") != null ? ((Number) requestData.get("maxWorkspace")).intValue() : null;
+        Integer duration = requestData.get("duration") != null
+                ? ((Number) requestData.get("duration")).intValue()
+                : 0;
+
+        String orderInfo = serviceName + "|" + userId + "|" + maxWorkspace + "|" + duration;
 
         // 👉 Sử dụng service để tạo payment URL
         String paymentUrl = vnPayService.createPaymentUrl(request, amount, orderInfo);
@@ -73,20 +78,23 @@ public class PaymentController {
 
         String service = parts[0];
         Long userId = Long.valueOf(parts[1]);
+        Integer maxWorkspace = Integer.valueOf(parts[2]);
+        Integer duration = Integer.valueOf(parts[3]);
 
         // Gọi transactionService dù thành công hay thất bại
         String status = success ? "success" : "failed";
         transactionService.handlePayment(txnRef, amount, service, userId, status);
 
         String redirectUrl = String.format(
-                "http://localhost:3000/payment-result?success=%s&message=%s&amount=%d&service=%s&txnRef=%s",
+                "http://localhost:3000/pricing?success=%s&message=%s&amount=%d&service=%s&txnRef=%s&workspaces=%d&duration=%d",
                 success,
                 URLEncoder.encode(message, StandardCharsets.UTF_8),
                 amount,
                 URLEncoder.encode(service, StandardCharsets.UTF_8),
-                txnRef
+                txnRef,
+                maxWorkspace,
+                duration
         );
-
         response.sendRedirect(redirectUrl);
     }
 

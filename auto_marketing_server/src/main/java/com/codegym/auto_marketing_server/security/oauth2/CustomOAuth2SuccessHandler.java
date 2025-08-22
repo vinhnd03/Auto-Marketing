@@ -126,6 +126,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             user.setRole(userRole);
             user.setPassword("OAUTH2"); // tránh null
             user.setStatus(true);
+            userService.save(user);
         }
 
         // Cập nhật thông tin OAuth2
