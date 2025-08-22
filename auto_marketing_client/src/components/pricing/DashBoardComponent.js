@@ -1,17 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import {useAuth} from "../../context/AuthContext"
+import PaymentResultModal from "./PaymentResultComponent";
+import {useLocation, useNavigate} from "react-router-dom";
+// tách riêng modal
 
 const ListComponent = () => {
     const [plans, setPlans] = useState([]);
     const [loadingId, setLoadingId] = useState(null);
+    const [paymentResult, setPaymentResult] = useState(null);
 
     const { user } = useAuth(); // lấy thông tin user hiện tại
     const navigate = useNavigate();
+    const location = useLocation();
 
+
+    const handleCloseResult = () => {
+        setPaymentResult(null);
+    };
+
+    // Fetch plans
     useEffect(() => {
         const fetchPlans = async () => {
             try {
@@ -21,11 +31,37 @@ const ListComponent = () => {
                 setPlans(Array.isArray(response.data) ? response.data : []);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách gói:", error);
-                toast.error("Không tải được danh sách gói.");
             }
         };
         fetchPlans();
     }, []);
+
+    // Đọc query params khi redirect từ backend
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (params.has("success")) {
+            const txnRef = params.get("txnRef") || "";
+            const shown = sessionStorage.getItem("shownTxnRef");
+            if (shown === txnRef && txnRef) return;
+
+            const getNum = (key) => {
+                const v = params.get(key);
+                return v ? Number(v) : 0;
+            };
+
+            setPaymentResult({
+                success: params.get("success") === "true",
+                message: params.get("message") || "",
+                amount: getNum("amount"),
+                service: params.get("service") || "",
+                txnRef,
+                workspaces: getNum("workspaces"),
+                duration: getNum("duration"),
+            });
+
+            if (txnRef) sessionStorage.setItem("shownTxnRef", txnRef);
+        }
+    }, [location.search]);
 
     const handleBuy = async (plan) => {
         if (!plan) return;
@@ -33,7 +69,7 @@ const ListComponent = () => {
         // Kiểm tra đăng nhập
         if (!user?.id) {
             toast.error("Bạn cần đăng nhập để có thể mua gói dịch vụ!");
-            navigate("/login"); // sử dụng navigate để chuyển trang
+            navigate("/login");
             return;
         }
 
@@ -56,6 +92,8 @@ const ListComponent = () => {
                         serviceName: plan.name,
                         amount: plan.price,
                         userId: user.id,
+                        maxWorkspace: plan.maxWorkspace,
+                        duration: plan.durationDate, // hoặc trường tương ứng
                     },
                     { withCredentials: true }
                 );
@@ -136,7 +174,7 @@ const ListComponent = () => {
                                         {plan?.planLevel === 2 && (
                                             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                                                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
-                                                    :fire: Phổ biến nhất
+                                                     Phổ biến nhất
                                                 </div>
                                             </div>
                                         )}
@@ -203,6 +241,11 @@ const ListComponent = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Modal kết quả thanh toán */}
+            {paymentResult && (
+                <PaymentResultModal result={paymentResult} onClose={handleCloseResult}/>
+            )}
         </div>
     );
 };
