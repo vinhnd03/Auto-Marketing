@@ -146,8 +146,8 @@ export default function Navbar() {
                 >
                   <img
                     src={
-                        user?.avatar ||
-                      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+                      user?.avatar ||
+                      "https://tse3.mm.bing.net/th/id/OIP.Udgj6h-H7jNBYuwbaZkWsgHaHa?rs=1&pid=ImgDetMain&o=7&rm=3"
                     }
                     alt={user?.name || "User"}
                     className="w-8 h-8 rounded-full object-cover border-2 border-blue-500"
@@ -190,17 +190,18 @@ export default function Navbar() {
                       Cài đặt
                     </Link>
 
-                    <hr className="my-2" />
-
                     {user.role.name === "ADMIN" && (
-                      <Link
-                        to="/admin"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        <IdentificationIcon className="w-4 h-4 mr-3" />
-                        Trang quản trị
-                      </Link>
+                      <>
+                        <hr className="my-2" />
+                        <Link
+                          to="/admin"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <IdentificationIcon className="w-4 h-4 mr-3" />
+                          Trang quản trị
+                        </Link>
+                      </>
                     )}
                     <hr className="my-2" />
 

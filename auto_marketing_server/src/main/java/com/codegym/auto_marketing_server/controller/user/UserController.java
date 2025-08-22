@@ -2,12 +2,14 @@ package com.codegym.auto_marketing_server.controller.user;
 
 import com.codegym.auto_marketing_server.dto.UserProfileDTO;
 import com.codegym.auto_marketing_server.entity.User;
+import com.codegym.auto_marketing_server.security.jwt.request.ChangePasswordRequest;
 import com.codegym.auto_marketing_server.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -18,11 +20,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserController {
     private final IUserService userService;
+    private final PasswordEncoder encoder;
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserProfile(@PathVariable(name = "id") Long id){
+    public ResponseEntity<?> getUserProfile(@PathVariable(name = "id") Long id) {
         Optional<User> userOptional = userService.findById(id);
-        if(userOptional.isEmpty()){
+        if (userOptional.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", "USER_NOT_FOUND"));
         }
         User user = userOptional.get();
@@ -32,7 +35,7 @@ public class UserController {
 
     @PutMapping()
     public ResponseEntity<?> updateUserProfile(@RequestBody UserProfileDTO userProfile,
-                                            Authentication authentication){
+                                               Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
 
         if (!currentUser.getId().equals(userProfile.id())) {
@@ -41,18 +44,36 @@ public class UserController {
         }
 
         Optional<User> userOptional = userService.findById(userProfile.id());
-        if(userOptional.isEmpty()){
+        if (userOptional.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", "USER_NOT_FOUND"));
         }
 
         User user = userOptional.get();
         user.setAvatar(userProfile.avatar());
-        user.setName(user.getName());
-        user.setDescription(user.getDescription());
-        user.setJob(user.getJob());
-        user.setPhone(user.getPhone());
+        user.setName(userProfile.name());
+        user.setDescription(userProfile.description());
+        user.setJob(userProfile.job());
+        user.setPhone(userProfile.phone());
 
-        userService.save(user);
+        userService.updateUserProfile(user);
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    @PutMapping("/changePassword")
+    public ResponseEntity changePassword(@RequestBody ChangePasswordRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("USER_NOT_FOUND"));
+
+        if (!encoder.matches(request.getCurrentPassword(), user.getPassword())){
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", "WRONG_PASSWORD"));
+        }
+
+        if (encoder.matches(request.getNewPassword(), user.getPassword())){
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", "SAME_OLD_PASSWORD"));
+        }
+
+        userService.changePassword(user.getId(), request.getNewPassword());
         return ResponseEntity.ok(Map.of("success", true));
     }
 }

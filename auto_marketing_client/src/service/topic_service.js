@@ -5,6 +5,7 @@ const BASE_URL = "http://localhost:8080/api/v1";
 
 // Configure axios with default timeout
 const apiClient = axios.create({
+  withCredentials: true,
   baseURL: BASE_URL,
   timeout: 30000, // 30 seconds for AI generation
   headers: {
@@ -105,6 +106,7 @@ export async function approveTopic(topicId) {
     const response = await apiClient.put(`/topics/${topicId}/approve`);
     return response.data;
   } catch (error) {
+    console.log(error);
     throw error;
   }
 }

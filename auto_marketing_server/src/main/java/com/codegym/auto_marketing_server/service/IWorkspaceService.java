@@ -6,7 +6,13 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 
+import com.codegym.auto_marketing_server.entity.Workspace;
+
+import java.util.Optional;
+
 public interface IWorkspaceService {
+    Optional<Workspace> getWorkspaceById(Long id);
+
     List<Workspace> searchWorkspaceByUserId(Long id);
 
     Workspace save(Workspace workspace, Long userId);

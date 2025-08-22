@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GPTUsage {
+public class GPTUsageDTO {
     private Integer promptTokens;
     private Integer completionTokens;
     private Integer totalTokens;

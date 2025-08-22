@@ -1,9 +1,10 @@
 import axios from "axios"
+import api from "../context/api";
 
 const verifyToken = async (token) => {
     try {
-        const resp = await axios.get(
-            `http://localhost:8080/api/auth/verify-token?token=${token}`,
+        const resp = await api.get(
+            `/auth/verify-token?token=${token}`,
             {withCredentials: true}
         )
         return resp.data.valid

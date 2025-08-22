@@ -14,7 +14,7 @@ const AdminRoute = ({ children }) => {
     }
 
     if (user.role.name !== "ADMIN") {
-        return <Navigate to="/403" replace />;
+        return <Navigate to="/unauthorized" replace />;
     }
 
     return children;

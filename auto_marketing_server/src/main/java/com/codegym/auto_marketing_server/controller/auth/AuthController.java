@@ -13,6 +13,7 @@ import com.codegym.auto_marketing_server.security.jwt.service.JwtService;
 import com.codegym.auto_marketing_server.service.IRoleService;
 import com.codegym.auto_marketing_server.service.IUserService;
 import com.codegym.auto_marketing_server.service.IUserTokenService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -123,6 +124,7 @@ public class AuthController {
         user.setEmail(req.getEmail());
         user.setPassword(req.getPassword());
         user.setName(req.getName());
+        user.setPhone(req.getPhone());
         user.setStatus(true);
         user.setRole(userRole);
         userService.save(user);
@@ -132,15 +134,18 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        Optional<User> u = userService.findByEmail(loginRequest.getEmail());
+        System.out.println(u.isPresent());
+        if (u.isPresent()) System.out.println(u.get().getPassword());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
             );
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-            String token = jwtService.generateToken((User) userDetails);
-
             long maxAge = loginRequest.getRememberMe() ? 30 * 24 * 60 * 60 : 3600;
+
+            String token = jwtService.generateToken((User) userDetails);
             System.out.println(maxAge);
             // Tạo httpOnly cookie
             ResponseCookie cookie = ResponseCookie.from("jwt", token)
@@ -148,7 +153,7 @@ public class AuthController {
 //                .secure(true) // Chỉ dùng true nếu deploy trên HTTPS
                     .sameSite("Lax")
                     .path("/")
-                    .maxAge(maxAge) // 1 giờ
+                    .maxAge(maxAge)
                     .build();
 
             // Gửi cookie

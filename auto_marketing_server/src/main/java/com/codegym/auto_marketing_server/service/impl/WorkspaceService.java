@@ -2,10 +2,14 @@ package com.codegym.auto_marketing_server.service.impl;
 
 import com.codegym.auto_marketing_server.entity.Subscription;
 import com.codegym.auto_marketing_server.entity.Workspace;
+import com.codegym.auto_marketing_server.entity.Workspace;
 import com.codegym.auto_marketing_server.repository.IWorkspaceRepository;
 import com.codegym.auto_marketing_server.service.ISubscriptionService;
 import com.codegym.auto_marketing_server.service.IWorkspaceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,6 +21,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WorkspaceService implements IWorkspaceService {
     private final IWorkspaceRepository workspaceRepository;
+
+    @Override
+    public Optional<Workspace> getWorkspaceById(Long id) {
+        return workspaceRepository.findById(id);
+    }
     private final ISubscriptionService subscriptionService;
 
     @Override

@@ -14,8 +14,7 @@ import {
 import WorkspaceLimitModal from "../../components/workspace/WorkspaceLimitModal";
 import toast from "react-hot-toast";
 import {useAuth} from "../../context/AuthContext";
-import {Preloader} from "../../components";
-import {getSocialAccountsByUserId} from "../../service/social_account/social_account_service";
+
 
 const WorkspacePage = () => {
     const {user} = useAuth();
@@ -24,7 +23,6 @@ const WorkspacePage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
 
     const [selectedWorkspace, setSelectedWorkspace] = useState(null);
-    const [selectedSocialAccount, setSelectedSocialAccount] = useState(null);  // phải có
 
     const [visibleCount, setVisibleCount] = useState(6);
     const [isExpanded, setIsExpanded] = useState(false);
@@ -35,45 +33,20 @@ const WorkspacePage = () => {
     const defaultAvatar = "https://haycafe.vn/wp-content/uploads/2022/10/Hinh-anh-anime-nu-buon.jpg";
 
     const [workspaces, setWorkspaces] = useState([]);
-    const [socialAccounts, setSocialAccounts] = useState([]); // <-- đưa lên đây luôn
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSelectPageModalOpen, setIsSelectPageModalOpen] = useState(false);
     const [maxWorkspace, setMaxWorkspace] = useState(0);
-
-// state mới để xử lý chọn social lần đầu:
-    const [firstVisit, setFirstVisit] = useState(() => {
-        return !localStorage.getItem("selectedSocialOnce");
-    });
-    const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
-
-    useEffect(() => {
-        if (firstVisit && socialAccounts.length > 0) {
-            setIsSocialModalOpen(true);
-        }
-    }, [socialAccounts, firstVisit]);
-
-
-    const handleSelectAccount = (acc) => {
-        setSelectedSocialAccount(acc);
-        localStorage.setItem("selectedSocialOnce", "true");
-        setFirstVisit(false);
-        setIsSocialModalOpen(false);
-    };
 
 
     useEffect(() => {
         if (!user || !user.id) return;
 
         const fetchData = async () => {
-            const [maxWsRes, wsList, saList] = await Promise.all([
+            const [maxWsRes, wsList,] = await Promise.all([
                 getMaxWorkspace(user.id),
                 getAllWorkspaceByUserId(user.id),
-                getSocialAccountsByUserId(user.id)   // <-- THÊM DÒNG NÀY
             ]);
-
-            setSocialAccounts(Array.isArray(saList) ? saList : []);
-
             if (maxWsRes.error) {
                 toast.error(maxWsRes.error);
                 return;
@@ -369,14 +342,6 @@ const WorkspacePage = () => {
                 </>
             )}
 
-            {isSocialModalOpen && (
-                <SelectSocialNetwork
-                    isOpen={isSocialModalOpen}
-                    onClose={() => setIsSocialModalOpen(false)}
-                    socialAccounts={socialAccounts}
-                    onSelectAccount={handleSelectAccount}
-                />
-            )}
 
             {isLimitModalOpen && (
                 <WorkspaceLimitModal

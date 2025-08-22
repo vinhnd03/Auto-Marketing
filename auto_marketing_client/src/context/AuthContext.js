@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import api from "./api";
 
 const AuthContext = createContext();
 
@@ -10,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   // Khi app load, gọi /me để check user đã login chưa
   const fetchUser = async () => {
     try {
-      const resp = await axios.get(`http://localhost:8080/api/auth/me`, {
+      const resp = await api.get(`/auth/me`, {
         withCredentials: true,
       });
       setUser(resp.data);

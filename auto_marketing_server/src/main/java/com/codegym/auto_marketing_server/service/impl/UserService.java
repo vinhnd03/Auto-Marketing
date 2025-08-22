@@ -75,4 +75,15 @@ public class UserService implements IUserService {
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
+
+    @Override
+    public void updateUserProfile(User user){
+        try {
+            String avatarUrl = cloudinaryService.uploadImageFromUrl(user.getAvatar());
+            user.setAvatar(avatarUrl);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        userRepository.save(user);
+    }
 }

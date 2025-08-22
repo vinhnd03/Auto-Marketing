@@ -71,7 +71,7 @@ const UpdateWorkspaceModal = ({
                 const formData = new FormData();
                 formData.append("name", values.name);
                 formData.append("description", values.description);
-                formData.append("socialAccountId", socialAccounts[0].id);
+                formData.append("socialAccountId", socialAccountId);
 
                 if (values.avatar) {
                     formData.append("avatar", values.avatar);
@@ -93,7 +93,7 @@ const UpdateWorkspaceModal = ({
                 onClose();
             } catch (err) {
                 console.error(err);
-                toast.error("Lỗi khi gọi API");
+                toast.error("Không thể kết nối đến hệ thống, vui lòng thử lại sau");
             }
             setSubmitting(false);
         };
@@ -203,7 +203,7 @@ const UpdateWorkspaceModal = ({
                                     htmlFor="workspace-name"
                                     className="block text-gray-700 font-medium text-sm"
                                 >
-                                    Tên Workspace
+                                    Tên Workspace <span className="text-red-500">*</span>
                                 </label>
                                 <Field
                                     id="workspace-name"
@@ -222,7 +222,7 @@ const UpdateWorkspaceModal = ({
                                     htmlFor="workspace-description"
                                     className="block text-gray-700 font-medium text-sm"
                                 >
-                                    Mô tả
+                                    Mô tả <span className="text-red-500">*</span>
                                 </label>
                                 <Field
                                     as="textarea"

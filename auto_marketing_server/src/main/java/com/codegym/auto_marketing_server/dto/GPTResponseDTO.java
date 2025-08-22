@@ -14,6 +14,6 @@ public class GPTResponseDTO {
     private String object;
     private Long created;
     private String model;
-    private List<GPTChoice> choices;
-    private GPTUsage usage;
+    private List<GPTChoiceDTO> choices;
+    private GPTUsageDTO usage;
 }

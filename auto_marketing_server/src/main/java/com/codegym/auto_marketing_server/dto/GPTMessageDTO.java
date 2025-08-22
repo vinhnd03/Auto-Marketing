@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GPTChoice {
-    private Integer index;
-    private GPTMessage message;
-    private String finishReason;
+public class GPTMessageDTO {
+    // system, user, assistant
+    private String role;
+    private String content;
 }

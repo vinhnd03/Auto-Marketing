@@ -2,16 +2,21 @@ import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {toast} from "react-hot-toast";
 import {Shield} from "lucide-react";
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useLocation} from "react-router-dom";
 import {useAuth} from "../../context/AuthContext";
+import PaymentResultModal from "./PaymentResultComponent";
+// tách riêng modal
 
 const ListComponent = () => {
     const [plans, setPlans] = useState([]);
     const [loadingId, setLoadingId] = useState(null);
+    const [paymentResult, setPaymentResult] = useState(null);
 
-    const {user} = useAuth(); // lấy thông tin user hiện tại
+    const {user} = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
+    // Fetch plans
     useEffect(() => {
         const fetchPlans = async () => {
             try {
@@ -27,13 +32,39 @@ const ListComponent = () => {
         fetchPlans();
     }, []);
 
+    // Đọc query params khi redirect từ backend
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (params.has("success")) {
+            const txnRef = params.get("txnRef") || "";
+            const shown = sessionStorage.getItem("shownTxnRef");
+            if (shown === txnRef && txnRef) return;
+
+            const getNum = (key) => {
+                const v = params.get(key);
+                return v ? Number(v) : 0;
+            };
+
+            setPaymentResult({
+                success: params.get("success") === "true",
+                message: params.get("message") || "",
+                amount: getNum("amount"),
+                service: params.get("service") || "",
+                txnRef,
+                workspaces: getNum("workspaces"),
+                duration: getNum("duration"),
+            });
+
+            if (txnRef) sessionStorage.setItem("shownTxnRef", txnRef);
+        }
+    }, [location.search]);
+
     const handleBuy = async (plan) => {
         if (!plan) return;
 
-        // Kiểm tra đăng nhập
         if (!user?.id) {
             toast.error("Bạn cần đăng nhập để có thể mua gói dịch vụ!");
-            navigate("/login"); // sử dụng navigate để chuyển trang
+            navigate("/login");
             return;
         }
 
@@ -41,7 +72,6 @@ const ListComponent = () => {
 
         try {
             if (plan.id === 1) {
-                // Gói FREE
                 const response = await axios.post(
                     `http://localhost:8080/api/v1/workspaces/subscriptions/trial?userId=${user.id}`,
                     {},
@@ -49,13 +79,14 @@ const ListComponent = () => {
                 );
                 toast.success(response.data || "Đã kích hoạt gói FREE");
             } else {
-                // Các gói khác: gọi VNPAY
                 const response = await axios.post(
                     "http://localhost:8080/api/payment",
                     {
                         serviceName: plan.name,
                         amount: plan.price,
                         userId: user.id,
+                        maxWorkspace: plan.maxWorkspace,
+                        duration:plan.durationDate ?? plan.duration ??0
                     },
                     {withCredentials: true}
                 );
@@ -89,6 +120,11 @@ const ListComponent = () => {
         return "bg-white border-2 border-gray-300 text-gray-700 hover:border-blue-500 hover:text-blue-600";
     };
 
+    const handleCloseResult = () => {
+        setPaymentResult(null);
+        navigate(location.pathname, {replace: true});
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
             {/* Header */}
@@ -99,13 +135,11 @@ const ListComponent = () => {
                         <Shield className="w-4 h-4"/>
                         Tiết kiệm đến 80% thời gian quản lý
                     </div>
-
                     <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-                        <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            Chọn gói phù hợp
-                        </span>
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Chọn gói phù hợp
+            </span>
                     </h1>
-
                     <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
                         Tự động hóa marketing, tăng hiệu quả bán hàng và phát triển thương hiệu
                         với các gói dịch vụ được thiết kế riêng cho doanh nghiệp của bạn.
@@ -130,18 +164,16 @@ const ListComponent = () => {
 
                                 <div className="text-center mb-8">
                                     <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan?.name}</h3>
-
                                     {plan?.price > 0 && (
                                         <div className="flex items-center justify-center gap-2 mb-4">
-                                            <span className="text-4xl font-bold text-gray-900">
-                                                {plan.price.toLocaleString("vi-VN")}
-                                            </span>
+                      <span className="text-4xl font-bold text-gray-900">
+                        {plan.price.toLocaleString("vi-VN")}
+                      </span>
                                             <div className="text-left">
                                                 <div className="text-sm text-gray-600">VNĐ</div>
                                             </div>
                                         </div>
                                     )}
-
                                     <div
                                         className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
                                         <span>💰</span>
@@ -151,7 +183,6 @@ const ListComponent = () => {
                                             : Math.round((1 - (plan?.price ?? 0) / ((plan?.price ?? 0) * 1.5)) * 100)}
                                         %
                                     </div>
-
                                     <p className="text-gray-500 mt-2">{plan?.description}</p>
                                 </div>
 
@@ -187,6 +218,11 @@ const ListComponent = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Modal kết quả thanh toán */}
+            {paymentResult && (
+                <PaymentResultModal result={paymentResult} onClose={handleCloseResult}/>
+            )}
         </div>
     );
 };

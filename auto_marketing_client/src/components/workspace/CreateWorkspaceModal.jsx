@@ -36,12 +36,13 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces ,socialAccoun
     });
 
     const handleSubmit = (values, { setSubmitting, resetForm }) => {
+
         const doCreate = async () => {
             try {
                 const formData = new FormData();
                 formData.append("name", values.name);
                 formData.append("description", values.description);
-                formData.append("socialAccountId", socialAccounts[0].id);
+                formData.append("socialAccountId", socialAccountId);
                 if (values.avatarFile) {
                     formData.append("avatar", values.avatarFile);
                 }
@@ -59,7 +60,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces ,socialAccoun
                 }
             } catch (err) {
                 console.error(err);
-                toast.error("Lỗi khi gọi API");
+                toast.error("Không thể kết nối đến hệ thống, vui lòng thử lại sau");
             }
             setSubmitting(false);
         };
@@ -105,7 +106,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces ,socialAccoun
                                                     alt="Avatar Preview"
                                                     className="w-full h-full object-cover"
                                                 />
-                                                <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                                <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration=300 flex items-center justify-center">
                                                     <div className="flex space-x-2">
                                                         <Camera className="w-6 h-6 text-white" />
                                                         <button
@@ -113,7 +114,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces ,socialAccoun
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 setAvatarPreview(null);
-                                                                setFieldValue("avatarFile", null);
+                                                                setFieldValue("avatar", null);
                                                                 if (fileInputRef.current) {
                                                                     fileInputRef.current.value = "";
                                                                 }
@@ -133,9 +134,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces ,socialAccoun
                                                 </div>
                                                 <div className="text-center">
                                                     <Upload className="w-4 h-4 text-blue-600 mx-auto mb-1" />
-                                                    <span className="text-xs text-blue-600 font-medium">
-                            Tải ảnh lên (tùy chọn)
-                          </span>
+                                                    <span className="text-xs text-blue-600 font-medium">Tải ảnh lên (tùy chọn)</span>
                                                 </div>
                                             </div>
                                         )}
@@ -146,7 +145,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces ,socialAccoun
                                             onChange={(e) => {
                                                 const file = e.target.files[0];
                                                 if (file) {
-                                                    setFieldValue("avatarFile", file);
+                                                    setFieldValue("avatar", file);
                                                     setAvatarPreview(URL.createObjectURL(file));
                                                 }
                                             }}
@@ -161,19 +160,11 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces ,socialAccoun
                                 <p className="text-sm text-gray-600">
                                     Chọn ảnh đại diện (nếu không chọn sẽ dùng mặc định)
                                 </p>
-                                {errors.avatarFile && touched.avatarFile && (
-                                    <p className="text-xs text-red-500">{errors.avatarFile}</p>
-                                )}
                             </div>
 
                             {/* Tên Workspace */}
                             <div>
-                                <label
-                                    htmlFor="workspace-name"
-                                    className="block text-gray-700 font-medium text-sm"
-                                >
-                                    Tên Workspace <span className="text-red-500">*</span>
-                                </label>
+                                <label htmlFor="workspace-name" className="block text-gray-700 font-medium text-sm">Tên Workspace</label>
                                 <Field
                                     id="workspace-name"
                                     name="name"
@@ -187,12 +178,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces ,socialAccoun
 
                             {/* Mô tả */}
                             <div>
-                                <label
-                                    htmlFor="workspace-description"
-                                    className="block text-gray-700 font-medium text-sm"
-                                >
-                                    Mô tả <span className="text-red-500">*</span>
-                                </label>
+                                <label htmlFor="workspace-description" className="block text-gray-700 font-medium text-sm">Mô tả</label>
                                 <Field
                                     as="textarea"
                                     id="workspace-description"
