@@ -9,35 +9,42 @@ import SelectSocialNetwork from "../../components/modal/SelectSocialNetwork";
 import {
   getAllWorkspaceByUserId,
   getMaxWorkspace,
-  updateWorkspaceStatus
+  updateWorkspaceStatus,
 } from "../../service/workspace/workspace_service";
 import WorkspaceLimitModal from "../../components/workspace/WorkspaceLimitModal";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { Preloader } from "../../components";
+import CampaignService from "../../service/campaignService";
 
 const WorkspacePage = () => {
   const { user } = useAuth();
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(6);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(6); // số lượng card hiển thị
+  const [isExpanded, setIsExpanded] = useState(false); // trạng thái xem thêm / thu gọn
+
   const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
   const [selectedActiveIds, setSelectedActiveIds] = useState([]);
-  const [workspaces, setWorkspaces] = useState([]);
+  const [totalCampaign, setTotalCampaign] = useState(0);
   const defaultAvatar = "https://i.pravatar.cc/100?img=4";
 
-  // Modal chọn MXH và Fanpage
+  const [workspaces, setWorkspaces] = useState([]);
+
+  // const {user} = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSelectPageModalOpen, setIsSelectPageModalOpen] = useState(false);
   const [selectedPages, setSelectedPages] = useState([]);
-
-  // Giới hạn workspace
   const [maxWorkspace, setMaxWorkspace] = useState(0);
-
-
-
+  const fetchCountCampaign = async () => {
+    try {
+      const campaignNumber = await CampaignService.countCampaign(user.id);
+      setTotalCampaign(campaignNumber);
+    } catch (err) {
+      setTotalCampaign(null);
+    }
+  };
   useEffect(() => {
     if (!user || !user.id) return;
 
@@ -45,7 +52,7 @@ const WorkspacePage = () => {
       try {
         const [maxWsRes, wsList] = await Promise.all([
           getMaxWorkspace(user.id),
-          getAllWorkspaceByUserId(user.id)
+          getAllWorkspaceByUserId(user.id),
         ]);
 
         if (maxWsRes.error) {
@@ -63,14 +70,14 @@ const WorkspacePage = () => {
 
         const sortedWs = [...wsList].sort((a, b) => b.id - a.id);
 
-        const activeCount = sortedWs.filter(w => w.status === "ACTIVE").length;
+        const activeCount = sortedWs.filter((w) => w.status === "ACTIVE").length;
         if (activeCount < maxWsRes) {
-          const allIds = sortedWs.map(w => w.id);
+          const allIds = sortedWs.map((w) => w.id);
           try {
             const res = await updateWorkspaceStatus(user.id, allIds, "ACTIVE");
             if (res.error) toast.error(res.error);
             else {
-              const updatedWs = sortedWs.map(w => ({ ...w, status: "ACTIVE" }));
+              const updatedWs = sortedWs.map((w) => ({ ...w, status: "ACTIVE" }));
               setWorkspaces(updatedWs);
             }
           } catch (err) {
@@ -87,14 +94,14 @@ const WorkspacePage = () => {
     };
 
     fetchData();
-  }, [user]);
-
+  fetchCountCampaign();
+  }, [user, totalCampaign]);
   const toastShown = useRef(false);
 
   useEffect(() => {
-    const activeWs = workspaces.filter(w => w.status === "ACTIVE");
+    const activeWs = workspaces.filter((w) => w.status === "ACTIVE");
     if (activeWs.length > maxWorkspace) {
-      setSelectedActiveIds(activeWs.map(w => w.id));
+      setSelectedActiveIds(activeWs.map((w) => w.id));
       setIsLimitModalOpen(true);
       if (!toastShown.current) {
         toast.custom(
@@ -118,20 +125,27 @@ const WorkspacePage = () => {
 
   const handleSaveLimit = async () => {
     try {
+      // Lấy các workspace được chọn ACTIVE
       const activeIds = selectedActiveIds;
+
+      // Gọi API PATCH
       const res = await updateWorkspaceStatus(user.id, activeIds, "ACTIVE");
+
       if (res.error) {
         toast.error(res.error);
         return;
       }
-      setWorkspaces(prev =>
-        prev.map(ws => ({
+
+      // Cập nhật trạng thái workspace trong state
+      setWorkspaces((prev) =>
+        prev.map((ws) => ({
           ...ws,
-          status: activeIds.includes(ws.id) ? "ACTIVE" : "INACTIVE"
+          status: activeIds.includes(ws.id) ? "ACTIVE" : "INACTIVE",
         }))
       );
+
       toast.success("Cập nhật trạng thái workspace thành công");
-      setIsLimitModalOpen(false);
+      setIsLimitModalOpen(false); // đóng modal sau khi lưu
     } catch (error) {
       console.error(error);
       toast.error("Cập nhật thất bại");
@@ -139,7 +153,7 @@ const WorkspacePage = () => {
   };
 
   const handleAddWorkspace = (newWorkspace) => {
-    setWorkspaces(prev => [newWorkspace, ...prev]);
+    setWorkspaces((prev) => [newWorkspace, ...prev]);
   };
 
   return (
@@ -179,11 +193,11 @@ const WorkspacePage = () => {
         <button
           onClick={() => {
              setShowCreateModal(true);
-            
+
           }}
           className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all flex items-center"
         >
-          <Plus size={16} className="mr-2"/>
+          <Plus size={16} className="mr-2" />
           Tạo workspace mới
         </button>
       </div>
@@ -192,9 +206,21 @@ const WorkspacePage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         {[
           { label: "Tổng workspace", value: workspaces.length, color: "blue" },
-          { label: "Đang hoạt động", value: workspaces.filter((w) => w.status === "ACTIVE").length, color: "green" },
-          { label: "Tổng chiến dịch", value: workspaces.reduce((sum, w) => sum + w.campaigns, 0), color: "purple" },
-          { label: "Thành viên", value: workspaces.reduce((sum, w) => sum + w.members, 0), color: "orange" },
+          {
+            label: "Đang hoạt động",
+            value: workspaces.filter((w) => w.status === "ACTIVE").length,
+            color: "green",
+          },
+          {
+            label: "Tổng chiến dịch",
+            value: totalCampaign,
+            color: "purple",
+          },
+          {
+            label: "Thành viên",
+            value: workspaces.reduce((sum, w) => sum + w.members, 0),
+            color: "orange",
+          },
         ].map((stat, index) => (
           <div
             key={index}
@@ -202,18 +228,25 @@ const WorkspacePage = () => {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  {stat.label}
+                </p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {stat.value}
+                </p>
               </div>
               <div
                 className={`w-12 h-12 bg-gradient-to-r ${
-                  stat.color === "blue" ? "from-blue-500 to-blue-600"
-                  : stat.color === "green" ? "from-green-500 to-green-600"
-                  : stat.color === "purple" ? "from-purple-500 to-purple-600"
-                  : "from-orange-500 to-orange-600"
+                  stat.color === "blue"
+                    ? "from-blue-500 to-blue-600"
+                    : stat.color === "green"
+                    ? "from-green-500 to-green-600"
+                    : stat.color === "purple"
+                    ? "from-purple-500 to-purple-600"
+                    : "from-orange-500 to-orange-600"
                 } rounded-lg flex items-center justify-center`}
               >
-                <Folder className="text-white" size={24}/>
+                <Folder className="text-white" size={24} />
               </div>
             </div>
           </div>
@@ -333,7 +366,7 @@ const WorkspacePage = () => {
         onClose={() => setShowCreateModal(false)}
         onAdd={handleAddWorkspace}
         workspaces={workspaces}
-        
+
       />
       <UpdateWorkspaceModal
         isOpen={showUpdateModal}

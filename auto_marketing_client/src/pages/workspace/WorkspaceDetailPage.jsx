@@ -12,7 +12,6 @@ import {
   Wand2,
   BarChart3,
   Settings,
-  Play,
   MoreHorizontal,
   Send,
   Table,
@@ -25,13 +24,13 @@ import {
   deleteTopicsByCampaignAndStatus,
   getTopicsByCampaign,
 } from "../../service/topic_service";
-
 import dayjs from "dayjs";
 import { getWorkspaceDetail } from "../../service/workspace/workspace_service";
 import { ArrowUpCircle } from "lucide-react";
 import campaignService from "../../service/campaignService";
 import axios from "axios";
 
+import { useAuth } from "../../context/AuthContext";
 const WorkspaceDetailPage = () => {
   // State cho tìm kiếm campaign
   const [campaignSearch, setCampaignSearch] = useState("");
@@ -62,9 +61,12 @@ const WorkspaceDetailPage = () => {
   const [savingTopics, setSavingTopics] = useState(false);
   const [apiCampaigns, setApiCampaigns] = useState([]);
   const [topicsPageByCampaign, setTopicsPageByCampaign] = useState({});
-
+  const [totalCampaign, setTotalCampaign] = useState(0);
+  const [totalCampaignFirstLoading, setTotalCampaignFirstLoading] = useState(0);
   const [confirmedPosts, setConfirmedPosts] = useState([]);
+  const [firstLoad, setFirstLoad] = useState(true);
   const DEFAULT_TOPICS_PER_PAGE = 6;
+  const { user } = useAuth();
   // Lọc danh sách bài viết đã xác nhận (mock)
   const initialPosts = [
     {
@@ -83,7 +85,14 @@ const WorkspaceDetailPage = () => {
     },
   ];
   const [posts, setPosts] = useState(initialPosts);
-
+  const fetchCountCampaignFirstLoading = async () => {
+    try {
+      const campaignNumber = await campaignService.countCampaign(user.id);
+      setTotalCampaignFirstLoading(campaignNumber);
+    } catch (err) {
+      setTotalCampaignFirstLoading(null);
+    }
+  };
   // Fetch campaigns from API
 
   useEffect(() => {
@@ -105,7 +114,8 @@ const WorkspaceDetailPage = () => {
     };
 
     fetchCampaigns();
-  }, []);
+    fetchCountCampaignFirstLoading();
+  }, [totalCampaign, workspaceId]);
 
   // Reset phân trang khi workspace thay đổi
   useEffect(() => {
@@ -227,7 +237,6 @@ const WorkspaceDetailPage = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      active: { color: "bg-green-100 text-green-800", text: "Đang chạy" },
       draft: { color: "bg-yellow-100 text-yellow-800", text: "Nháp" },
       completed: { color: "bg-gray-100 text-gray-800", text: "Hoàn thành" },
       paused: { color: "bg-red-100 text-red-800", text: "Tạm dừng" },
@@ -246,7 +255,7 @@ const WorkspaceDetailPage = () => {
   const handleQuickAction = (action) => {
     switch (action) {
       case "create-campaign":
-        toast.success("Tính năng đang phát triển - Tạo campaign mới");
+        setActiveTab("campaigns");
         break;
       case "generate-topics":
         setShowTopicGenerator(true);
@@ -700,17 +709,9 @@ const WorkspaceDetailPage = () => {
   const stats = [
     {
       label: "Tổng chiến dịch",
-      value: workspace && workspace.campaigns ? workspace.campaigns.length : 0,
+      value: firstLoad ? totalCampaignFirstLoading : totalCampaign,
       color: "blue",
       icon: <Target size={24} />,
-    },
-    {
-      label: "Đang chạy",
-      value: apiCampaigns
-        ? apiCampaigns.filter((c) => c.status === "ACTIVE").length
-        : 0,
-      color: "green",
-      icon: <Play size={24} />,
     },
     {
       label: "Tổng chủ đề",
@@ -814,7 +815,9 @@ const WorkspaceDetailPage = () => {
               {quickActions.map((action) => (
                 <button
                   key={action.action}
-                  onClick={() => handleQuickAction(action.action)}
+                  onClick={() => {
+                    handleQuickAction(action.action);
+                  }}
                   className="p-6 border border-gray-200 rounded-xl hover:shadow-md transition-all text-left group"
                 >
                   <div
@@ -955,6 +958,7 @@ const WorkspaceDetailPage = () => {
                   <CampaignTable
                     campaigns={transformedCampaigns}
                     onUpdateCampaigns={handleUpdateCampaigns}
+                    onTotalCampaignChange={setTotalCampaign}
                   />
                 </div>
               )}
