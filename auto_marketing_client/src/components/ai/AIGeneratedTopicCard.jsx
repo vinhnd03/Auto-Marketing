@@ -1,7 +1,12 @@
 import React from "react";
 import { Wand2 } from "lucide-react";
 
-const AIGeneratedTopicCard = React.memo(function AIGeneratedTopicCard({ topic, campaign, checked, onCheck }) {
+const AIGeneratedTopicCard = React.memo(function AIGeneratedTopicCard({
+  topic,
+  campaign,
+  checked,
+  onCheck,
+}) {
   return (
     <div
       key={`ai-topic-${topic.id}`}

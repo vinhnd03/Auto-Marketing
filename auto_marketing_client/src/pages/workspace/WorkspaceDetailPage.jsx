@@ -603,14 +603,16 @@ const WorkspaceDetailPage = () => {
         // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
         const campaignsData =
           wsData.campaigns ??
-          (await campaignService.findAllCampaign(
-            0,
-            10,
-            "",
-            "",
-            "",
-            workspaceId
-          )).content;
+          (
+            await campaignService.findAllCampaign(
+              0,
+              10,
+              "",
+              "",
+              "",
+              workspaceId
+            )
+          ).content;
         // 3. Với mỗi campaign => lấy topics
         const campaignsWithTopics = await Promise.all(
           campaignsData.map(async (campaign) => {
@@ -972,7 +974,9 @@ const WorkspaceDetailPage = () => {
                                 topic={foundTopic}
                                 campaign={foundCampaign}
                                 checked={approvedTopics.has(foundTopic.id)}
-                                onCheck={() => handleApproveTopic(foundTopic.id)}
+                                onCheck={() =>
+                                  handleApproveTopic(foundTopic.id)
+                                }
                               />
                             );
                           })}

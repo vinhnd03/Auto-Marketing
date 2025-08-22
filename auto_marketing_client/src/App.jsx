@@ -78,7 +78,8 @@ const AppLayout = ({ children }) => {
 
   const isErrorPage = ["/not-found"].includes(location.pathname);
   // Hiển thị Navbar ở tất cả pages trừ auth pages, admin pages và legal pages
-  const shouldShowNavbar = !isAuthPage && !isAdminPage && !isLegalPage && !isErrorPage;
+  const shouldShowNavbar =
+    !isAuthPage && !isAdminPage && !isLegalPage && !isErrorPage;
 
   // Hiển thị Footer ở tất cả pages trừ auth pages và admin pages (bao gồm cả legal pages)
   const shouldShowFooter = !isAuthPage && !isAdminPage && !isErrorPage;
@@ -256,7 +257,10 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/*" element={<Navigate to="/not-found" replace />} />
+                <Route
+                  path="/*"
+                  element={<Navigate to="/not-found" replace />}
+                />
               </Routes>
             </AppLayout>
           }
@@ -272,12 +276,14 @@ function App() {
           style: {
             background: "#363636",
             color: "#fff",
+            zIndex: 999999,
           },
           success: {
             duration: 2500,
             style: {
               background: "#10B981",
               color: "#fff",
+              zIndex: 999999,
             },
           },
           error: {
@@ -285,6 +291,7 @@ function App() {
             style: {
               background: "#EF4444",
               color: "#fff",
+              zIndex: 999999,
             },
           },
         }}
