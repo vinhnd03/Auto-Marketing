@@ -1,8 +1,10 @@
 package com.codegym.auto_marketing_server.controller.publish;
 
+import com.codegym.auto_marketing_server.dto.FanpageDTO;
 import com.codegym.auto_marketing_server.entity.SocialAccount;
 import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.repository.IUserRepository;
+import com.codegym.auto_marketing_server.service.IFanpageService;
 import com.codegym.auto_marketing_server.service.ISocialAccountService;
 import com.codegym.auto_marketing_server.service.IUserService;
 import com.codegym.auto_marketing_server.service.impl.SocialAccountService;
@@ -11,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -22,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,7 +38,7 @@ public class SocialAccountController {
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final IUserService userService;
     private final FacebookService facebookService;
-
+    private final IFanpageService fanpageService;
     @Value("${app.frontend.url}")
     private String frontendUrl;
 
@@ -47,12 +51,31 @@ public class SocialAccountController {
 
     @GetMapping("/check")
     public ResponseEntity<?> checkLinked(@RequestParam Long userId) {
-        boolean linked = socialAccountService.isLinked(userId);
-        return ResponseEntity.ok(
-                linked
-                        ? "User " + userId + " đã liên kết mạng xã hội"
-                        : "User " + userId + " chưa liên kết mạng xã hội"
-        );
+        Optional<SocialAccount> account = socialAccountService.getByUserId(userId);
+        if (account.isEmpty()) {
+            return ResponseEntity.ok(Map.of("linked", false));
+        }
+
+        List<FanpageDTO> pages = fanpageService.getByUserId(userId);
+
+        return ResponseEntity.ok(Map.of(
+                "linked", true,
+                "account", Map.of(
+                        "id", account.get().getId(),
+                        "name", account.get().getAccountName(),
+                        "platform", account.get().getPlatform()
+                ),
+                "pages", pages
+        ));
+    }
+
+    @GetMapping("/by-user/{userId}")
+    public ResponseEntity<?> getByUserId(@PathVariable Long userId) {
+        Optional<SocialAccount> accounts = socialAccountService.getByUserId(userId);
+        if (accounts.isEmpty()) {
+            return new ResponseEntity<>("Không tìm thấy social account nào", HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(accounts);
     }
 
     @PostMapping("/link")

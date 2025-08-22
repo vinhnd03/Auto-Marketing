@@ -2,6 +2,7 @@ package com.codegym.auto_marketing_server.service.impl;
 
 import com.codegym.auto_marketing_server.dto.*;
 import com.codegym.auto_marketing_server.entity.*;
+import com.codegym.auto_marketing_server.enums.PostMediaType;
 import com.codegym.auto_marketing_server.enums.ScheduledPostStatus;
 import com.codegym.auto_marketing_server.repository.*;
 import com.codegym.auto_marketing_server.service.IScheduledPostService;
@@ -47,30 +48,52 @@ public class ScheduledPostService implements IScheduledPostService {
             post.setTargetAudience(req.targetAudience());
             post.setCreatedAt(LocalDate.now());
             post = postRepository.save(post);
+        }
 
-            // thêm PostMedia nếu có
-            if (req.medias() != null && !req.medias().isEmpty()) {
-                List<PostMedia> medias = new ArrayList<>();
-                for (PostMediaDTO m : req.medias()) {
-                    PostMedia media = new PostMedia();
-                    media.setPost(post);
-                    media.setType(m.type());
-                    try {
-                        String url = m.url();
-                        if (url != null && !url.startsWith("http")) {
-                            // giả sử FE gửi file path => upload Cloudinary
-                            url = cloudinaryService.uploadImage(new File(url));
-                        }
-                        media.setUrl(url);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Upload media thất bại: " + e.getMessage());
+        // Lấy collection hiện tại của PostMedia
+        List<PostMedia> medias = post.getMedias();
+        if (medias == null) {
+            medias = new ArrayList<>();
+            post.setMedias(medias);
+        }
+
+        // Thêm PostMedia từ post.imageUrl nếu chưa có
+        String imageUrl = post.getImageUrl();
+        if (imageUrl != null && medias.stream().noneMatch(m -> imageUrl.equals(m.getUrl()))) {
+            PostMedia mainMedia = new PostMedia();
+            mainMedia.setPost(post);
+            mainMedia.setType(PostMediaType.PIC);
+            mainMedia.setUrl(imageUrl);
+            medias.add(mainMedia);
+            postMediaRepository.save(mainMedia);
+        }
+
+        // Thêm PostMedia từ request nếu có
+        if (req.medias() != null && !req.medias().isEmpty()) {
+            for (PostMediaDTO m : req.medias()) {
+                // tránh trùng với imageUrl
+                if (imageUrl != null && imageUrl.equals(m.url())) continue;
+
+                PostMedia media = new PostMedia();
+                media.setPost(post);
+                media.setType(m.type());
+                try {
+                    String url = m.url();
+                    if (url != null && !url.startsWith("http")) {
+                        url = cloudinaryService.uploadImage(new File(url));
                     }
-                    medias.add(media);
+                    media.setUrl(url);
+                } catch (Exception e) {
+                    throw new RuntimeException("Upload media thất bại: " + e.getMessage());
                 }
-                postMediaRepository.saveAll(medias);
-                post.setMedias(medias);
+                medias.add(media);
+                postMediaRepository.save(media);
             }
         }
+
+        // Cập nhật lại medias cho post (Hibernate quản lý)
+        post.setMedias(medias);
+        post = postRepository.save(post);
 
         // tạo ScheduledPost
         ScheduledPost scheduledPost = new ScheduledPost();
@@ -95,6 +118,7 @@ public class ScheduledPostService implements IScheduledPostService {
 
         return scheduledPost;
     }
+
 
     @Override
     public List<ScheduledPostDTO> getPublishedPosts() {

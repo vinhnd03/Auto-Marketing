@@ -100,10 +100,10 @@ export default function SchedulePostCalendar({ onSubmit }) {
       const res = await createSchedule(payload);
       
     // --- LOG kiểm tra fanpage trả về từ BE ---
-    console.log("Payload gửi đi:", payload);
-    console.log("FanpageIds gửi đi:", payload.fanpageIds);
-    console.log("BE trả về:", res);
-    console.log("BE trả về fanpageIds:", res.fanpageIds || []);
+    // console.log("Payload gửi đi:", payload);
+    // console.log("FanpageIds gửi đi:", payload.fanpageIds);
+    // console.log("BE trả về:", res);
+    // console.log("BE trả về fanpageIds:", res.fanpageIds || []);
       const newPost = {
         id: res.id,
         title: chosenContent.title,

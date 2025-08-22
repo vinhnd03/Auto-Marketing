@@ -1,5 +1,6 @@
 package com.codegym.auto_marketing_server.service.impl;
 
+import com.codegym.auto_marketing_server.dto.FanpageDTO;
 import com.codegym.auto_marketing_server.entity.Fanpage;
 import com.codegym.auto_marketing_server.entity.SocialAccount;
 import com.codegym.auto_marketing_server.repository.IFanpageRepository;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -62,5 +64,18 @@ public class FanpageService implements IFanpageService {
         SocialAccount socialAccount = socialAccountRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User chưa lin kết tài khoản facebook"));
         return fanpageRepository.findBySocialAccountId(socialAccount.getId());
+    }
+
+    @Override
+    public List<FanpageDTO> getByUserId(Long userId) {
+        List<Fanpage> fanpages = fanpageRepository.findByUserId(userId);
+        return fanpages.stream()
+                .map(f -> new FanpageDTO(
+                        f.getId(),
+                        f.getPageId(),
+                        f.getPageName(),
+                        f.getAvatarUrl()
+                ))
+                .toList();
     }
 }

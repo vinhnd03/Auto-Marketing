@@ -89,7 +89,8 @@ public class ScheduledPostController {
                     req.targetAudience(),
                     allMedias,
                     req.fanpageIds(),
-                    req.scheduledTime()
+                    req.scheduledTime(),
+                    req.imageUrl()
             );
 
             ScheduledPost updated = scheduledPostService.updateScheduledPost(id, mergedReq);

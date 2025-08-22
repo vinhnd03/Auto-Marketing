@@ -31,32 +31,12 @@ const WorkspacePage = () => {
   // Modal chọn MXH và Fanpage
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSelectPageModalOpen, setIsSelectPageModalOpen] = useState(false);
+  const [selectedPages, setSelectedPages] = useState([]);
 
   // Giới hạn workspace
   const [maxWorkspace, setMaxWorkspace] = useState(0);
 
-  // Kiểm tra liên kết MXH
-  const [isFbLinked, setIsFbLinked] = useState(false);
-  const [checkingFbLinked, setCheckingFbLinked] = useState(true);
 
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const checkLinked = async () => {
-      try {
-        const res = await fetch(`/api/social/check?userId=${user.id}`);
-        const text = await res.text();
-        setIsFbLinked(text.includes("đã liên kết"));
-      } catch (err) {
-        console.error(err);
-        toast.error("Không thể kiểm tra MXH");
-      } finally {
-        setCheckingFbLinked(false);
-      }
-    };
-
-    checkLinked();
-  }, [user]);
 
   useEffect(() => {
     if (!user || !user.id) return;
@@ -77,8 +57,7 @@ const WorkspacePage = () => {
 
         if (!Array.isArray(wsList) || wsList.length === 0) {
           setWorkspaces([]);
-          // Nếu đã liên kết MXH mới show create modal
-          if (isFbLinked) setShowCreateModal(true);
+          setShowCreateModal(true);
           return;
         }
 
@@ -108,7 +87,7 @@ const WorkspacePage = () => {
     };
 
     fetchData();
-  }, [user, isFbLinked]);
+  }, [user]);
 
   const toastShown = useRef(false);
 
@@ -163,8 +142,6 @@ const WorkspacePage = () => {
     setWorkspaces(prev => [newWorkspace, ...prev]);
   };
 
-  if (checkingFbLinked) return <Preloader />;
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Modal chọn mạng xã hội */}
@@ -176,16 +153,22 @@ const WorkspacePage = () => {
             setIsSelectPageModalOpen(true);
             setIsModalOpen(false);
           }}
-          setIsFbLinked={setIsFbLinked}
         />
       )}
 
-      {isSelectPageModalOpen && (
+      {/* Modal chọn Fanpage */}
+{isSelectPageModalOpen && (
         <SelectPagesModal
           isOpen={isSelectPageModalOpen}
           onClose={() => setIsSelectPageModalOpen(false)}
+          userId={user?.id}
+          onSuccess={(pages) => {
+            setSelectedPages(pages);
+            setShowCreateModal(true); // mở modal tạo workspace
+          }}
         />
       )}
+
 
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
@@ -195,11 +178,8 @@ const WorkspacePage = () => {
         </div>
         <button
           onClick={() => {
-            if (!isFbLinked) {
-              setIsModalOpen(true);
-            } else {
-              setShowCreateModal(true);
-            }
+             setShowCreateModal(true);
+            
           }}
           className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all flex items-center"
         >
@@ -353,6 +333,7 @@ const WorkspacePage = () => {
         onClose={() => setShowCreateModal(false)}
         onAdd={handleAddWorkspace}
         workspaces={workspaces}
+        
       />
       <UpdateWorkspaceModal
         isOpen={showUpdateModal}

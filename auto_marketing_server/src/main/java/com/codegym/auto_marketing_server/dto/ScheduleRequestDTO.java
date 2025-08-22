@@ -24,6 +24,7 @@ public record ScheduleRequestDTO(
         List<Long> fanpageIds,       // danh sách fanpage target
         @Future(message = "Thời gian đăng phải ở tương lai")
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
-        LocalDateTime scheduledTime  // thời gian đăng bài
+        LocalDateTime scheduledTime, // thời gian đăng bài
+        String imageUrl
 ) {
 }

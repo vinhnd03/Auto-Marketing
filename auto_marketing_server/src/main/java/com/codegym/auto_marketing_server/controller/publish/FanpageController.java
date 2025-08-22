@@ -24,4 +24,14 @@ public class FanpageController {
     public ResponseEntity<List<Fanpage>> list(@RequestParam Long userId) {
         return ResponseEntity.ok(fanpageService.listByUser(userId));
     }
+
+    @GetMapping("/list-or-sync")
+    public ResponseEntity<List<Fanpage>> listOrSync(@RequestParam Long userId) {
+        List<Fanpage> pages = fanpageService.listByUser(userId);
+        if (pages.isEmpty()) {
+            pages = fanpageService.syncUserPages(userId); // đồng bộ từ FB nếu chưa có
+        }
+        return ResponseEntity.ok(pages);
+    }
+
 }
