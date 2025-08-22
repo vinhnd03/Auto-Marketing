@@ -21,14 +21,13 @@ const ForgotPasswordPage = () => {
       const success = await sendEmail(email);
       if (success) {
         setEmailSent(true);
-        toast.success(
-          "Đã gửi thành công, vui lòng kiểm tra Mail của bạn."
-        );
+        toast.dismiss();
+        toast.success("Đã gửi thành công, vui lòng kiểm tra Mail của bạn.", {
+          duration: 1500,
+        });
       } else {
         // Vẫn nên báo chung chung để tránh lộ thông tin email tồn tại hay không
-        toast.error(
-          "Email chưa được đăng ký."
-        );
+        toast.error("Email chưa được đăng ký.");
       }
     } catch (err) {
       console.error(err);

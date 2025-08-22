@@ -77,7 +77,8 @@ const RegisterPage = () => {
 
       const result = await authService.register(userData);
       if (result.success) {
-        toast.success("Đăng ký thành công!");
+        toast.dismiss();
+        toast.success("Đăng ký thành công!", { duration: 1500 });
         navigate("/login");
       } else {
         if (result.error.includes("Email")) {

@@ -269,8 +269,15 @@ const WorkspaceDetailPage = () => {
     }
 
     try {
+      // Lấy danh sách id của các topic vừa tạo
+      const generatedTopicIds = newTopics.map((topic) => topic.id);
+
       // Gọi lại API lấy danh sách topic mới nhất từ BE
       const latestTopics = await getTopicsByCampaign(campaignId);
+
+      // Chỉ lấy các topic vừa tạo (lọc theo id)
+      const newGeneratedTopics = latestTopics.filter((topic) => generatedTopicIds.includes(topic.id));
+
       setWorkspace((prevWorkspace) => {
         const updatedWorkspace = { ...prevWorkspace };
         const campaignIndex = updatedWorkspace.campaigns.findIndex(
@@ -283,10 +290,10 @@ const WorkspaceDetailPage = () => {
         }
         return updatedWorkspace;
       });
-      setNewlyCreatedTopics(latestTopics.map((topic) => topic.id));
+      setNewlyCreatedTopics(newGeneratedTopics.map((topic) => topic.id));
       setActiveTab("topics");
       toast.dismiss();
-      toast.success(`Đã tạo thành công ${newTopics.length} topics mới!`);
+      toast.success(`Đã tạo thành công ${newGeneratedTopics.length} topics mới!`);
 
       // Reload workspace to ensure new campaigns/topics are shown
       if (typeof fetchWorkspaceData === "function") {
