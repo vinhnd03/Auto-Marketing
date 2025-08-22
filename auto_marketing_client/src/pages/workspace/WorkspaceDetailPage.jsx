@@ -28,9 +28,24 @@ import {
 
 import dayjs from "dayjs";
 import { getWorkspaceDetail } from "../../service/workspace/workspace_service";
+import { ArrowUpCircle } from "lucide-react";
 import campaignService from "../../service/campaignService";
 
 const WorkspaceDetailPage = () => {
+  // Scroll to top button visibility
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 200);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const { workspaceId } = useParams();
   const [workspace, setWorkspace] = useState(null);
   const [loadingWorkspace, setLoadingWorkspace] = useState(true);
@@ -270,6 +285,7 @@ const WorkspaceDetailPage = () => {
       });
       setNewlyCreatedTopics(latestTopics.map((topic) => topic.id));
       setActiveTab("topics");
+      toast.dismiss();
       toast.success(`Đã tạo thành công ${newTopics.length} topics mới!`);
 
       // Reload workspace to ensure new campaigns/topics are shown
@@ -284,6 +300,7 @@ const WorkspaceDetailPage = () => {
   const handleHideAITopics = () => {
     setNewlyCreatedTopics([]);
     setApprovedTopics(new Set()); // Reset approved topics
+    toast.dismiss();
     toast.success("Đã ẩn section AI Topics!", {
       duration: 2000,
       style: {
@@ -681,6 +698,16 @@ const WorkspaceDetailPage = () => {
 
   return (
     <div className="bg-gray-50 py-8">
+      {/* Scroll to top button */}
+      {showScrollTop && (
+        <button
+          onClick={handleScrollToTop}
+          className="fixed bottom-6 right-6 z-[9999] bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg p-3 flex items-center justify-center transition-all"
+          aria-label="Scroll to top"
+        >
+          <ArrowUpCircle size={32} />
+        </button>
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-6">
           {/* Header */}

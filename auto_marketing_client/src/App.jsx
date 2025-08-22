@@ -52,6 +52,8 @@ import OAuth2Success from "./pages/auth/OAuthSucess";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import { AxiosInterceptor } from "./context/useAxiosInterceptor";
 
+import GlobalScrollToTop from "./components/ui/GlobalScrollToTop";
+
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
   const location = useLocation();
@@ -144,29 +146,6 @@ function App() {
             </AdminRoute>
           }
         />
-        {/* <Route element={<AdminRoute />}>
-            <Route element={<AdminLayout />}>
-              <Route path="/admin/*" element={<AdminDashboard />} />
-              <Route
-                path="/admin/users/list"
-                element={<ListCustomerComponent />}
-              />
-              <Route
-                path="/admin/users/new"
-                element={<ListCustomerByDateComponent />}
-              />
-              <Route path="/admin/customers/trends" element={<TrendPage />} />
-              <Route
-                path="/admin/customers/statistics"
-                element={<NewCustomerStatisticsComponent />}
-              />
-              <Route
-                path="/admin/revenue/overview"
-                element={<RevenueManagement />}
-              />
-            </Route>
-          </Route> */}
-
         {/* Regular Routes with AppLayout */}
         <Route
           path="/*"
@@ -235,7 +214,6 @@ function App() {
                   path="/settings"
                   element={
                     <ProtectedRoute>
-                      {" "}
                       <Settings />
                     </ProtectedRoute>
                   }
@@ -244,8 +222,7 @@ function App() {
                   path="/workspace"
                   element={
                     <ProtectedRoute>
-                      {" "}
-                      <WorkspacePage />{" "}
+                      <WorkspacePage />
                     </ProtectedRoute>
                   }
                 />
@@ -265,10 +242,10 @@ function App() {
             </AppLayout>
           }
         />
-
         <Route path="/unauthorized" element={<ForbiddenPage />} />
         <Route path="/not-found" element={<NotFoundPage />} />
       </Routes>
+      <GlobalScrollToTop />
       <Toaster
         position="top-right"
         toastOptions={{
