@@ -4,6 +4,7 @@ import com.codegym.auto_marketing_server.dto.UserSummaryDTO;
 import com.codegym.auto_marketing_server.entity.Role;
 import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.entity.UserToken;
+import com.codegym.auto_marketing_server.repository.IUserRepository;
 import com.codegym.auto_marketing_server.security.email.EmailRequest;
 import com.codegym.auto_marketing_server.security.email.EmailService;
 import com.codegym.auto_marketing_server.security.jwt.request.LoginRequest;
@@ -45,7 +46,6 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
     private final IUserTokenService userTokenService;
-
     @Value("${app.frontend.url}")
     private String frontendUrl;
 
@@ -135,8 +135,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         Optional<User> u = userService.findByEmail(loginRequest.getEmail());
-        System.out.println(u.isPresent());
-        if (u.isPresent()) System.out.println(u.get().getPassword());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
@@ -177,9 +175,14 @@ public class AuthController {
         return ResponseEntity.ok("OK");
     }
 
+//    @GetMapping("/google")
+//    public void googleLogin(HttpServletResponse response) throws IOException {
+//        // Redirect đến trang xác thực của Google
+//        response.sendRedirect("/oauth2/authorization/google");
+//    }
+
     @GetMapping("/google")
     public void googleLogin(HttpServletResponse response) throws IOException {
-        // Redirect đến trang xác thực của Google
         response.sendRedirect("/oauth2/authorization/google");
     }
 

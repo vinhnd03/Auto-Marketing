@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/plans")
-//@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class PlanController {
     private final IPlanService planService;

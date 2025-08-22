@@ -20,4 +20,6 @@ public interface IPostService {
     Post findById(Long postId);
 
     Post save(Post post);
+
+    List<PostResponseDTO> getAllPosts();
 }

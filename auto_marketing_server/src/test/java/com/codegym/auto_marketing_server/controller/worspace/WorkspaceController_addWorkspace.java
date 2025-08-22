@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,16 +30,16 @@ public class WorkspaceController_addWorkspace {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private IWorkspaceService workspaceService;
 
-    @MockBean
+    @MockitoBean
     private ISocialAccountService socialAccountService;
 
-    @MockBean
+    @MockitoBean
     private IUserService userService;
 
-    @MockBean
+    @MockitoBean
     private ISocialAccountWorkplaceService socialAccountWorkplaceService;
 
 

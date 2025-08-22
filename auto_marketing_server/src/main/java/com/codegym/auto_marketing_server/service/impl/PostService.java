@@ -264,4 +264,13 @@ public class PostService implements IPostService {
 
         return dto;
     }
+
+
+    @Override
+    public List<PostResponseDTO> getAllPosts() {
+        return postRepository.findAll()
+                .stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
 }

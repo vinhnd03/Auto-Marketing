@@ -4,15 +4,13 @@ import com.codegym.auto_marketing_server.filter.JwtAuthenticationFilter;
 import com.codegym.auto_marketing_server.security.jwt.service.CustomUserDetailsService;
 import com.codegym.auto_marketing_server.security.jwt.service.JwtService;
 import com.codegym.auto_marketing_server.security.oauth2.CustomOAuth2SuccessHandler;
-import com.codegym.auto_marketing_server.service.IRoleService;
-import com.codegym.auto_marketing_server.service.IUserService;
-import com.codegym.auto_marketing_server.util.CloudinaryService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -44,41 +42,42 @@ public class SecurityConfig {
     private String frontendUrl;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Order(3)
+    public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/v1/topics/generate", "/api/v1/topics/generate/**",
-                                "/api/v1/posts/generate", "/api/v1/plans/**", "/api/payment/vn-pay-callback").permitAll()
-                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/user/**").hasAnyAuthority("USER", "ADMIN")
-                        .anyRequest().authenticated()
+                                .requestMatchers("/api/auth/**", "/api/social/connect/facebook/callback","/api/v1/plans","api/payment/vn-pay-callback").permitAll()
+                                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                                .requestMatchers("/api/user/**", "/api/schedules/**,").hasAnyAuthority("USER", "ADMIN")
+//                        .requestMatchers("/api/w").authenticated()
+                                .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth -> oauth
-//                        .loginPage("/api/auth/google")
-                                .successHandler(customOAuth2SuccessHandler)
-                                .failureHandler((request, response, exception) -> {
-                                    String errorMessage = "oauth_error";
-                                    if (exception instanceof OAuth2AuthenticationException) {
-                                        errorMessage = "cancelled";
-                                    }
-                                    response.sendRedirect("http://localhost:3000/login?error=" + errorMessage);
-                                })
-                ).logout(logout -> logout
-                                .logoutUrl("/api/auth/logout")
-                                .logoutSuccessHandler((req, resp, auth) -> {
-                                    Cookie cookie = new Cookie("jwt", "");
-                                    cookie.setMaxAge(0);
-                                    cookie.setHttpOnly(true);
-                                    cookie.setPath("/");
-//                            cookie.setSecure(true);
-                                    resp.addCookie(cookie);
-                                    resp.setStatus(HttpServletResponse.SC_OK);
-                                })
-                );
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+//                .oauth2Login(oauth -> oauth
+////                        .loginPage("/api/auth/google")
+////                                .authorizationEndpoint(auth -> auth.baseUri("/api/auth"))
+//                        .successHandler(customOAuth2SuccessHandler)
+//                        .failureHandler((request, response, exception) -> {
+//                            String errorMessage = "oauth_error";
+//                            if (exception instanceof OAuth2AuthenticationException) {
+//                                errorMessage = "cancelled";
+//                            }
+//                            response.sendRedirect("http://localhost:3000/login?error=" + errorMessage);
+//                        })
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        .logoutSuccessHandler((req, resp, auth) -> {
+                            Cookie cookie = new Cookie("jwt", "");
+                            cookie.setMaxAge(0);
+                            cookie.setHttpOnly(true);
+                            cookie.setPath("/");
+                            resp.addCookie(cookie);
+                            resp.setStatus(HttpServletResponse.SC_OK);
+                        })
+                )
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -91,7 +90,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(frontendUrl)); // domain frontend// domain frontend
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true); // <--- QUAN TRỌNG
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -108,4 +107,42 @@ public class SecurityConfig {
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtService, userDetailsService);
     }
+
+    @Bean
+    @Order(1)
+    public SecurityFilterChain oauth2LoginFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/oauth2/authorization/**", "/login/oauth2/code/**"
+//                , "/api/social/connect/facebook/callback"
+                ) // Chỉ áp dụng cho login
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .oauth2Login(oauth -> oauth
+                        .successHandler(customOAuth2SuccessHandler)
+                        .failureHandler((request, response, exception) -> {
+                            String errorMessage = "oauth_error";
+                            if (exception instanceof OAuth2AuthenticationException) {
+                                errorMessage = "cancelled";
+                            }
+                            response.sendRedirect(frontendUrl + "/login?error=" + errorMessage);
+                        })
+                );
+        return http.build();
+    }
+
+//    @Bean
+//    @Order(2)
+//    public SecurityFilterChain facebookConnectFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .securityMatcher("/oauth2/authorization/facebook", "/login/oauth2/code/facebook")
+//                .csrf(csrf -> csrf.disable())
+//                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated()) // user phải login app
+//                .oauth2Login(oauth -> oauth
+//                        .successHandler(connectFacebookSuccessHandler)
+//                        .failureHandler((request, response, exception) -> {
+//                            response.sendRedirect(frontendUrl + "/facebook-connect?error");
+//                        })
+//                );
+//        return http.build();
+//    }
 }

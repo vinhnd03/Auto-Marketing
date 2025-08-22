@@ -14,11 +14,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class AutoMarketingServerApplication {
 
     public static void main(String[] args) {
-        // Load .env
-        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-
-        // Set system properties from .env
-        dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
+//        // Load .env
+//        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+//
+//        // Set system properties from .env
+//        dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
 
         // Run Spring Application
         SpringApplication.run(AutoMarketingServerApplication.class, args);
