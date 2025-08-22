@@ -38,6 +38,8 @@ const login = async (data) => {
     } catch (error) {
         if (error.response?.status === 401) {
             return { success: false, error: "Email hoặc mật khẩu không đúng" };
+        }else if(error.response?.status === 403) {
+            return { success: false, error: "Tài khoản này đã bị khóa" };
         }
         return { success: false, error: "Lỗi kết nối khi đăng nhập" };
     }

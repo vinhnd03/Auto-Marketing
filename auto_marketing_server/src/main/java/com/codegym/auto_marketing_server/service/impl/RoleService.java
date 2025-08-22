@@ -6,6 +6,7 @@ import com.codegym.auto_marketing_server.service.IRoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,5 +22,25 @@ public class RoleService implements IRoleService {
     @Override
     public Role save(Role role) {
         return roleRepository.save(role);
+    }
+
+    @Override
+    public List<Role> findAll() {
+        return roleRepository.findAll();
+    }
+
+//    @Override
+//    public void save(Role roles) {
+//        roleRepository.save(roles);
+//    }
+
+    @Override
+    public Optional<Role> findById(Long id) {
+        return roleRepository.findById(id);
+    }
+
+    @Override
+    public void remove(Long id) {
+        roleRepository.deleteById(id);
     }
 }

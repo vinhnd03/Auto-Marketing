@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Collection;
 import java.util.List;
 
@@ -62,6 +63,10 @@ public class User implements UserDetails {
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
+
+    @OneToMany(mappedBy = "user") // ánh xạ ngược tới trường 'user' trong Subscriptions
+    private List<Subscription> subscriptions;
+
 
 //    @PrePersist
 //    protected void onCreate() {

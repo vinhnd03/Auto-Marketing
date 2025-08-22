@@ -58,6 +58,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth -> oauth
 //                        .loginPage("/api/auth/google")
+//                                .authorizationEndpoint(auth -> auth.baseUri("/api/auth"))
                                 .successHandler(customOAuth2SuccessHandler)
                                 .failureHandler((request, response, exception) -> {
                                     String errorMessage = "oauth_error";

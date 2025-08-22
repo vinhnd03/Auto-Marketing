@@ -34,47 +34,50 @@ import FAQPage from "./pages/FAQPage";
 import GuidePage from "./pages/GuidePage";
 import SitemapPage from "./pages/SitemapPage";
 
-import { TermsPage, PrivacyPage } from "./pages/legal";
+import {TermsPage, PrivacyPage} from "./pages/legal";
 import ListComponent from "./components/pricing/DashBoardComponent";
 import PaymentResultComponent from "./components/pricing/PaymentResultComponent";
 import AdminLayout from "./components/layout/AdminLayout";
 import AdminDashboard from "./components/admin/AdminDashboard";
-import RevenueManagement from "./pages/admin/RevenueManagement";
+import RevenueStatsPage from "./pages/admin/RevenueStatsPage";
 
-import ListCustomerComponent from "./components/admin/ListCustomerComponent";
-import ListCustomerByDateComponent from "./components/admin/ListCustomerByDateComponent";
-import NewCustomerStatisticsComponent from "./components/admin/NewCustomerStatisticsComponent";
-import TrendPage from "./components/admin/TrendAnalysis";
 import { ForbiddenPage, NotFoundPage } from "./pages/error/ErrorPage ";
 import AdminRoute from "./routes/AdminRoute";
 import GuestRoute from "./routes/GuestRoute";
 import OAuth2Success from "./pages/auth/OAuthSucess";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import { AxiosInterceptor } from "./context/useAxiosInterceptor";
+import ListUsers from "./components/admin/ListUsers";
+import ListUserByDate from "./components/admin/ListUserByDate";
+import NewCustomerStatistic from "./components/admin/NewCustomerStatistic";
+import DetailUserComponent from "./components/admin/DetailUser";
+import PackageStatsPage from "./pages/admin/PackageStatsPage";
+import PlanPage from "./pages/admin/PlanPage";
+import NewPackagePurchased from "./components/admin/NewPackagePurchased";
 
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
-  const location = useLocation();
+    const location = useLocation();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [location.pathname]);
 
-  return null;
+    return null;
 };
 
 // Component để xác định có hiển thị Navbar/Footer không
-const AppLayout = ({ children }) => {
-  const location = useLocation();
-  const isAuthPage = [
-    "/login",
-    "/register",
-    "/reset-password",
-    "/forgot-password",
-  ].includes(location.pathname);
+const AppLayout = ({children}) => {
+    const location = useLocation();
+    const isAuthPage = [
+        "/login",
+        "/register",
+        "/reset-password",
+        "/forgot-password",
+    ].includes(location.pathname);
 
-  const isAdminPage = location.pathname.startsWith("/admin");
-  const isLegalPage = ["/terms", "/privacy"].includes(location.pathname);
+    const isAdminPage = location.pathname.startsWith("/admin");
+    const isLegalPage = ["/terms", "/privacy"].includes(location.pathname);
 
   const isErrorPage = ["/not-found"].includes(location.pathname);
   // Hiển thị Navbar ở tất cả pages trừ auth pages, admin pages và legal pages
@@ -83,17 +86,17 @@ const AppLayout = ({ children }) => {
   // Hiển thị Footer ở tất cả pages trừ auth pages và admin pages (bao gồm cả legal pages)
   const shouldShowFooter = !isAuthPage && !isAdminPage && !isErrorPage;
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      {shouldShowNavbar && <Navbar />}
-      <main className="flex-1">{children}</main>
-      {shouldShowFooter && <Footer />}
-    </div>
-  );
+    return (
+        <div className="min-h-screen flex flex-col">
+            {shouldShowNavbar && <Navbar/>}
+            <main className="flex-1">{children}</main>
+            {shouldShowFooter && <Footer/>}
+        </div>
+    );
 };
 
 AppLayout.propTypes = {
-  children: PropTypes.node.isRequired,
+    children: PropTypes.node.isRequired,
 };
 
 function App() {
@@ -120,53 +123,20 @@ function App() {
             <AdminRoute>
               <AdminLayout>
                 <Routes>
-                  <Route index element={<AdminDashboard />} />
-                  <Route
-                    path="users/list"
-                    element={<ListCustomerComponent />}
-                  />
-                  <Route
-                    path="users/new"
-                    element={<ListCustomerByDateComponent />}
-                  />
-                  <Route path="customers/trends" element={<TrendPage />} />
-                  <Route
-                    path="customers/statistics"
-                    element={<NewCustomerStatisticsComponent />}
-                  />
-                  <Route
-                    path="revenue/overview"
-                    element={<RevenueManagement />}
-                  />
+                    <Route index element={<AdminDashboard/>}/>
+                    <Route path="users/list" element={<ListUsers/>}/>
+                    <Route path="users/new" element={<ListUserByDate/>}/>
+                    <Route path={"users/detail/:id"} element={<DetailUserComponent/>}/>
+                    <Route path="customers/statistics_customer" element={<NewCustomerStatistic/>}/>
+                    <Route path="customers/statistics_packages" element={<NewPackagePurchased/>}/>
+                    <Route path="revenue" element={<RevenueStatsPage/>}/>
+                    <Route path="packages" element={<PackageStatsPage/>}/>
+                    <Route path="plans" element={<PlanPage/>}/>
                 </Routes>
               </AdminLayout>
             </AdminRoute>
           }
         />
-        {/* <Route element={<AdminRoute />}>
-            <Route element={<AdminLayout />}>
-              <Route path="/admin/*" element={<AdminDashboard />} />
-              <Route
-                path="/admin/users/list"
-                element={<ListCustomerComponent />}
-              />
-              <Route
-                path="/admin/users/new"
-                element={<ListCustomerByDateComponent />}
-              />
-              <Route path="/admin/customers/trends" element={<TrendPage />} />
-              <Route
-                path="/admin/customers/statistics"
-                element={<NewCustomerStatisticsComponent />}
-              />
-              <Route
-                path="/admin/revenue/overview"
-                element={<RevenueManagement />}
-              />
-            </Route>
-          </Route> */}
-
-        {/* Regular Routes with AppLayout */}
         <Route
           path="/*"
           element={
@@ -261,9 +231,6 @@ function App() {
             </AppLayout>
           }
         />
-
-        <Route path="/unauthorized" element={<ForbiddenPage />} />
-        <Route path="/not-found" element={<NotFoundPage />} />
       </Routes>
       <Toaster
         position="top-right"

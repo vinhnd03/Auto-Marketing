@@ -12,14 +12,15 @@ import {
   IdentificationIcon,
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
+import ConfirmLogoutModal from "../modal/ConfirmLogoutModal";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const navigate = useNavigate();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   // console.log(user);
 
 
@@ -64,13 +65,8 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    const result = await authService.logout();
-    if (result.success) {
-      setUser(null); // xóa user khỏi Context
-      navigate("/"); // điều hướng về trang chủ
-    } else {
-      toast.error(result.error);
-    }
+    setShowLogoutModal(true);
+    setDropdownOpen(false);
   };
 
   const navLinks = [
@@ -85,6 +81,7 @@ export default function Navbar() {
 
   return (
     <header className="bg-white shadow sticky top-0 z-50">
+      {showLogoutModal && <ConfirmLogoutModal onClose={() => setShowLogoutModal(false)} />}
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link to="/" className="flex items-center space-x-2">
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-lg px-2 py-1 rounded">

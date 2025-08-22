@@ -135,8 +135,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         Optional<User> u = userService.findByEmail(loginRequest.getEmail());
-        System.out.println(u.isPresent());
-        if (u.isPresent()) System.out.println(u.get().getPassword());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())

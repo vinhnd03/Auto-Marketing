@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
 import {
     TrendingUp,
     Users,
@@ -11,79 +11,134 @@ import {
     CheckCircle,
     Package,
 } from "lucide-react";
+// import {getUserCount} from "../../service/admin/notificationService";
+import {getRevenueStats} from "../../service/revenueService";
+import {getAll} from "../../service/admin/usersService";
+import { getMonthlyDetail } from "../../service/admin/statisticsCustomerService";
+import {getPackageStats} from "../../service/packageService";
+
+const pad = (n) => (n < 10 ? `0${n}` : n);
 
 const AdminDashboard = () => {
+    const [userCount, setUserCount] = useState(0);
+    const [list, setList] = useState([]);
+    const [dash, setDash] = useState(null);
+    const [totalSold, setTotalSold] = useState(0);
+    const [growthRate, setGrowthRate] = useState(0);
+    const [userGrowth, setUserGrowth] = useState("0%");
+
+    useEffect(() => {
+        async function fetchData() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+           // const { current, previous } = await getMonthlyDetail(2025, 1);
+
+            const { current, previous } = await getMonthlyDetail(currentYear, currentMonth);
+
+            setUserCount(current.count);
+
+            let growth = 0;
+            if (previous) {
+                if (previous.count === 0) {
+                    growth = current.count > 0 ? 100 : 0;
+                } else {
+                    growth = ((current.count - previous.count) / previous.count) * 100;
+                }
+            }
+            setUserGrowth(`${growth.toFixed(1)}%`);
+        }
+
+        fetchData().then();
+    }, []);
+
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const data = await getAll(); // getAll() đã return data từ axios
+                setList(data);
+            } catch (error) {
+                console.error("Lỗi khi fetch dữ liệu:", error);
+            }
+        };
+        fetchUsers().then();
+    }, []);
+
+
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const d = await getRevenueStats();
+                setDash(d);
+            } catch (e) {
+                console.error("Lỗi khi lấy revenue stats:", e);
+            }
+        })();
+    }, []);
+
+    // Fetch package stats (tháng hiện tại)
+    useEffect(() => {
+        const now = new Date();
+        const start = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01T00:00:00`;
+        const end = `${now.getFullYear()}-${pad(
+            now.getMonth() + 1
+        )}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}T23:59:59`;
+
+        (async () => {
+            try {
+                const resData = await getPackageStats(start, end);
+                setTotalSold(resData.totalSold ?? 0);
+                setGrowthRate(resData.growthRate ?? 0);
+            } catch (err) {
+                console.error("Lỗi khi lấy package stats:", err);
+            }
+        })();
+    }, []);
+
+    const toVND = (n) => (n ?? 0).toLocaleString("vi-VN") + "đ";
+
     const stats = [
         {
-            name: "Tổng người dùng",
-            value: "1,234",
-            change: "+12.5%",
-            changeType: "increase",
+            name: "Tổng người dùng tháng này",
+            value: userCount,
+            change: userGrowth,
+            changeType: parseFloat(userGrowth) >= 0 ? "increase" : "decrease",
             icon: Users,
             color: "blue",
-            description: "Người dùng hoạt động",
+            description: "đã đăng kí tài khoản",
+            compareLabel: "so với tháng trước"
         },
         {
             name: "Doanh thu tháng",
-            value: "₫152.5M",
-            change: "+8.2%",
-            changeType: "increase",
+            value: dash ? toVND(dash.month.current) : "",
+            change: dash ? `${dash.month.changePercent.toFixed(1)}%` : "",
+            changeType: dash ? dash.month.changeType : "",
             icon: DollarSign,
             color: "green",
             description: "So với tháng trước",
+            compareLabel: "So với tháng trước"
         },
         {
-            name: "Chiến dịch đang chạy",
-            value: "456",
-            change: "+15.3%",
+            name: "Tổng doanh thu năm",
+            value: dash ? toVND(dash.year) : "₫0",
+            change: "", // hoặc có thể để so sánh với năm trước nếu BE có trả về
             changeType: "increase",
-            icon: Target,
-            color: "purple",
-            description: "Chiến dịch hoạt động",
-        },
-        {
-            name: "Gói Premium",
-            value: "89",
-            change: "-2.1%",
-            changeType: "decrease",
             icon: Package,
             color: "orange",
-            description: "Đăng ký mới tháng này",
-        },
-    ];
-
-    const recentUsers = [
-        {
-            id: 1,
-            name: "Nguyễn Văn A",
-            email: "nguyenvana@email.com",
-            plan: "Premium",
-            joinDate: "2024-08-05",
-            status: "active",
+            description: "Tổng doanh thu năm nay",
+            compareLabel: "Dữ liệu mới được cập nhập"
         },
         {
-            id: 2,
-            name: "Trần Thị B",
-            email: "tranthib@email.com",
-            plan: "Professional",
-            joinDate: "2024-08-04",
-            status: "active",
-        },
-        {
-            id: 3,
-            name: "Lê Văn C",
-            email: "levanc@email.com",
-            plan: "Starter",
-            joinDate: "2024-08-03",
-            status: "pending",
-        },
-        {
-            id: 4,
-            name: "Phạm Thị D",
-            email: "phamthid@email.com",
-            plan: "Premium",
-            joinDate: "2024-08-02",
-            status: "active",
+            name: "Tổng gói đã mua",
+            value: totalSold,
+            change: `${growthRate.toFixed(2)}%`,
+            changeType: growthRate >= 0 ? "increase" : "decrease",
+            icon: Package,
+            color: "orange",
+            description: "Số lượng đã bán ra",
+            compareLabel: "So với tháng trước"
         },
     ];
 
@@ -148,7 +203,7 @@ const AdminDashboard = () => {
             name: "Quản lý người dùng",
             description: "Xem và quản lý tài khoản người dùng",
             icon: Users,
-            href: "/admin/users",
+            href: "/admin/users/list",
             color: "blue",
         },
         {
@@ -176,11 +231,11 @@ const AdminDashboard = () => {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            active: { color: "bg-green-100 text-green-800", text: "Hoạt động" },
-            pending: { color: "bg-yellow-100 text-yellow-800", text: "Chờ xử lý" },
-            completed: { color: "bg-green-100 text-green-800", text: "Thành công" },
-            failed: { color: "bg-red-100 text-red-800", text: "Thất bại" },
-            blocked: { color: "bg-red-100 text-red-800", text: "Bị khóa" },
+            active: {color: "bg-green-100 text-green-800", text: "Hoạt động"},
+            pending: {color: "bg-yellow-100 text-yellow-800", text: "Chờ xử lý"},
+            completed: {color: "bg-green-100 text-green-800", text: "Thành công"},
+            failed: {color: "bg-red-100 text-red-800", text: "Thất bại"},
+            blocked: {color: "bg-red-100 text-red-800", text: "Bị khóa"},
         };
 
         const config = statusConfig[status] || statusConfig.pending;
@@ -195,9 +250,9 @@ const AdminDashboard = () => {
 
     const getPlanBadge = (plan) => {
         const planConfig = {
-            Starter: { color: "bg-gray-100 text-gray-800" },
-            Professional: { color: "bg-blue-100 text-blue-800" },
-            Premium: { color: "bg-purple-100 text-purple-800" },
+            Starter: {color: "bg-gray-100 text-gray-800"},
+            Professional: {color: "bg-blue-100 text-blue-800"},
+            Premium: {color: "bg-purple-100 text-purple-800"},
         };
 
         const config = planConfig[plan] || planConfig.Starter;
@@ -213,13 +268,13 @@ const AdminDashboard = () => {
     const getAlertIcon = (type) => {
         switch (type) {
             case "error":
-                return <AlertTriangle className="text-red-500" size={16} />;
+                return <AlertTriangle className="text-red-500" size={16}/>;
             case "warning":
-                return <AlertTriangle className="text-yellow-500" size={16} />;
+                return <AlertTriangle className="text-yellow-500" size={16}/>;
             case "info":
-                return <CheckCircle className="text-blue-500" size={16} />;
+                return <CheckCircle className="text-blue-500" size={16}/>;
             default:
-                return <CheckCircle className="text-gray-500" size={16} />;
+                return <CheckCircle className="text-gray-500" size={16}/>;
         }
     };
 
@@ -228,8 +283,10 @@ const AdminDashboard = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-                    <p className="text-gray-600">Tổng quan hệ thống MarketingAuto</p>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
+                        Admin Dashboard
+                    </h1>
+                    <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
                 </div>
                 <div className="flex items-center space-x-2 bg-red-100 text-red-800 px-3 py-1 rounded-full">
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -269,28 +326,34 @@ const AdminDashboard = () => {
                                                     : "from-orange-500 to-orange-600"
                                     } rounded-lg flex items-center justify-center`}
                                 >
-                                    <Icon className="text-white" size={24} />
+                                    <Icon className="text-white" size={24}/>
                                 </div>
                             </div>
-                            <div className="flex items-center mt-4">
-                                {stat.changeType === "increase" ? (
-                                    <ArrowUp className="text-green-500 mr-1" size={16} />
-                                ) : (
-                                    <ArrowDown className="text-red-500 mr-1" size={16} />
-                                )}
-                                <span
-                                    className={`text-sm font-medium ${
-                                        stat.changeType === "increase"
-                                            ? "text-green-600"
-                                            : "text-red-600"
-                                    }`}
-                                >
-                  {stat.change}
-                </span>
-                                <span className="text-sm text-gray-500 ml-1">
-                  so với tháng trước
-                </span>
-                            </div>
+                            {stat.change ? (
+                                <div className="flex items-center mt-4">
+                                    {stat.changeType === "increase" ? (
+                                        <ArrowUp className="text-green-500 mr-1" size={16} />
+                                    ) : (
+                                        <ArrowDown className="text-red-500 mr-1" size={16} />
+                                    )}
+                                    <span
+                                        className={`text-sm font-medium ${
+                                            stat.changeType === "increase"
+                                                ? "text-green-600"
+                                                : "text-red-600"
+                                        }`}
+                                    >
+      {stat.change}
+    </span>
+                                    <span className="text-sm text-gray-500 ml-1">
+      {stat.compareLabel}
+    </span>
+                                </div>
+                            ) : (
+                                <div className="mt-4 text-sm text-gray-400 italic">
+                                    {stat.compareLabel || "Không có dữ liệu so sánh"}
+                                </div>
+                            )}
                         </div>
                     );
                 })}
@@ -322,7 +385,7 @@ const AdminDashboard = () => {
                                                         : "from-orange-500 to-orange-600"
                                         } rounded-lg flex items-center justify-center flex-shrink-0`}
                                     >
-                                        <Icon className="text-white" size={20} />
+                                        <Icon className="text-white" size={20}/>
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-gray-900 group-hover:text-red-600">
@@ -347,34 +410,39 @@ const AdminDashboard = () => {
                             Người dùng mới
                         </h2>
                         <Link
-                            to="/admin/users"
+                            to="/admin/users/new"
                             className="text-red-600 hover:text-red-700 text-sm font-medium"
                         >
                             Xem tất cả
                         </Link>
                     </div>
                     <div className="space-y-4">
-                        {recentUsers.map((user) => (
-                            <div key={user.id} className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-medium">
-                      {user.name.charAt(0)}
-                    </span>
+                        {list.length > 0 ? (
+                            list.slice(0, 4).map((user) => (
+                                <div key={user.id} className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div
+                                            className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-medium">
+                            {user.name?.charAt(0) || "?"}
+                        </span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                                            <p className="text-xs text-gray-500">{user.email}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">
-                                            {user.name}
-                                        </p>
-                                        <p className="text-xs text-gray-500">{user.email}</p>
+                                    <div className="text-right">
+                                        {user.subscriptions.length > 0
+                                            ? user.subscriptions.map(sub => sub.plan?.name).join(", ")
+                                            : "Chưa mua gói nào"}
+                                        <div className="mt-1">{getStatusBadge(user.status ? "active" : "blocked")}</div>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    {getPlanBadge(user.plan)}
-                                    <div className="mt-1">{getStatusBadge(user.status)}</div>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        ) : (
+                            <p className="text-sm text-gray-500">Chưa có dữ liệu người dùng</p>
+                        )}
                     </div>
                 </div>
 
@@ -442,34 +510,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Revenue Chart Placeholder */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                        Doanh thu theo thời gian
-                    </h2>
-                    <div className="flex space-x-2">
-                        <button className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-md">
-                            7 ngày
-                        </button>
-                        <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
-                            30 ngày
-                        </button>
-                        <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
-                            90 ngày
-                        </button>
-                    </div>
-                </div>
-                <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                        <TrendingUp className="mx-auto text-gray-400 mb-2" size={32} />
-                        <p className="text-gray-500">
-                            Biểu đồ doanh thu sẽ được hiển thị ở đây
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <div></div>
         </div>
     );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, {useEffect, useState} from "react";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -10,8 +10,8 @@ import {
     Tooltip,
     Legend,
 } from "chart.js";
-import { Chart } from "react-chartjs-2";
-import { getStatisticByMonthYear } from "../../service/statistics_service";
+import {Chart} from "react-chartjs-2";
+import {getStatisticByMonthYear} from "../../service/admin/statisticsCustomerService";
 
 ChartJS.register(
     CategoryScale,
@@ -24,41 +24,29 @@ ChartJS.register(
     Legend
 );
 
-export default function TrendPage() {
-    const [analysisType, setAnalysisType] = useState("weekly"); // giữ nếu bạn dùng sau
+export default function NewCustomerStatistic() {
+    const [analysisType, setAnalysisType] = useState("weekly");
     const [loading, setLoading] = useState(true);
-
-    // Lưu month dưới dạng string ("all" hoặc "1","2",...)
     const [selectedMonth, setSelectedMonth] = useState("all");
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
     const years = [];
     for (let i = 2020; i <= new Date().getFullYear(); i++) years.push(i);
 
-    // Helper: đảm bảo mảng số (length cố định)
-    const toNumberArray = (arr, len) => {
-        const out = Array(len)
-            .fill(0)
-            .map((_, i) => Number((arr && arr[i]) || 0));
-        return out;
-    };
-
-    // Hàm tính tăng trưởng
     const calcGrowthRates = (arr) => {
         if (!arr || arr.length === 0) return [];
         const rates = [0];
         for (let i = 1; i < arr.length; i++) {
             const prev = Number(arr[i - 1]) || 0;
             const curr = Number(arr[i]) || 0;
-            rates.push(prev === 0 ? 0 : ((curr - prev) / prev) * 100);
+            const rate = prev === 0 ? 0 : ((curr - prev) / prev) * 100;
+            rates.push(Number(rate.toFixed(1)));
         }
-        // trả về string cố định 2 chữ số giống trước
-        return rates.map((r) => Number(r).toFixed(2));
+        return rates;
     };
 
-    // States dữ liệu biểu đồ
     const [monthlyChartData, setMonthlyChartData] = useState({
-        labels: Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`),
+        labels: Array.from({length: 12}, (_, i) => `Tháng ${i + 1}`),
         datasets: [
             {
                 label: "Số lượng khách hàng mới",
@@ -75,6 +63,7 @@ export default function TrendPage() {
             },
         ],
     });
+
     const [quarterlyChartData, setQuarterlyChartData] = useState({
         labels: ["Quý 1", "Quý 2", "Quý 3", "Quý 4"],
         datasets: [
@@ -93,18 +82,19 @@ export default function TrendPage() {
             },
         ],
     });
+
     const [weeklyChartData, setWeeklyChartData] = useState({
-        labels: ["Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4"],
+        labels: [],
         datasets: [
             {
                 label: "Số lượng khách hàng mới",
-                data: [0, 0, 0, 0],
+                data: [],
                 backgroundColor: "rgba(75, 192, 192, 0.6)",
                 yAxisID: "y",
             },
             {
                 label: "Tăng trưởng (%)",
-                data: [0, 0, 0, 0],
+                data: [],
                 type: "line",
                 borderColor: "rgba(255, 99, 132, 1)",
                 yAxisID: "y1",
@@ -112,101 +102,141 @@ export default function TrendPage() {
         ],
     });
 
-    // Fetch khi thay đổi month/year (và giữ analysisType nếu cần)
-    useEffect(() => {
-        let mounted = true;
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                // truyền Number(selectedMonth) nếu chọn tháng cụ thể,
-                // hoặc "all" (string) nếu muốn lấy toàn bộ năm — tuỳ API của bạn
-                const monthParam = selectedMonth === "all" ? "all" : Number(selectedMonth);
-                const data = await getStatisticByMonthYear(monthParam, selectedYear);
+    const sum = (arr) => arr.reduce((a, b) => a + Number(b || 0), 0);
 
-                // Lấy mảng số nguyên từ response (an toàn)
-                const monthlyFromApi = toNumberArray(data?.monthly?.datasets?.[0]?.data, 12);
-                let quarterlyFromApi = toNumberArray(data?.quarterly?.datasets?.[0]?.data, 4);
-                let weeklyFromApi = toNumberArray(data?.weekly?.datasets?.[0]?.data, 4);
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            if (selectedMonth === "all") {
+                // --- lấy dữ liệu 12 tháng ---
+                const monthlyPromises = Array.from({length: 12}, (_, i) =>
+                    getStatisticByMonthYear(i + 1, selectedYear)
+                        .then((res) => sum(res?.weekly?.datasets?.[0]?.data || []))
+                        .catch(() => 0)
+                );
+                const monthlyFromWeeks = await Promise.all(monthlyPromises);
 
-                // Nếu API không cho quarterly nhưng monthly có dữ liệu -> tổng hợp quarterly từ monthly
-                const monthlyHasData = monthlyFromApi.some((v) => v !== 0);
-                const quarterlyAllZero = quarterlyFromApi.every((v) => v === 0);
-                if (monthlyHasData && quarterlyAllZero) {
-                    quarterlyFromApi = [0, 0, 0, 0].map((_, qi) =>
-                        monthlyFromApi.slice(qi * 3, qi * 3 + 3).reduce((s, n) => s + n, 0)
-                    );
-                }
+                const quarterlyFromApi = [0, 0, 0, 0].map((_, qi) =>
+                    monthlyFromWeeks.slice(qi * 3, qi * 3 + 3).reduce((s, n) => s + n, 0)
+                );
 
-                // Nếu chọn month cụ thể, đảm bảo weekly label hiển thị đúng tháng được chọn
-                const weekLabels =
-                    selectedMonth === "all"
-                        ? ["Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4"]
-                        : ["Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4"].map(
-                            (w) => `${w} - Tháng ${selectedMonth}`
-                        );
-
-                if (!mounted) return;
-
-                // Cập nhật state biểu đồ (dùng calcGrowthRates)
                 setMonthlyChartData((prev) => ({
                     ...prev,
                     datasets: [
-                        { ...prev.datasets[0], data: monthlyFromApi },
-                        { ...prev.datasets[1], data: calcGrowthRates(monthlyFromApi) },
+                        {...prev.datasets[0], data: monthlyFromWeeks},
+                        {...prev.datasets[1], data: calcGrowthRates(monthlyFromWeeks)},
                     ],
                 }));
 
                 setQuarterlyChartData((prev) => ({
                     ...prev,
                     datasets: [
-                        { ...prev.datasets[0], data: quarterlyFromApi },
-                        { ...prev.datasets[1], data: calcGrowthRates(quarterlyFromApi) },
+                        {...prev.datasets[0], data: quarterlyFromApi},
+                        {...prev.datasets[1], data: calcGrowthRates(quarterlyFromApi)},
                     ],
                 }));
 
                 setWeeklyChartData((prev) => ({
                     ...prev,
-                    labels: weekLabels,
+                    labels: [],
                     datasets: [
-                        { ...prev.datasets[0], data: weeklyFromApi },
-                        { ...prev.datasets[1], data: calcGrowthRates(weeklyFromApi) },
+                        {...prev.datasets[0], data: []},
+                        {...prev.datasets[1], data: []},
                     ],
                 }));
-            } catch (error) {
-                console.error("Lỗi khi lấy dữ liệu:", error);
-            } finally {
-                if (mounted) setLoading(false);
-            }
-        };
+            } else {
+                const monthNumber = Number(selectedMonth);
+                const res = await getStatisticByMonthYear(monthNumber, selectedYear);
+                const weeklyFromApi = res?.weekly?.datasets?.[0]?.data || [];
 
-        fetchData();
-        return () => {
-            mounted = false;
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedMonth, selectedYear, analysisType]);
+                // tự động tạo nhãn tuần dựa trên số lượng dữ liệu
+                const weekLabels = weeklyFromApi.map((_, i) => `Tuần ${i + 1} - Tháng ${selectedMonth}`);
+
+                setWeeklyChartData((prev) => ({
+                    ...prev,
+                    labels: weekLabels,
+                    datasets: [
+                        {...prev.datasets[0], data: weeklyFromApi},
+                        {...prev.datasets[1], data: calcGrowthRates(weeklyFromApi)},
+                    ],
+                }));
+
+                // --- monthly + quarterly vẫn lấy từ tổng tuần ---
+                const monthlyPromises = Array.from({length: 12}, (_, i) =>
+                    getStatisticByMonthYear(i + 1, selectedYear)
+                        .then((res) => sum(res?.weekly?.datasets?.[0]?.data || []))
+                        .catch(() => 0)
+                );
+                const monthlyFromWeeks = await Promise.all(monthlyPromises);
+
+                const quarterlyFromApi = [0, 0, 0, 0].map((_, qi) =>
+                    monthlyFromWeeks.slice(qi * 3, qi * 3 + 3).reduce((s, n) => s + n, 0)
+                );
+
+                setMonthlyChartData((prev) => ({
+                    ...prev,
+                    datasets: [
+                        {...prev.datasets[0], data: monthlyFromWeeks},
+                        {...prev.datasets[1], data: calcGrowthRates(monthlyFromWeeks)},
+                    ],
+                }));
+
+                setQuarterlyChartData((prev) => ({
+                    ...prev,
+                    datasets: [
+                        {...prev.datasets[0], data: quarterlyFromApi},
+                        {...prev.datasets[1], data: calcGrowthRates(quarterlyFromApi)},
+                    ],
+                }));
+            }
+        } catch (e) {
+            console.error("Lỗi khi lấy dữ liệu:", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData().then();
+    }, [selectedMonth, selectedYear]);
 
     const options = {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: { mode: "index", intersect: false },
+        interaction: {mode: "index", intersect: false},
         stacked: false,
         scales: {
-            y: { type: "linear", display: true, position: "left", title: { display: true, text: "Số khách hàng" } },
-            y1: { type: "linear", display: true, position: "right", title: { display: true, text: "Tăng trưởng (%)" }, grid: { drawOnChartArea: false } },
+            y: {
+                type: "linear",
+                display: true,
+                position: "left",
+                title: {display: true, text: "Số khách hàng"},
+            },
+            y1: {
+                type: "linear",
+                display: true,
+                position: "right",
+                title: {display: true, text: "Tăng trưởng (%)"},
+                grid: {drawOnChartArea: false},
+            },
         },
     };
 
-    // tổng khách hàng: nếu đang xem 'all' -> tính theo tháng, còn lại theo tuần
-    const totalCustomers =
-        (selectedMonth === "all"
-                ? monthlyChartData.datasets[0].data
-                : weeklyChartData.datasets[0].data
-        ).reduce((a, b) => a + Number(b || 0), 0) || 0;
+    const totalCustomers = (
+        selectedMonth === "all" ? monthlyChartData.datasets[0].data : weeklyChartData.datasets[0].data
+    ).reduce((a, b) => a + Number(b || 0), 0);
 
     return (
-        <div className="container mx-auto p-4">
-            <h2 className="text-2xl font-bold mb-4">Thống kê khách hàng mới</h2>
+        <div className="space-y-6">
+
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600  bg-clip-text text-transparent">
+                        Thống kê khách hàng đăng kí mới
+                    </h1>
+                    <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
+                </div>
+            </div>
 
             <div className="flex space-x-4 mb-4">
                 <select
@@ -238,13 +268,12 @@ export default function TrendPage() {
             {loading ? (
                 <p>Đang tải dữ liệu...</p>
             ) : selectedMonth !== "all" ? (
-                // view theo tuần khi chọn tháng cụ thể
                 weeklyChartData.labels && weeklyChartData.labels.length > 0 ? (
                     <div className="flex space-x-4 mb-8">
                         <div className="w-1/2">
                             <h3 className="text-lg font-semibold mb-2">Biểu đồ theo tuần</h3>
-                            <div style={{ maxWidth: "500px", height: "300px" }}>
-                                <Chart type="bar" data={weeklyChartData} options={options} />
+                            <div style={{maxWidth: "500px", height: "300px"}}>
+                                <Chart type="bar" data={weeklyChartData} options={options}/>
                             </div>
                         </div>
 
@@ -276,12 +305,11 @@ export default function TrendPage() {
                     </div>
                 )
             ) : (
-                // view theo tháng + quý khi chọn tất cả
                 <div className="flex space-x-4 mb-8">
                     <div className="w-1/2">
                         <h3 className="text-lg font-semibold mb-2">Biểu đồ theo tháng</h3>
-                        <div style={{ maxWidth: "500px", height: "300px" }}>
-                            <Chart type="bar" data={monthlyChartData} options={options} />
+                        <div style={{maxWidth: "500px", height: "300px"}}>
+                            <Chart type="bar" data={monthlyChartData} options={options}/>
                         </div>
 
                         <div className="mt-4 bg-white p-4 rounded shadow">
@@ -309,8 +337,8 @@ export default function TrendPage() {
 
                     <div className="w-1/2">
                         <h3 className="text-lg font-semibold mb-2">Biểu đồ theo quý</h3>
-                        <div style={{ maxWidth: "500px", height: "300px" }}>
-                            <Chart type="bar" data={quarterlyChartData} options={options} />
+                        <div style={{maxWidth: "500px", height: "300px"}}>
+                            <Chart type="bar" data={quarterlyChartData} options={options}/>
                         </div>
 
                         <div className="mt-4 bg-white p-4 rounded shadow">

@@ -90,7 +90,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             } else {
                 avatarUrl = null;
             }
-        }else{
+        } else {
             avatarUrl = null;
         }
 
@@ -116,6 +116,14 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         // Tìm hoặc tạo user
         User user = userService.findByEmail(email).orElse(null);
+
+
+        // Nếu user tồn tại nhưng bị disable thì chặn login
+        if (user != null && !user.getStatus()) {
+            response.sendRedirect(frontendUrl + "/login?error=ACCOUNT_DISABLED");
+            return;
+        }
+
         if (user == null) {
             Role userRole = roleService.findByName("USER")
                     .orElseGet(() -> roleService.save(new Role(null, "USER")));

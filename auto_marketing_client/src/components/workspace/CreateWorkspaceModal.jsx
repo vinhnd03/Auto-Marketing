@@ -10,7 +10,7 @@ const MAX_FILE_SIZE = 500 * 1024; // 500 KB
 const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
     const [avatarPreview, setAvatarPreview] = useState(null);
     const fileInputRef = useRef(null);
-    const socialAccountId = 3;
+    const socialAccountId = 1;
 
     // Yup schema with duplicate name + file size check
     const WorkspaceSchema = Yup.object().shape({

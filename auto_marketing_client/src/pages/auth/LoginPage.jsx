@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
-import { Formik, Form, Field, ErrorMessage  } from "formik";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import authService from "../../service/authService";
 import { useAuth } from "../../context/AuthContext";
@@ -21,6 +21,19 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { fetchUser, user } = useAuth();
   const navigate = useNavigate();
+  const shownRef = useRef(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const error = params.get("error");
+    if (error === "ACCOUNT_DISABLED" && !shownRef.current) {
+      shownRef.current = true;
+      toast.error("Tài khoản này đã bị khóa");
+      // Xóa param error khỏi URL
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
 
   const initialValues = {
     email: "",
@@ -29,25 +42,25 @@ const LoginPage = () => {
   };
 
   const handleSubmit = async (values, { setSubmitting }) => {
-  try {
-    const result = await authService.login(values);
-    if (result.success) {
-      await fetchUser(); // 🚀 reload lại user từ server
-      toast.success("Đăng nhập thành công!");
-      if (user?.role?.name === "ADMIN") {
-        navigate("/admin");
+    try {
+      const result = await authService.login(values);
+      if (result.success) {
+        await fetchUser(); // 🚀 reload lại user từ server
+        toast.success("Đăng nhập thành công!");
+        if (user?.role?.name === "ADMIN") {
+          navigate("/admin");
+        } else {
+          navigate("/workspace");
+        }
       } else {
-        navigate("/workspace");
+        toast.error(result.error || "Sai tài khoản hoặc mật khẩu");
       }
-    } else {
-      toast.error(result.error || "Sai tài khoản hoặc mật khẩu");
+    } catch (error) {
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+    } finally {
+      setSubmitting(false);
     }
-  } catch (error) {
-    toast.error("Có lỗi xảy ra, vui lòng thử lại");
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
 
   const handleGoogleLogin = () => {
     window.location.href = `http://localhost:8080/api/auth/google`;
