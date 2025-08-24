@@ -119,6 +119,38 @@ public class ScheduledPostService implements IScheduledPostService {
         return scheduledPost;
     }
 
+    public List<ScheduledPostDTO> getPublishedPostsByUser(Long userId) {
+        return scheduledPostRepository.findByUserAndStatus(userId, ScheduledPostStatus.SCHEDULED)
+                .stream()
+                .map(sp -> {
+                    List<FanpageDTO> fanpages = postTargetRepository.findByScheduledPost(sp)
+                            .stream()
+                            .map(pt -> {
+                                Fanpage f = pt.getFanpage();
+                                return new FanpageDTO(f.getId(), f.getPageId(), f.getPageName(), f.getAvatarUrl());
+                            }).toList();
+
+                    Post post = sp.getPost();
+                    PostDTO postDTO = new PostDTO(
+                            post.getId(),
+                            post.getTitle(),
+                            post.getContent(),
+                            post.getHashtag(),
+                            post.getMedias().stream()
+                                    .map(m -> new PostMediaDTO(m.getId(), m.getUrl(), m.getType()))
+                                    .toList()
+                    );
+
+                    return new ScheduledPostDTO(
+                            sp.getId(),
+                            postDTO,
+                            sp.getScheduledTime(),
+                            sp.getStatus().name(),
+                            fanpages
+                    );
+                })
+                .toList();
+    }
 
     @Override
     public List<ScheduledPostDTO> getPublishedPosts() {

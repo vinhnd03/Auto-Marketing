@@ -4,7 +4,9 @@ import com.codegym.auto_marketing_server.dto.PostMediaDTO;
 import com.codegym.auto_marketing_server.dto.ScheduleRequestDTO;
 import com.codegym.auto_marketing_server.dto.ScheduledPostDTO;
 import com.codegym.auto_marketing_server.entity.ScheduledPost;
+import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.enums.PostMediaType;
+import com.codegym.auto_marketing_server.service.IUserService;
 import com.codegym.auto_marketing_server.service.impl.ScheduledPostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +16,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,7 +27,7 @@ import java.util.List;
 public class ScheduledPostController {
 
     private final ScheduledPostService scheduledPostService;
-
+    private final IUserService userService;
     // 1. Tạo mới ScheduledPost (kèm Post + Media)
     @PostMapping
     public ResponseEntity<ScheduledPost> create(@Valid @RequestBody ScheduleRequestDTO req) {
@@ -32,10 +36,23 @@ public class ScheduledPostController {
     }
 
     // 2. Lấy danh sách bài đã được lên lịch (status = SCHEDULED)
+//    @GetMapping("/published")
+//    public ResponseEntity<List<ScheduledPostDTO>> getPublishedPosts() {
+//        return ResponseEntity.ok(scheduledPostService.getPublishedPosts());
+//    }
     @GetMapping("/published")
-    public ResponseEntity<List<ScheduledPostDTO>> getPublishedPosts() {
-        return ResponseEntity.ok(scheduledPostService.getPublishedPosts());
+    public ResponseEntity<List<ScheduledPostDTO>> getPublishedPosts(Principal principal) {
+        Optional<User> optionalUser = userService.findByEmail(principal.getName());
+
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        User user = optionalUser.get();
+        List<ScheduledPostDTO> posts = scheduledPostService.getPublishedPostsByUser(user.getId());
+        return ResponseEntity.ok(posts);
     }
+
 
     // 3. Xem chi tiết một ScheduledPost
     @GetMapping("/{id}")
