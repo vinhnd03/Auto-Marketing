@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { Table, Input, Button, Tag, Space } from "antd";
+import { EyeOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { Pencil, Trash2, Eye } from "lucide-react";
+// ...existing code...
 import EditPost from "./EditPost";
 import DeletePost from "./DeletePost";
 import ViewPost from "./ViewPost";
@@ -25,18 +27,18 @@ const ScheduledPostsList = () => {
   useEffect(() => {
     fetchSchedules();
   }, [editingPost]);
-const fetchSchedules = async () => {
-      try {
-        const data = await getSchedules();
-        const mapped = data.map((item) => ({
-          ...item,
-          fanpageIds: item.fanpages ? item.fanpages.map(fp => fp.id) : [],
-        }));
-        setPosts(mapped);
-      } catch (err) {
-        console.error("Lỗi load schedules:", err);
-      }
-    };
+  const fetchSchedules = async () => {
+    try {
+      const data = await getSchedules();
+      const mapped = data.map((item) => ({
+        ...item,
+        fanpageIds: item.fanpages ? item.fanpages.map((fp) => fp.id) : [],
+      }));
+      setPosts(mapped);
+    } catch (err) {
+      console.error("Lỗi load schedules:", err);
+    }
+  };
   const formatDateTime = (value) => {
     if (!value) return "Chưa đặt lịch";
     const clean = value.replace(" ", "T").split(".")[0];
@@ -97,117 +99,158 @@ const fetchSchedules = async () => {
     setCurrentPage(newPage);
   };
 
+  // Ant Design columns
+  const columns = [
+    {
+      title: "STT",
+      dataIndex: "stt",
+      key: "stt",
+      align: "center",
+      width: 60,
+      render: (_, __, idx) => (currentPage - 1) * ITEMS_PER_PAGE + idx + 1,
+    },
+    {
+      title: "Tiêu đề",
+      dataIndex: ["post", "title"],
+      key: "title",
+      render: (text, record) => record.post?.title,
+      ellipsis: true,
+    },
+    {
+      title: "Nội dung",
+      dataIndex: ["post", "content"],
+      key: "content",
+      render: (text, record) => record.post?.content,
+      ellipsis: true,
+    },
+    {
+      title: "Hashtag",
+      dataIndex: ["post", "hashtag"],
+      key: "hashtag",
+      render: (text, record) => record.post?.hashtag,
+      ellipsis: true,
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <Tag color={status === "SCHEDULED" ? "gold" : "default"}>
+          {status === "SCHEDULED" ? "Chờ đăng" : status}
+        </Tag>
+      ),
+      align: "center",
+    },
+    {
+      title: "Thời gian",
+      dataIndex: "scheduledTime",
+      key: "scheduledTime",
+      render: (value) => formatDateTime(value),
+      align: "center",
+    },
+    {
+      title: "Hành động",
+      key: "actions",
+      align: "center",
+      render: (_, record) => (
+        <Space>
+          <Button
+            icon={<EyeOutlined />}
+            size="small"
+            type="text"
+            onClick={() => setViewingPost(record)}
+          />
+          <Button
+            icon={<EditOutlined />}
+            size="small"
+            type="text"
+            onClick={() => setEditingPost(record)}
+          />
+          <Button
+            icon={<DeleteOutlined />}
+            size="small"
+            type="text"
+            danger
+            onClick={() => setDeleteTarget(record)}
+          />
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <>
-      {/* Search input */}
-      <div className="mb-2 flex justify-between items-center gap-2 flex-wrap">
-        <input
-          type="text"
-          placeholder="Tìm theo tiêu đề hoặc nội dung..."
-          value={searchText}
-          onChange={(e) => {
-            setSearchText(e.target.value);
-            setCurrentPage(1); // reset trang khi tìm kiếm
-          }}
-          className="border rounded px-2 py-1 w-full max-w-sm text-sm"
-        />
+    <div className="bg-white rounded-xl shadow-sm p-6 max-w-5xl mx-auto mt-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <span className="text-xl font-bold text-gray-900">
+          Quản lý bài viết đã lên lịch
+        </span>
+        <div className="w-full md:w-auto">
+          <Input.Search
+            placeholder="Tìm theo tiêu đề hoặc nội dung..."
+            value={searchText}
+            onChange={(e) => {
+              setSearchText(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="rounded-lg"
+            allowClear
+          />
+        </div>
       </div>
-
-      <div className="overflow-x-auto rounded-lg shadow border">
-        <table className="min-w-[800px] w-full table-auto text-sm">
-          <thead className="bg-blue-50 text-gray-700">
-            <tr>
-              <th className="p-2 border">STT</th>
-              <th className="p-2 border">Tiêu đề</th>
-              <th className="p-2 border">Nội dung</th>
-              <th className="p-2 border">Hashtag</th>
-              <th className="p-2 border">Trạng thái</th>
-              <th className="p-2 border">Thời gian</th>
-              <th className="p-2 border text-center">Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentPosts.length === 0 && (
-              <tr>
-                <td colSpan={7} className="text-center py-4 text-gray-500">
-                  Không tìm thấy bài viết nào
-                </td>
-              </tr>
-            )}
-            {currentPosts.map((item, index) => {
-              const post = item.post;
-              return (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="p-2 border">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
-                  <td className="p-2 border">{post.title}</td>
-                  <td className="p-2 border max-w-xs truncate">{post.content}</td>
-                  <td className="p-2 border">{post.hashtag}</td>
-                  <td className="p-2 border">
-                    {item.status === "SCHEDULED" ? "Chờ đăng" : item.status}
-                  </td>
-                  <td className="p-2 border">{formatDateTime(item.scheduledTime)}</td>
-                  <td className="p-2 border text-center">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        className="text-green-600 hover:text-green-800 flex items-center gap-1"
-                        onClick={() => setViewingPost(item)}
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button
-                        className="text-blue-600 hover:text-blue-800"
-                        onClick={() => setEditingPost(item)}
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      <button
-                        className="text-red-600 hover:text-red-800"
-                        onClick={() => setDeleteTarget(item)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
+      <Table
+        columns={columns}
+        dataSource={currentPosts}
+        rowKey="id"
+        pagination={false}
+        locale={{
+          emptyText: (
+            <span className="text-gray-400 italic text-base">
+              Không tìm thấy bài viết nào
+            </span>
+          ),
+        }}
+        bordered
+        size="middle"
+        scroll={{ x: 900 }}
+        className="rounded-lg overflow-hidden"
+      />
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-2 flex-wrap">
-          <button
+        <div className="flex justify-center gap-2 mt-6 flex-wrap">
+          <Button
             onClick={() => handlePageChange(currentPage - 1)}
-            className="px-2 py-1 border rounded hover:bg-gray-100"
             disabled={currentPage === 1}
+            size="middle"
+            className="rounded-lg"
           >
             &lt;
-          </button>
+          </Button>
           {Array.from({ length: totalPages }, (_, i) => (
-            <button
+            <Button
               key={i}
               onClick={() => handlePageChange(i + 1)}
-              className={`px-2 py-1 border rounded hover:bg-gray-100 ${currentPage === i + 1 ? "bg-blue-100 border-blue-400" : ""}`}
+              type={currentPage === i + 1 ? "primary" : "default"}
+              size="middle"
+              className={`rounded-lg font-semibold ${
+                currentPage === i + 1 ? "" : "bg-gray-50"
+              }`}
             >
               {i + 1}
-            </button>
+            </Button>
           ))}
-          <button
+          <Button
             onClick={() => handlePageChange(currentPage + 1)}
-            className="px-2 py-1 border rounded hover:bg-gray-100"
             disabled={currentPage === totalPages}
+            size="middle"
+            className="rounded-lg"
           >
             &gt;
-          </button>
+          </Button>
         </div>
       )}
-
       {viewingPost && (
         <ViewPost postData={viewingPost} onClose={() => setViewingPost(null)} />
       )}
-
       {editingPost && (
         <EditPost
           post={editingPost}
@@ -215,7 +258,6 @@ const fetchSchedules = async () => {
           onCancel={() => setEditingPost(null)}
         />
       )}
-
       {deleteTarget && (
         <DeletePost
           post={deleteTarget}
@@ -223,7 +265,7 @@ const fetchSchedules = async () => {
           onConfirm={handleDelete}
         />
       )}
-    </>
+    </div>
   );
 };
 

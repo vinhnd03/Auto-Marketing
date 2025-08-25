@@ -1309,7 +1309,7 @@ const WorkspaceDetailPage = () => {
                 />
               )}
               {activeTab === "publishedManager" && (
-                <div className="p-4 md:p-6 mt-4 md:mt-6">
+                <div className="p-0 mt-0">
                   <ScheduledPostsList />
                 </div>
               )}
