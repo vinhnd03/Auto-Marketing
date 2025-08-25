@@ -638,49 +638,39 @@ const WorkspaceDetailPage = () => {
   };
 
   const fetchWorkspaceData = async () => {
-      setLoadingWorkspace(true);
-      try {
-        // 1. Lấy workspace từ API
-        const wsData = await getWorkspaceDetail(workspaceId); // bạn cần có hàm này
+    setLoadingWorkspace(true);
+    try {
+      // 1. Lấy workspace từ API
+      const wsData = await getWorkspaceDetail(workspaceId); // bạn cần có hàm này
 
-        // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
-        const campaignsData =
-          wsData.campaigns ??
-          (
-            await campaignService.findAllCampaign(
-              0,
-              10,
-              "",
-              "",
-              "",
-              workspaceId
-            )
-          ).content;
-        // 3. Với mỗi campaign => lấy topics
-        const campaignsWithTopics = await Promise.all(
-          campaignsData.map(async (campaign) => {
-            const topicsList = await getTopicsByCampaign(campaign.id);
-            return { ...campaign, topicsList: topicsList || [] };
-          })
-        );
+      // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
+      const campaignsData =
+        wsData.campaigns ??
+        (await campaignService.findAllCampaign(0, 10, "", "", "", workspaceId))
+          .content;
+      // 3. Với mỗi campaign => lấy topics
+      const campaignsWithTopics = await Promise.all(
+        campaignsData.map(async (campaign) => {
+          const topicsList = await getTopicsByCampaign(campaign.id);
+          return { ...campaign, topicsList: topicsList || [] };
+        })
+      );
 
-        setWorkspace({
-          ...wsData,
-          campaigns: campaignsWithTopics,
-        });
-      } catch (err) {
-        toast.error("Không thể tải dữ liệu workspace từ API");
-        setWorkspace(null);
-      } finally {
-        setLoadingWorkspace(false);
-      }
-    };
+      setWorkspace({
+        ...wsData,
+        campaigns: campaignsWithTopics,
+      });
+    } catch (err) {
+      toast.error("Không thể tải dữ liệu workspace từ API");
+      setWorkspace(null);
+    } finally {
+      setLoadingWorkspace(false);
+    }
+  };
 
   useEffect(() => {
-
     fetchWorkspaceData();
   }, [workspaceId]);
-
 
   // Lọc campaign theo tên khi search
   useEffect(() => {
@@ -743,7 +733,7 @@ const WorkspaceDetailPage = () => {
   };
 
   return (
-    <div className="bg-gray-50 py-8">
+    <div className="bg-gray-50 py-4 min-h-screen">
       {/* Scroll to top button */}
       {showScrollTop && (
         <button
@@ -754,11 +744,11 @@ const WorkspaceDetailPage = () => {
           <ArrowUpCircle size={32} />
         </button>
       )}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="space-y-6">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
+        <div className="space-y-4 md:space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <div className="flex items-center space-x-2 md:space-x-4">
               <Link
                 to="/workspace"
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -772,7 +762,7 @@ const WorkspaceDetailPage = () => {
                 <p className="text-gray-600">{workspace.description}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 md:space-x-3 mt-2 md:mt-0">
               {getStatusBadge(workspace.status)}
               <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <MoreHorizontal size={20} className="text-gray-600" />
@@ -780,7 +770,7 @@ const WorkspaceDetailPage = () => {
             </div>
           </div>
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {stats.map((stat) => (
               <div
                 key={stat.label}
@@ -807,11 +797,11 @@ const WorkspaceDetailPage = () => {
             ))}
           </div>
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               🚀 Hành động nhanh
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
               {quickActions.map((action) => (
                 <button
                   key={action.action}
@@ -834,54 +824,45 @@ const WorkspaceDetailPage = () => {
             </div>
           </div>
           {/* Tabs */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-8 px-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+            <div className="border-b border-gray-200 w-full overflow-x-auto">
+              <nav className="flex flex-nowrap space-x-2 px-2 py-2 scrollbar-hide">
                 {[
                   {
                     id: "overview",
                     label: "Tổng quan",
-                    icon: <BarChart3 size={16} />,
+                    icon: <BarChart3 size={14} />,
                   },
                   {
                     id: "campaigns",
                     label: "Chiến dịch",
-                    icon: <Target size={16} />,
+                    icon: <Target size={14} />,
                   },
                   {
                     id: "topics",
                     label: "Chủ đề",
-                    icon: <Folder size={16} />,
+                    icon: <Folder size={14} />,
                   },
                   {
                     id: "publish",
                     label: "Đăng bài",
-                    icon: <Send size={16} />,
+                    icon: <Send size={14} />,
                   },
                   {
                     id: "publishedManager",
                     label: "Quản lý bài",
-                    icon: <Table size={16} />,
-                  },
-                  {
-                    id: "analytics",
-                    label: "Phân tích",
-                    icon: <TrendingUp size={16} />,
-                  },
-                  {
-                    id: "settings",
-                    label: "Cài đặt",
-                    icon: <Settings size={16} />,
+                    icon: <Table size={14} />,
                   },
                 ].map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
+                    className={`flex items-center space-x-1 px-3 py-2 rounded-full font-medium text-xs md:text-sm transition-all duration-150 whitespace-nowrap shadow-sm border ${
                       activeTab === tab.id
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
+                        ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                        : "bg-white text-gray-500 border-gray-200 hover:bg-blue-50 hover:text-blue-600"
                     }`}
+                    style={{ minWidth: "max-content" }}
                   >
                     {tab.icon}
                     <span>{tab.label}</span>
@@ -890,10 +871,10 @@ const WorkspaceDetailPage = () => {
               </nav>
             </div>
 
-            <div className="p-6">
+            <div className="p-2 md:p-6">
               {activeTab === "overview" && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         Thông tin workspace
@@ -951,10 +932,9 @@ const WorkspaceDetailPage = () => {
                   </div>
                 </div>
               )}
-
               {/* CAMPAIGN CUA ANH KHANH */}
               {activeTab === "campaigns" && (
-                <div>
+                <div className="px-2 sm:px-4 md:px-8 lg:px-12">
                   <CampaignTable
                     campaigns={transformedCampaigns}
                     onUpdateCampaigns={handleUpdateCampaigns}
@@ -962,19 +942,18 @@ const WorkspaceDetailPage = () => {
                   />
                 </div>
               )}
-
               {activeTab === "topics" && (
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {/* Thanh tìm kiếm campaign */}
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <input
                       type="text"
-                      className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="Tìm kiếm tên chiến dịch  ..."
+                      className="w-full sm:max-w-md px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                      placeholder="Tìm kiếm tên chiến dịch ..."
                       value={campaignSearch}
                       onChange={(e) => setCampaignSearch(e.target.value)}
                     />
-                    <div className="flex space-x-3">
+                    <div className="flex space-x-2 md:space-x-3 mt-2 sm:mt-0">
                       {/* Nút generate nhanh */}
                       {newlyCreatedTopics.length > 0 && (
                         <button
@@ -1030,7 +1009,7 @@ const WorkspaceDetailPage = () => {
                       </div>
 
                       <div className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
                           {newlyCreatedTopics.map((topicId) => {
                             let foundTopic = null;
                             let foundCampaign = null;
@@ -1163,7 +1142,7 @@ const WorkspaceDetailPage = () => {
                             <div className="p-6">
                               {visibleTopics.length > 0 ? (
                                 <>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
                                     {visibleTopics.map((topic, topicIndex) => (
                                       <div
                                         key={`campaign-${campaign.id}-topic-${topic.id}-${topicIndex}`}
@@ -1213,7 +1192,7 @@ const WorkspaceDetailPage = () => {
                                     ))}
                                   </div>
                                   {/* Nút phân trang: Xem thêm & Thu gọn */}
-                                  <div className="flex justify-center mt-6 space-x-3">
+                                  <div className="flex flex-wrap justify-center mt-4 md:mt-6 space-x-2 md:space-x-3 gap-y-2">
                                     {hasMore &&
                                       pageSize > DEFAULT_TOPICS_PER_PAGE && (
                                         <>
@@ -1276,17 +1255,17 @@ const WorkspaceDetailPage = () => {
                                   </div>
                                 </>
                               ) : (
-                                <div className="text-center py-8">
-                                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <div className="text-center py-6 md:py-8">
+                                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-4">
                                     <Folder
                                       className="text-gray-400"
                                       size={24}
                                     />
                                   </div>
-                                  <h5 className="text-lg font-semibold text-gray-900 mb-2">
+                                  <h5 className="text-base md:text-lg font-semibold text-gray-900 mb-2">
                                     Chưa có topics nào
                                   </h5>
-                                  <p className="text-gray-600 mb-4">
+                                  <p className="text-gray-600 mb-2 md:mb-4 text-sm md:text-base">
                                     Campaign "{campaign.name}" chưa có topics
                                     nào. Hãy để AI generate ra những chủ đề thú
                                     vị!
@@ -1296,10 +1275,10 @@ const WorkspaceDetailPage = () => {
                                       onClick={() =>
                                         setShowTopicGenerator(true)
                                       }
-                                      className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+                                      className="bg-purple-600 text-white px-3 py-2 rounded-lg text-xs md:text-sm font-medium hover:bg-purple-700 transition-colors"
                                     >
                                       <Wand2
-                                        size={14}
+                                        size={12}
                                         className="mr-2 inline"
                                       />
                                       🎯 Generate Topics
@@ -1315,7 +1294,6 @@ const WorkspaceDetailPage = () => {
                   )}
                 </div>
               )}
-
               {/* ĐĂNG BÀI LÊN MXH CỦA ANH BÌNH 
                 Có thể tạo 1 component và truyền props vào như của anh khánh ví dụ như:
                   <CampaignTable
@@ -1323,7 +1301,6 @@ const WorkspaceDetailPage = () => {
                   onUpdateCampaigns={handleUpdateCampaigns}
                 />
               */}
-
               {activeTab === "publish" && (
                 <SchedulePostCalendar
                   confirmedPosts={confirmedPosts}
@@ -1331,33 +1308,9 @@ const WorkspaceDetailPage = () => {
                   onSubmit={handleScheduleSubmit}
                 />
               )}
-
-              {activeTab === "publishedManager" && <ScheduledPostsList />}
-
-              {activeTab === "analytics" && (
-                <div className="text-center py-12">
-                  <TrendingUp
-                    size={48}
-                    className="text-gray-400 mx-auto mb-4"
-                  />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Analytics Dashboard
-                  </h3>
-                  <p className="text-gray-600">
-                    Tính năng phân tích chi tiết đang được phát triển
-                  </p>
-                </div>
-              )}
-
-              {activeTab === "settings" && (
-                <div className="text-center py-12">
-                  <Settings size={48} className="text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Cài đặt Workspace
-                  </h3>
-                  <p className="text-gray-600">
-                    Tính năng cài đặt đang được phát triển
-                  </p>
+              {activeTab === "publishedManager" && (
+                <div className="p-4 md:p-6 mt-4 md:mt-6">
+                  <ScheduledPostsList />
                 </div>
               )}
             </div>
