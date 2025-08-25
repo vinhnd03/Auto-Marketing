@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
-import {findById, search} from "../../service/admin/usersService";
-import { Eye,Lock, Unlock } from "lucide-react";
+import {findById, searchAndPage} from "../../service/admin/usersService";
+import {Eye, Lock, Search, Trash, Unlock} from "lucide-react";
 import UpdateUserModal from "./UpdateUser";
 
 function ListUserByDate() {
@@ -26,7 +26,7 @@ function ListUserByDate() {
         setPage(1);
 
         // gọi lại API nhưng bỏ hết params lọc
-        const result = await search("", "", 1, 5, null, null, null);
+        const result = await searchAndPage("", "", 1, 5, null, null, null);
         setList(result.data);
 
         setTotalPages(result.totalPages);
@@ -34,7 +34,7 @@ function ListUserByDate() {
 
 
     const handleSearch = async () => {
-        const {data, totalPages} = await search(null, null, page, null, startDate, endDate);
+        const {data, totalPages} = await searchAndPage(null, null, page, null, startDate, endDate);
         setList(data.map(c => ({
             ...c,
             status: c.status
@@ -151,13 +151,13 @@ function ListUserByDate() {
                             }
                         }}
                         className="w-full sm:w-auto px-5 py-2 bg-blue-400 text-white rounded-lg hover:bg-green-400 transition">
-                        Tìm kiếm
+                        <Search/>
                     </button>
                     <button
                         onClick={clearFilter}
                         className="px-5 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-300"
                     >
-                        Xóa bộ lọc
+                       <Trash/>
                     </button>
                 </div>
 
