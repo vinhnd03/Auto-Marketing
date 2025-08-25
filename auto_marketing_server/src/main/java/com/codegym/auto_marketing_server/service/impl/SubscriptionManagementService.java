@@ -88,7 +88,7 @@ public class SubscriptionManagementService {
         // 2. Kiểm tra user đã từng dùng FREE trước đó chưa (SUCCESS)
         int used = subscriptionRepository.countSuccessSubscriptionByPlan(userId, trialPlan.getId());
         if (used > 0) {
-            throw new RuntimeException("Bạn đã sử dụng gói FREE trước đó rồi.");
+            throw new RuntimeException("Bạn đã sử dụng gói Trial trước đó rồi.");
         }
 
 
