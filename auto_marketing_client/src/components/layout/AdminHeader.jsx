@@ -124,7 +124,7 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
                             {/*  Popup thông báo */}
                             {showNotifications && (
                                 <div
-                                    className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 text-gray-900">
+                                    className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-40 text-gray-900">
                                     <div className="p-4 border-b border-gray-200 ">
                                         <h3 className="text-lg font-semibold ">Thông báo hệ thống</h3>
                                     </div>
@@ -232,7 +232,7 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
 
                         {showUserMenu && (
                             <div
-                                className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 text-gray-900">
+                                className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-40 text-gray-900">
                                 <div className="p-4 border-b border-gray-200">
                                     <p className="text-sm font-medium">Admin User</p>
                                     <p className="text-xs text-gray-500">admin@marketingauto.vn</p>
