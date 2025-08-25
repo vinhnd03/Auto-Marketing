@@ -84,4 +84,9 @@ public class CampaignService implements ICampaignService {
         return campaignRepository.getCampaignsBySoftDel(id);
 
     }
+
+    @Override
+    public List<Campaign> getCampaignsByWorkspace(Long workspaceId) {
+        return campaignRepository.findByWorkspaceId(workspaceId);
+    }
 }

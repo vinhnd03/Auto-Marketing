@@ -1,6 +1,7 @@
 package com.codegym.auto_marketing_server.service;
 
 import com.codegym.auto_marketing_server.dto.ContentGenerationRequestDTO;
+import com.codegym.auto_marketing_server.dto.PostFilterDTO;
 import com.codegym.auto_marketing_server.dto.PostResponseDTO;
 import com.codegym.auto_marketing_server.entity.Post;
 import com.codegym.auto_marketing_server.enums.PostStatus;
@@ -24,4 +25,6 @@ public interface IPostService {
     List<PostResponseDTO> getAllPosts();
 
     List<PostResponseDTO> approveAndCleanPosts(Long topicId, List<Long> selectedPostIds);
+
+    List<PostFilterDTO> getPostsByFilters(Long workspaceId, Long campaignId, Long topicId);
 }

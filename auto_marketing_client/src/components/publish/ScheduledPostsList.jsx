@@ -21,22 +21,26 @@ const ScheduledPostsList = () => {
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Load danh sách khi mount
   useEffect(() => {
     fetchSchedules();
-  }, [editingPost]);
-const fetchSchedules = async () => {
-      try {
-        const data = await getSchedules();
-        const mapped = data.map((item) => ({
-          ...item,
-          fanpageIds: item.fanpages ? item.fanpages.map(fp => fp.id) : [],
-        }));
-        setPosts(mapped);
-      } catch (err) {
-        console.error("Lỗi load schedules:", err);
-      }
-    };
+  }, []);
+
+  // Load danh sách khi mount
+  // useEffect(() => {
+  //   fetchSchedules();
+  // }, [editingPost]);
+  const fetchSchedules = async () => {
+    try {
+      const data = await getSchedules();
+      const mapped = data.map((item) => ({
+        ...item,
+        fanpageIds: item.fanpages ? item.fanpages.map((fp) => fp.id) : [],
+      }));
+      setPosts(mapped);
+    } catch (err) {
+      console.error("Lỗi load schedules:", err);
+    }
+  };
   const formatDateTime = (value) => {
     if (!value) return "Chưa đặt lịch";
     const clean = value.replace(" ", "T").split(".")[0];
@@ -53,8 +57,9 @@ const fetchSchedules = async () => {
       setPosts((prev) =>
         prev.map((p) => (p.id === saved.id ? savedWithFanpages : p))
       );
-      setEditingPost(null);
       toast.success("Cập nhật thành công!");
+      setEditingPost(null);
+      await fetchSchedules();
     } catch (err) {
       console.error("Lỗi update:", err.response || err);
       toast.error("Cập nhật thất bại!");
@@ -138,14 +143,20 @@ const fetchSchedules = async () => {
               const post = item.post;
               return (
                 <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="p-2 border">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
+                  <td className="p-2 border">
+                    {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
+                  </td>
                   <td className="p-2 border">{post.title}</td>
-                  <td className="p-2 border max-w-xs truncate">{post.content}</td>
+                  <td className="p-2 border max-w-xs truncate">
+                    {post.content}
+                  </td>
                   <td className="p-2 border">{post.hashtag}</td>
                   <td className="p-2 border">
                     {item.status === "SCHEDULED" ? "Chờ đăng" : item.status}
                   </td>
-                  <td className="p-2 border">{formatDateTime(item.scheduledTime)}</td>
+                  <td className="p-2 border">
+                    {formatDateTime(item.scheduledTime)}
+                  </td>
                   <td className="p-2 border text-center">
                     <div className="flex justify-center gap-2">
                       <button
@@ -189,7 +200,9 @@ const fetchSchedules = async () => {
             <button
               key={i}
               onClick={() => handlePageChange(i + 1)}
-              className={`px-2 py-1 border rounded hover:bg-gray-100 ${currentPage === i + 1 ? "bg-blue-100 border-blue-400" : ""}`}
+              className={`px-2 py-1 border rounded hover:bg-gray-100 ${
+                currentPage === i + 1 ? "bg-blue-100 border-blue-400" : ""
+              }`}
             >
               {i + 1}
             </button>

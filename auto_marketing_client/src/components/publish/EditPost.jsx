@@ -33,29 +33,29 @@ const EditPost = ({ post, onSave, onCancel }) => {
   }, [post]);
 
   const handleFileChange = (e) => {
-  const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files);
 
-  const validFiles = files.filter((file) => {
-    const isImage = file.type.startsWith("image/"); // chỉ chấp nhận file ảnh
-    const isLt10Mb = file.size <= 10 * 1024 * 1024; // <= 10MB
+    const validFiles = files.filter((file) => {
+      const isImage = file.type.startsWith("image/"); // chỉ chấp nhận file ảnh
+      const isLt10Mb = file.size <= 10 * 1024 * 1024; // <= 10MB
 
-    if (!isImage) {
-      toast.error(`${file.name} không phải là file ảnh`);
-      return false;
+      if (!isImage) {
+        toast.error(`${file.name} không phải là file ảnh`);
+        return false;
+      }
+
+      if (!isLt10Mb) {
+        toast.error(`${file.name} vượt quá 10MB`);
+        return false;
+      }
+
+      return true;
+    });
+
+    if (validFiles.length > 0) {
+      setNewFiles((prev) => [...prev, ...validFiles]);
     }
-
-    if (!isLt10Mb) {
-      toast.error(`${file.name} vượt quá 10MB`);
-      return false;
-    }
-
-    return true;
-  });
-
-  if (validFiles.length > 0) {
-    setNewFiles((prev) => [...prev, ...validFiles]);
-  }
-};
+  };
 
   const validationSchema = Yup.object({
     title: Yup.string().required("Tiêu đề không được để trống"),
@@ -69,7 +69,7 @@ const EditPost = ({ post, onSave, onCancel }) => {
       ),
   });
 
-  const handleSubmit = (values) => {
+  const handleSubmit = async (values, { setSubmitting }) => {
     if (!fanpageIds || fanpageIds.length === 0) {
       return alert("Cần chọn ít nhất 1 fanpage");
     }
@@ -91,7 +91,8 @@ const EditPost = ({ post, onSave, onCancel }) => {
       scheduledTime: dayjs(values.scheduledTime).format("YYYY-MM-DDTHH:mm:ss"),
     };
 
-    onSave(post.id, scheduleData, newFiles);
+    await onSave(post.id, scheduleData, newFiles);
+    setSubmitting(false);
   };
 
   return (
@@ -105,7 +106,7 @@ const EditPost = ({ post, onSave, onCancel }) => {
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {() => (
+          {({ isSubmitting }) => (
             <Form className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
@@ -269,18 +270,29 @@ const EditPost = ({ post, onSave, onCancel }) => {
               </div>
 
               <div className="mt-6 flex justify-end gap-3 bottom-0 bg-white pt-4">
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded-md"
-                >
-                  Hủy
-                </button>
+                {!isSubmitting && (
+                  <button
+                    type="button"
+                    onClick={onCancel}
+                    className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded-md"
+                  >
+                    Hủy
+                  </button>
+                )}
                 <button
                   type="submit"
+                  // onClick={handleSave}
+                  disabled={isSubmitting}
                   className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md"
                 >
-                  Lưu
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Đang lưu...
+                    </div>
+                  ) : (
+                    "Lưu"
+                  )}
                 </button>
               </div>
             </Form>
