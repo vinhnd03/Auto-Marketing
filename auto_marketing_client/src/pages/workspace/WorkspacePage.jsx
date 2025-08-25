@@ -260,64 +260,76 @@ const WorkspacePage = () => {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {workspaces.slice(0, visibleCount).map((ws) => (
-              <div
-                key={ws.id}
-                className="border rounded-lg p-4 flex flex-col items-center hover:shadow-md transition h-full"
-              >
-                <div className="flex justify-end w-full">
-                  <button
-                    onClick={() => {
-                      setSelectedWorkspace(ws);
-                      setShowUpdateModal(true);
-                    }}
-                    className="text-gray-500 hover:text-blue-600"
-                    title="Chỉnh sửa"
-                  >
-                    <Settings size={18}/>
-                  </button>
-                </div>
-                <img
-                  src={ws.avatar || defaultAvatar}
-                  alt={ws.name}
-                  className="w-20 h-20 rounded-full object-cover mb-3"
-                />
-                <h3 className="font-semibold text-lg text-center">{ws.name}</h3>
-                <div className="mt-1 min-h-[1.25rem] flex items-center justify-center">
-                  {ws.description && (
-                    <p className="text-sm text-gray-500 text-center">
-                      {ws.description.length > 50 ? ws.description.substring(0, 50) + "..." : ws.description}
-                    </p>
-                  )}
-                </div>
-                <div className="text-xs text-gray-400 mt-2">
-                  Ngày tạo: {new Date(ws.createdAt).toLocaleDateString()}
-                </div>
-                {ws.updatedAt && (
-                  <div className="text-xs text-gray-400 mt-2">
-                    Ngày Update: {new Date(ws.updatedAt).toLocaleDateString()}
-                  </div>
-                )}
-                <div className="mt-auto w-full pt-4">
-                  {ws.status === "ACTIVE" ? (
-                    <Link
-                      to={`/workspaces/${ws.id}`}
-                      className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium block text-center"
-                    >
-                      Mở workspace
-                    </Link>
-                  ) : (
+                <div
+                    key={ws.id}
+                    className={`border rounded-lg p-4 flex flex-col items-center transition h-full ${
+                        ws.status === "INACTIVE" ? "opacity-50" : "hover:shadow-md"
+                    }`}
+                >
+                  <div className="flex justify-end w-full">
                     <button
-                      disabled
-                      className="w-full bg-gray-200 text-gray-400 py-2 px-4 rounded-lg text-sm font-medium block text-center cursor-not-allowed"
-                      title="Workspace này đang tạm dừng"
+                        onClick={() => {
+                          setSelectedWorkspace(ws);
+                          setShowUpdateModal(true);
+                        }}
+                        className="text-gray-500 hover:text-blue-600"
+                        title="Chỉnh sửa"
                     >
-                      Mở workspace
+                      <Settings size={18} />
                     </button>
+                  </div>
+
+                  <img
+                      src={ws.avatar || defaultAvatar}
+                      alt={ws.name}
+                      className="w-20 h-20 rounded-full object-cover mb-3"
+                  />
+
+                  {/* Name (truncate) */}
+                  <h3 className="font-semibold text-lg text-center truncate max-w-[180px]">
+                    {ws.name}
+                  </h3>
+
+                  {/* Description (giới hạn 2 dòng) */}
+                  <div className="mt-1 min-h-[2.5rem] flex items-center justify-center">
+                    {ws.description && (
+                        <p className="text-sm text-gray-500 text-center line-clamp-2 overflow-hidden text-ellipsis max-h-[2.5rem]">
+                          {ws.description}
+                        </p>
+                    )}
+                  </div>
+
+                  <div className="text-xs text-gray-400 mt-2">
+                    Ngày tạo: {new Date(ws.createdAt).toLocaleDateString()}
+                  </div>
+                  {ws.updatedAt && (
+                      <div className="text-xs text-gray-400 mt-2">
+                        Ngày Update: {new Date(ws.updatedAt).toLocaleDateString()}
+                      </div>
                   )}
+
+                  <div className="mt-auto w-full pt-4">
+                    {ws.status === "ACTIVE" ? (
+                        <Link
+                            to={`/workspaces/${ws.id}`}
+                            className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium block text-center"
+                        >
+                          Mở workspace
+                        </Link>
+                    ) : (
+                        <button
+                            disabled
+                            className="w-full bg-gray-200 text-gray-400 py-2 px-4 rounded-lg text-sm font-medium block text-center cursor-not-allowed"
+                            title="Workspace này đang tạm dừng"
+                        >
+                          Mở workspace
+                        </button>
+                    )}
+                  </div>
                 </div>
-              </div>
             ))}
           </div>
+
 
           {/* Nút Xem thêm / Thu gọn */}
           {workspaces.length > 6 && (

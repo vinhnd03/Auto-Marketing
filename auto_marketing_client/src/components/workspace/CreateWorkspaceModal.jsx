@@ -48,7 +48,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
       .required("Vui lòng nhập mô tả cho workspace")
       .max(225, "Mô tả không được vượt quá 225 ký tự"),
     avatarFile: Yup.mixed().nullable()
-      .test("fileSize", "Dung lượng ảnh tối đa 500 KB", (file) => !file || file.size <= MAX_FILE_SIZE),
+      .test("fileSize", "Dung lượng ảnh tối đa 5 MB", (file) => !file || file.size <= MAX_FILE_SIZE),
   });
 
   const handleSubmit = (values, { setSubmitting, resetForm }) => {
@@ -56,6 +56,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
       try {
         // Tự động lấy fanpage hoặc sync nếu chưa có
         const pages = await getUserFanpages(user.id);
+          console.log(pages)
 
         if (!pages || pages.length === 0) {
           toast.error("Chưa có Fanpage nào để gán, vui lòng thêm tài khoản FB trước");

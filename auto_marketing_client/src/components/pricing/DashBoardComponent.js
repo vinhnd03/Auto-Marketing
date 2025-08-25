@@ -193,9 +193,9 @@ const ListComponent = () => {
                                                 </div>
                                             )}
                                             <div className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                                                <span>:moneybag:</span>
+                                                <span role="img" aria-label="moneybag">💰</span>
                                                 Tiết kiệm{" "}
-                                                {plan?.planLevel === 0
+                                                {plan?.planLevel === 1
                                                     ? 100
                                                     : Math.round(
                                                         (1 - (plan?.price ?? 0) / ((plan?.price ?? 0) * 1.5)) * 100

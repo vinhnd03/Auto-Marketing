@@ -42,7 +42,7 @@ const UpdateWorkspaceModal = ({
     const WorkspaceSchema = Yup.object().shape({
         name: Yup.string()
             .required("Tên workspace là bắt buộc")
-            .max(100, "Tên workspace không được vượt quá 100 ký tự")
+            .max(50, "Tên workspace không được vượt quá 50 ký tự")
             .test("unique-name", "Tên workspace đã tồn tại", function (value) {
                 if (!value) return true;
                 const lower = value.trim().toLowerCase();
