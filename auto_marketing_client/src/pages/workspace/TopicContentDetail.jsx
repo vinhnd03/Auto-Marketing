@@ -45,16 +45,16 @@ const TopicContentDetail = ({ topic, onBack }) => {
   }, [topic]);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-8 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
         <button
-          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
+          className="px-4 py-2 w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
           onClick={onBack}
         >
           ← Quay lại danh sách chủ đề
         </button>
         <button
-          className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all"
+          className="px-4 py-2 w-full sm:w-auto bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all"
           onClick={() => setShowGenContentModal(true)}
         >
           Tạo thêm nội dung
@@ -85,10 +85,10 @@ const TopicContentDetail = ({ topic, onBack }) => {
         }}
       />
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 break-words">
           {topic.title || topic.name}
         </h2>
-        <p className="text-gray-700 mb-2">{topic.description}</p>
+        <p className="text-gray-700 mb-2 break-words">{topic.description}</p>
         {topic.aiGenerated && (
           <span className="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-bold mr-2">
             <Wand2 size={12} className="mr-1 inline" /> AI Generated
@@ -105,14 +105,14 @@ const TopicContentDetail = ({ topic, onBack }) => {
           <div className="text-red-500">{error}</div>
         ) : selectedContent ? (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
               <button
                 className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200"
                 onClick={handleBackFromDetail}
               >
                 ← Quay lại danh sách content
               </button>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 sm:ml-4">
                 {selectedContent.createdAt
                   ? dayjs(selectedContent.createdAt).format("DD-MM-YYYY")
                   : ""}
@@ -174,7 +174,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
           </div>
         ) : contents.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
               {contents.slice(0, contentPageSize).map((content, idx) => {
                 const preview = (
                   content.text ||
@@ -188,7 +188,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
                 return (
                   <div
                     key={content.id || idx}
-                    className="bg-white border border-gray-200 rounded-lg p-4 shadow hover:shadow-lg cursor-pointer flex flex-col relative"
+                    className="bg-white border border-gray-200 rounded-2xl p-8 shadow hover:shadow-lg cursor-pointer flex flex-col relative h-full"
                     onClick={() => setSelectedContent(content)}
                   >
                     {/* Badge Mới luôn nổi trên cùng */}
@@ -214,15 +214,15 @@ const TopicContentDetail = ({ topic, onBack }) => {
                       </div>
                     )}
                     <div className="mb-2">
-                      <span className="font-semibold text-gray-800 block">
+                      <span className="font-semibold text-gray-800 block break-words">
                         {content.title || `Content #${idx + 1}`}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600 mb-2">
+                    <div className="text-sm text-gray-600 mb-2 break-words">
                       {preview}
                       {isLong ? "..." : ""}
                     </div>
-                    <div className="flex items-center justify-between mt-auto">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-auto gap-2">
                       <button
                         className="text-blue-600 text-xs font-semibold hover:underline"
                         onClick={(e) => {
@@ -243,7 +243,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
               })}
             </div>
             {/* Nút phân trang: Xem thêm & Thu gọn */}
-            <div className="flex justify-center mt-6 space-x-3">
+            <div className="flex flex-col sm:flex-row justify-center items-center mt-6 gap-3">
               {contents.length > contentPageSize && (
                 <button
                   className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold shadow hover:from-purple-600 hover:to-blue-600 transition-all"

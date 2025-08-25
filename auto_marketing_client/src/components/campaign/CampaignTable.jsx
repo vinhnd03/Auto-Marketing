@@ -211,7 +211,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
   };
 
   return (
-  <div className="bg-gray-50 min-h-screen p-4 sm:p-8 rounded-xl shadow-inner font-sans antialiased text-gray-900">
+    <div className="bg-gray-50 min-h-screen p-4 sm:p-8 rounded-xl shadow-inner font-sans antialiased text-gray-900">
       {showForm ? (
         <CreateCampaignForm
           onSubmit={handleCreateCampaign}
@@ -230,7 +230,8 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                     Chiến dịch trong workspace
                   </h3>
                   <p className="text-base sm:text-lg text-gray-600 mt-1">
-                    Quản lý và theo dõi các chiến dịch marketing của bạn một cách dễ dàng và trực quan hơn.
+                    Quản lý và theo dõi các chiến dịch marketing của bạn một
+                    cách dễ dàng và trực quan hơn.
                   </p>
                 </div>
                 <button

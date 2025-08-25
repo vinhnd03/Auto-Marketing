@@ -567,7 +567,7 @@ const AIContentGenerator = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Post Count */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-base font-semibold text-gray-700 mb-3">
                       Số lượng bài viết
                     </label>
                     <select
@@ -578,7 +578,7 @@ const AIContentGenerator = ({
                           postCount: parseInt(e.target.value),
                         })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm"
                     >
                       <option value={2}>2 bài viết</option>
                       <option value={3}>3 bài viết</option>
