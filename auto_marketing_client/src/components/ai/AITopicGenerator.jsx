@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { X, Wand2, Sparkles } from "lucide-react";
+import { X, Wand2, Sparkles, Info } from "lucide-react";
 import { getAllCampaigns } from "../../service/campaign_service";
 import { generateTopicsWithAI } from "../../service/topic_service";
 import { useParams } from "react-router-dom";
 import campaignService from "../../service/campaignService";
 
 const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
+  const [showEmptyWarning, setShowEmptyWarning] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState("");
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -13,6 +14,9 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
   const [generating, setGenerating] = useState(false);
   const [topicsCount, setTopicsCount] = useState(10);
   const [additionalInstructions, setAdditionalInstructions] = useState("");
+  // Cảnh báo nhập ký tự đặc biệt và quá 500 ký tự
+  const [showInvalidCharWarning, setShowInvalidCharWarning] = useState(false);
+  const [showLengthWarning, setShowLengthWarning] = useState(false);
   const [aiSettings, setAiSettings] = useState({
     creativity: "balanced", // conservative, balanced, creative
     contentStyle: "professional", // friendly, professional, creative
@@ -284,8 +288,9 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
 
             {/* Campaign Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chọn chiến dịch *
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                Chọn chiến dịch
+                <span className="text-red-500 font-bold">*</span>
               </label>
               {loading ? (
                 <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 flex items-center">
@@ -337,20 +342,65 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
 
             {/* Additional Instructions */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2 relative">
                 Hướng dẫn thêm cho AI (tùy chọn)
+                <span className="relative group cursor-pointer">
+                  <Info
+                    size={16}
+                    className="text-gray-400 group-hover:text-purple-600"
+                  />
+                  <span className="absolute left-6 top-1 z-10 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 shadow-lg whitespace-nowrap">
+                    Bạn có thể nhập hướng dẫn chi tiết cho AI. Tối đa 500 ký tự.
+                  </span>
+                </span>
               </label>
               <textarea
                 value={additionalInstructions}
-                onChange={(e) => setAdditionalInstructions(e.target.value)}
+                onChange={(e) => {
+                  let value = e.target.value;
+                  const forbiddenRegex = /[!@#$%^&*<>]/;
+                  const invalidChar = value.match(forbiddenRegex);
+                  setShowInvalidCharWarning(!!invalidChar);
+                  setShowLengthWarning(value.length > 500);
+                  // Nếu có nhiều hơn 1 dấu cách liên tiếp thì cảnh báo
+                  const hasMultipleSpaces = / {2,}/.test(value);
+                  // Chuẩn hóa: thay thế nhiều dấu cách liên tiếp bằng 1 dấu cách
+                  value = value.replace(/ {2,}/g, " ");
+                  setAdditionalInstructions(value);
+                  // Chuẩn hóa input: loại bỏ khoảng trắng thừa, trim đầu/cuối
+                  const normalized = value.replace(/\s+/g, " ").trim();
+                  // Nếu normalized rỗng hoặc chỉ có 1 từ thì báo lỗi
+                  const wordCount =
+                    normalized.length === 0 ? 0 : normalized.split(" ").length;
+                  setShowEmptyWarning(wordCount < 2 || hasMultipleSpaces);
+                }}
                 placeholder="Ví dụ: Tập trung vào đối tượng khách hàng trẻ tuổi, sử dụng hashtag trending, đề cập đến sản phẩm mới..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none ${
+                  showInvalidCharWarning || showLengthWarning
+                    ? "border-red-500"
+                    : ""
+                }`}
                 rows={3}
-                maxLength={500}
               />
+              {showEmptyWarning && (
+                <div className="text-xs text-red-600 mt-1">
+                  ⚠️ Nội dung không được để trống hoặc chỉ toàn khoảng trắng.
+                </div>
+              )}
               <div className="text-xs text-gray-500 mt-1">
                 {additionalInstructions.length}/500 ký tự
               </div>
+              {showInvalidCharWarning && (
+                <div className="text-xs text-red-600 mt-1">
+                  ⚠️ Không được nhập ký tự đặc biệt! Vui lòng kiểm tra lại nội
+                  dung.
+                </div>
+              )}
+              {showLengthWarning && (
+                <div className="text-xs text-red-600 mt-1">
+                  ⚠️ Bạn đã nhập quá 500 ký tự! Vui lòng rút ngắn hướng dẫn.
+                </div>
+              )}
             </div>
 
             {/* AI Settings */}
@@ -474,9 +524,19 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
             </button>
             <button
               onClick={handleGenerate}
-              disabled={!selectedCampaign || generating}
+              disabled={
+                !selectedCampaign ||
+                generating ||
+                showInvalidCharWarning ||
+                showLengthWarning ||
+                showEmptyWarning
+              }
               className={`px-6 py-2 text-sm font-medium rounded-lg transition-colors ${
-                !selectedCampaign || generating
+                !selectedCampaign ||
+                generating ||
+                showInvalidCharWarning ||
+                showLengthWarning ||
+                showEmptyWarning
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-purple-600 text-white hover:bg-purple-700"
               }`}
