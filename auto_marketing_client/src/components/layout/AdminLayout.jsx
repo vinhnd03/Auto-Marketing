@@ -10,12 +10,12 @@ const AdminLayout = ({children}) => {
             <AdminHeader
                 collapsed={collapsed}
                 onToggleSidebar={() => setCollapsed((v) => !v)}/>
-            <div className="flex">
+            {/* <div className="flex"> */}
                 <AdminSidebar collapsed={collapsed}/>
                 <main className={`flex-1 pt-16 transition-all duration-300 ${collapsed ? "ml-16" : "ml-64"}`}>
                     <div className="p-6">{children}</div>
                 </main>
-            </div>
+            {/* </div> */}
         </div>
     );
 };

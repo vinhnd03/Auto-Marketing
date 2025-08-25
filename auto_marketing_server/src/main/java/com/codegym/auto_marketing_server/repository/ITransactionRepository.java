@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ITransactionRepository extends JpaRepository<Transaction, Long> {
+    Transaction findByTransactionCode(String transactionCode);
     @Query(value = """
              SELECT
                 DATE(created_at) AS period,
@@ -143,4 +144,3 @@ public interface ITransactionRepository extends JpaRepository<Transaction, Long>
     List<PackageDTO> getPackageSales(@Param("start") LocalDateTime start,
                                    @Param("end") LocalDateTime end);
 }
-

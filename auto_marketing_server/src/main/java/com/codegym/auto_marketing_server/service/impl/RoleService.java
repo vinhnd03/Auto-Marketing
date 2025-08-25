@@ -15,14 +15,24 @@ public class RoleService implements IRoleService {
     private final IRoleRepository roleRepository;
 
     @Override
+    public Optional<Role> findByName(String roleName) {
+        return roleRepository.findByName(roleName);
+    }
+
+    @Override
+    public Role save(Role role) {
+        return roleRepository.save(role);
+    }
+
+    @Override
     public List<Role> findAll() {
         return roleRepository.findAll();
     }
 
-    @Override
-    public void save(Role roles) {
-        roleRepository.save(roles);
-    }
+//    @Override
+//    public void save(Role roles) {
+//        roleRepository.save(roles);
+//    }
 
     @Override
     public Optional<Role> findById(Long id) {

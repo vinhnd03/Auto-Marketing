@@ -19,10 +19,10 @@ public class SubscriptionService implements ISubscriptionService {
         return subscriptionRepository.findAll();
     }
 
-    @Override
-    public void save(Subscription subscriptions) {
-        subscriptionRepository.save(subscriptions);
-    }
+//    @Override
+//    public void save(Subscription subscriptions) {
+//        subscriptionRepository.save(subscriptions);
+//    }
 
     @Override
     public Optional<Subscription> findById(Long id) {
@@ -32,5 +32,35 @@ public class SubscriptionService implements ISubscriptionService {
     @Override
     public void remove(Long id) {
         subscriptionRepository.deleteById(id);
+    }
+
+    @Override
+    public void save(Subscription subscription) {
+        subscriptionRepository.save(subscription);
+    }
+
+    @Override
+    public void saveAll(List<Subscription> subscriptions) {
+        subscriptionRepository.saveAll(subscriptions);
+    }
+
+    @Override
+    public Optional<Subscription> findActiveByUserId(Long userId) {
+        return subscriptionRepository.findActiveByUserId(userId);
+    }
+
+    @Override
+    public List<Subscription> findByStatus(String status) {
+        return subscriptionRepository.findByStatus(status);
+    }
+
+    @Override
+    public List<Subscription> findPendingByUserIdOrderByLevel(Long userId) {
+        return subscriptionRepository.findPendingByUserIdOrderByLevel(userId);
+    }
+
+    @Override
+    public Integer findMaxWorkspaceByCurrenSubscription(Long id) {
+        return subscriptionRepository.findMaxWorkspaceByCurrenSubscription(id);
     }
 }

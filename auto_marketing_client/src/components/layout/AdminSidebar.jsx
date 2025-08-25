@@ -282,7 +282,7 @@ const AdminSidebar = ({collapsed}) => {
     return (
         <div
             className={`bg-white shadow-sm border-r-2 border-blue-200 fixed left-0 top-0 bottom-0 
-                   flex flex-col transition-all duration-300 z-50
+                   flex flex-col transition-all duration-300 z-40
                   ${collapsed ? "w-16" : "w-64"}`}
         >
             {/* Logo */}

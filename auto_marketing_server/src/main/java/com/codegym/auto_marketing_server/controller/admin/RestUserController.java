@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@CrossOrigin("*")
 @RestController
 @RequestMapping("/api/users")
 public class RestUserController {

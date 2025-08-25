@@ -6,9 +6,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Collection;
 import java.util.List;
 
 @Getter
@@ -17,17 +24,41 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+
+    @Column(nullable = false, unique = true)
     private String email;
     private String password;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp  // Hibernate tự gán ngày hiện tại khi insert
     private LocalDate createdAt;
+
+    private String phone;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(columnDefinition = "TEXT")
+    private String avatar;
+
+    private String job;
+
     private String provider;
+
     private String providerId;
+
     private Boolean status;
+    @Column(columnDefinition = "TEXT")
+    private String accessToken;
+
+    @Column(columnDefinition = "TEXT")
+    private String refreshToken;
+    @Column(name = "access_token_expiry", columnDefinition = "TIMESTAMP(6)")
+    private Instant accessTokenExpiry;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
@@ -35,5 +66,44 @@ public class User {
 
     @OneToMany(mappedBy = "user") // ánh xạ ngược tới trường 'user' trong Subscriptions
     private List<Subscription> subscriptions;
+
+
+//    @PrePersist
+//    protected void onCreate() {
+//        if (this.createdAt == null) {
+//            this.createdAt = LocalDate.now();
+//        }
+//    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.getName()));
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return Boolean.TRUE.equals(status);
+    }
+
 
 }

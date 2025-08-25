@@ -16,6 +16,17 @@ public class PlanService implements IPlanService {
     private final IPlanRepository planRepository;
 
     @Override
+    public Plan findByName(String name) {
+        return planRepository.findByName(name);
+    }
+
+
+    @Override
+    public List<Plan> getAll() {
+        return planRepository.findAll();
+    }
+
+    @Override
     public List<Plan> findAll() {
         return planRepository.findAll();
     }

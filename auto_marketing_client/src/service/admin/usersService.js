@@ -4,6 +4,7 @@ import axios from "axios";
 export async function getAll() {
     try {
         const response = await axios.get("http://localhost:8080/api/users", {
+            withCredentials: true,
             params: {
                 page: 0,
                 size: 1000, // đủ lớn để lấy tất cả
@@ -24,7 +25,7 @@ export async function getAll() {
 
 export async function updateUser(id, user) {
     try {
-        const response = await axios.patch("http://localhost:8080/api/users/" + id, user);
+        const response = await axios.patch("http://localhost:8080/api/users/" + id, user, {withCredentials: true});
         return response.data;
     } catch (e) {
         console.log(e)
@@ -34,7 +35,7 @@ export async function updateUser(id, user) {
 
 export async function findById(id) {
     try {
-        const response=await axios.get("http://localhost:8080/api/users/"+id);
+        const response=await axios.get("http://localhost:8080/api/users/"+id, {withCredentials: true});
         return response.data;
     }catch (e) {
         console.log(e)
@@ -53,6 +54,7 @@ export async function search(
 ) {
     try {
         const { data: result } = await axios.get("http://localhost:8080/api/users", {
+            withCredentials: true,
             params: {
                 name: nameKeyword || undefined,
                 planName: servicePackageKey || undefined,
@@ -75,53 +77,5 @@ export async function search(
     }
 }
 
-
-
-// export async function search(
-//     nameKeyword,
-//     servicePackageKey,
-//     page = 1,
-//     size = 5,
-//     startDate = null,
-//     endDate = null
-// ) {
-//     try {
-//         // 1. Gửi request chỉ với name + planName
-//         const { data: result } = await axios.get("http://localhost:8080/api/users", {
-//             params: {
-//                 name: nameKeyword || undefined,
-//                 planName: servicePackageKey || undefined,
-//                 page: 0, // Lấy hết data để tự lọc
-//                 size: 10000 // Số đủ lớn để lấy toàn bộ
-//             }
-//         });
-//
-//         let allData = result?.content ?? [];
-//
-//         if (startDate || endDate) {
-//             const start = startDate ? new Date(startDate) : null;
-//             const end = endDate ? new Date(endDate) : null;
-//
-//             allData = allData.filter(item => {
-//                 const createdAt = new Date(item.createdAt); // cột ngày của bạn
-//                 return (!start || createdAt >= start) && (!end || createdAt <= end);
-//             });
-//         }
-//
-//         const totalItems = allData.length;
-//         const totalPages = Math.ceil(totalItems / size);
-//         const paginatedData = allData.slice((page - 1) * size, page * size);
-//
-//         return {
-//             data: paginatedData,
-//             totalItems,
-//             totalPages,
-//             currentPage: page
-//         };
-//     } catch (e) {
-//         console.error("Error fetching customers:", e);
-//         return { data: [], totalItems: 0, totalPages: 0, currentPage: page };
-//     }
-// }
 
 
