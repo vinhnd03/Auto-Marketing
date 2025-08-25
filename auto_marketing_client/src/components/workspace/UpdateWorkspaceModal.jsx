@@ -86,7 +86,15 @@ const UpdateWorkspaceModal = ({
                 }
 
                 const list = await getAllWorkspaceByUserId(userId);
-                setWorkspaces(list);
+                const sortedWs = [...list].sort((a, b) => {
+                    // Ưu tiên ACTIVE lên trước
+                    if (a.status === "ACTIVE" && b.status !== "ACTIVE") return -1;
+                    if (a.status !== "ACTIVE" && b.status === "ACTIVE") return 1;
+
+                    // Nếu cùng status thì sort theo id (id lớn hơn lên trước)
+                    return b.id - a.id;
+                });
+                setWorkspaces(sortedWs);
 
                 resetForm();
                 setAvatarPreview(null);

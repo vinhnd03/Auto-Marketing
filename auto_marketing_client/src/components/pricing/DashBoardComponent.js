@@ -31,6 +31,7 @@ const ListComponent = () => {
                 setPlans(Array.isArray(response.data) ? response.data : []);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách gói:", error);
+                toast.error("Không thể tải bảng giá. Vui lòng thử lại sau!")
             }
         };
         fetchPlans();
