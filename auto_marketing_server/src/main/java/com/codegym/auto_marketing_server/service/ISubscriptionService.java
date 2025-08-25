@@ -13,4 +13,5 @@ public interface ISubscriptionService {
     Optional<Subscription> findById(Long id);
 
     void remove(Long id);
+
 }

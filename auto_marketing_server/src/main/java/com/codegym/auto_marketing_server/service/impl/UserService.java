@@ -30,6 +30,20 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public Page<User> filterUsersBySubscription(String filter, Pageable pageable) {
+        if ("NO_PACKAGE".equalsIgnoreCase(filter)) {
+            return userRepository.findUsersWithoutSubscription(pageable);
+        } else if ("EXPIRED".equalsIgnoreCase(filter)) {
+            return userRepository.findUsersWithExpiredSubscription(LocalDate.now(), pageable);
+        } else if ("ACTIVE".equalsIgnoreCase(filter)) {
+            return userRepository.findUsersWithActiveSubscription(LocalDate.now(), pageable);
+        } else {
+            return userRepository.findAll(pageable);
+        }
+    }
+
+
+    @Override
     public Page<User> searchAndPage(String name, String planName, LocalDate startDate, LocalDate endDate,Boolean status,Pageable pageable) {
         return userRepository.searchAndPage(name, planName, startDate, endDate, status,pageable);
     }

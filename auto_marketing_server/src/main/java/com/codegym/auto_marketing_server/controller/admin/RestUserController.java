@@ -25,6 +25,7 @@ import java.util.Optional;
 public class RestUserController {
     private final IUserService userService;
 
+
     public RestUserController(IUserService userService) {
         this.userService = userService;
     }
@@ -49,6 +50,17 @@ public class RestUserController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(usersPage, HttpStatus.OK);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<User>> searchUsers(
+            @RequestParam(required = false) String subscriptionFilter, // NO_PACKAGE | EXPIRED | ACTIVE
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> users=userService.filterUsersBySubscription(subscriptionFilter,pageable);
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")

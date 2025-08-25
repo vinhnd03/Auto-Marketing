@@ -1,4 +1,4 @@
-package com.codegym.auto_marketing_server.controller;
+package com.codegym.auto_marketing_server.controller.admin;
 
 
 import com.codegym.auto_marketing_server.dto.StatisticResponse;
@@ -20,8 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class UserRestController_getStatistics {
-
+public class UserRestController_getStatisticsPackages {
     @Autowired
     private MockMvc mockMvc;
 
@@ -29,16 +28,16 @@ public class UserRestController_getStatistics {
     private IUserService userService;
 
     @Test
-    @DisplayName("Trả về 200 OK khi gọi API statistics chỉ với year")
-    void getStatistics_withYear() throws Exception {
+    @DisplayName("Trả về 200 OK khi gọi API statistics_packages chỉ với year")
+    void getStatisticsPackages_withYear() throws Exception {
         StatisticResponse response = new StatisticResponse();
         response.setMonthly(Collections.emptyList());
         response.setQuarterly(Collections.emptyList());
 
-        given(userService.getStatisticByMonth(2025)).willReturn(Collections.emptyList());
-        given(userService.getStatisticByQuarter(2025)).willReturn(Collections.emptyList());
+        given(userService.getStatisticPackagesByMonth(2025)).willReturn(Collections.emptyList());
+        given(userService.getStatisticPackagesByQuarter(2025)).willReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/users/statistics")
+        mockMvc.perform(get("/api/users/statistics_packages")
                         .param("year", "2025")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -48,18 +47,18 @@ public class UserRestController_getStatistics {
     }
 
     @Test
-    @DisplayName("Trả về 200 OK khi gọi API statistics với year và month")
-    void getStatistics_withYearAndMonth() throws Exception {
+    @DisplayName("Trả về 200 OK khi gọi API statistics_packages với year và month")
+    void getStatisticsPackages_withYearAndMonth() throws Exception {
         StatisticResponse response = new StatisticResponse();
         response.setMonthly(Collections.emptyList());
         response.setQuarterly(Collections.emptyList());
         response.setWeekly(Collections.emptyList());
 
-        given(userService.getStatisticByMonth(2025)).willReturn(Collections.emptyList());
-        given(userService.getStatisticByQuarter(2025)).willReturn(Collections.emptyList());
-        given(userService.getStatisticByWeek(2025, 8)).willReturn(Collections.emptyList());
+        given(userService.getStatisticPackagesByMonth(2025)).willReturn(Collections.emptyList());
+        given(userService.getStatisticPackagesByQuarter(2025)).willReturn(Collections.emptyList());
+        given(userService.getStatisticPackagesByWeek(2025, 8)).willReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/api/users/statistics")
+        mockMvc.perform(get("/api/users/statistics_packages")
                         .param("year", "2025")
                         .param("month", "8")
                         .contentType(MediaType.APPLICATION_JSON))

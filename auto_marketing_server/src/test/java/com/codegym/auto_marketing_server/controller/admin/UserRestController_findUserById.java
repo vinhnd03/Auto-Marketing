@@ -1,4 +1,4 @@
-package com.codegym.auto_marketing_server.controller;
+package com.codegym.auto_marketing_server.controller.admin;
 
 
 import com.codegym.auto_marketing_server.entity.User;
