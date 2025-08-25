@@ -770,7 +770,7 @@ const WorkspaceDetailPage = () => {
             </div>
           </div>
           {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 justify-center items-center mx-auto w-full max-w-2xl">
             {stats.map((stat) => (
               <div
                 key={stat.label}

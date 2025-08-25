@@ -286,18 +286,19 @@ const AdminSidebar = ({collapsed}) => {
                   ${collapsed ? "w-16" : "w-64"}`}
         >
             {/* Logo */}
-            <div className="p-6 border-b-2 border-blue-200 flex items-center">
-                <Link to="/admin" className="flex items-center space-x-2 w-full">
+            <div className="p-6 border-b-2 border-blue-200 flex items-center justify-center">
+                <Link to="/admin" className="flex items-center space-x-2 w-full justify-center">
                     <div
-                        className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <Shield size={18} className="text-white"/>
+                        className={`flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300 ${collapsed ? 'w-10 h-10 rounded-md' : 'w-8 h-8 rounded-lg'}`}
+                    >
+                        <Shield size={collapsed ? 22 : 18} className="text-white"/>
                     </div>
                     <div
-                        className={`transition-opacity duration-200 ${collapsed ? "opacity-0 invisible" : "opacity-100 visible"}`}>
-            <span
-                className="text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-              Auto Marketing
-            </span>
+                        className={`transition-opacity duration-200 ml-2 ${collapsed ? "opacity-0 invisible w-0" : "opacity-100 visible w-auto"}`}>
+                        <span
+                            className="text-lg font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                            Auto Marketing
+                        </span>
                         <div className="text-xs text-gray-500">Admin Panel</div>
                     </div>
                 </Link>
