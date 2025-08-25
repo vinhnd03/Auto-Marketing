@@ -4,7 +4,7 @@ import SocialMediaPublisher from "./SocialMediaPublisher";
 import {
   generateContentWithAI,
   approveAndCleanPosts,
-} from "../../service/post_service";
+} from "../../service/postService";
 
 import toast from "react-hot-toast";
 
@@ -290,7 +290,7 @@ const AIContentGenerator = ({
         }}
       >
         <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
-          <div className="flex items-center justify-between p-6 border-b">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-4 sm:p-6 border-b">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-green-100 rounded-lg">
                 <FileText className="text-green-600" size={24} />
@@ -321,7 +321,7 @@ const AIContentGenerator = ({
             {/* Hiển thị kết quả content */}
             {showResults ? (
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-start gap-3 sm:items-center sm:justify-between sm:flex-row flex-col">
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">
                       🎉 AI đã tạo {previewContent.length} nội dung cho bạn!
@@ -339,7 +339,7 @@ const AIContentGenerator = ({
                 </div>
 
                 {/* Content Selection Controls */}
-                <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <span className="text-sm font-medium text-gray-700">
                       Đã chọn:{" "}
@@ -358,7 +358,7 @@ const AIContentGenerator = ({
                       </span>
                     )}
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={handleSelectAll}
                       disabled={
@@ -387,7 +387,7 @@ const AIContentGenerator = ({
                 </div>
 
                 {/* Grid hiển thị content */}
-                <div className="grid grid-cols-1 gap-6 max-h-96 overflow-y-auto">
+                <div className="grid grid-cols-1 gap-6 max-h-[60vh] overflow-y-auto">
                   {previewContent.map((content, index) => {
                     const isSelected = selectedContentIds.includes(content.id);
                     return (
@@ -400,7 +400,7 @@ const AIContentGenerator = ({
                         }`}
                         onClick={() => handleToggleSelectContent(content.id)}
                       >
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
                           <div className="flex items-center space-x-3">
                             {/* Checkbox để chọn content */}
                             <div className="flex items-center">
@@ -441,7 +441,7 @@ const AIContentGenerator = ({
                               </div>
                             </div>
                           </div>
-                          <div className="flex space-x-2">
+                          <div className="flex flex-wrap gap-2">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation(); // Ngăn trigger click của container
@@ -451,16 +451,6 @@ const AIContentGenerator = ({
                             >
                               <Eye size={14} className="inline mr-1" />
                               Xem chi tiết
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation(); // Ngăn trigger click của container
-                                handleEditContent(content);
-                              }}
-                              className="text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-300 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
-                            >
-                              <Edit size={14} className="inline mr-1" />
-                              Chỉnh sửa
                             </button>
                           </div>
                         </div>
@@ -476,48 +466,14 @@ const AIContentGenerator = ({
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4 mb-4">
-                          <div>
-                            <h5 className="text-sm font-medium text-gray-700 mb-2">
-                              Hashtags:
-                            </h5>
-                            <div className="flex flex-wrap gap-1">
-                              {Array.isArray(content.hashtags) &&
-                                content.hashtags.map((tag, i) => (
-                                  <span
-                                    key={i}
-                                    className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full"
-                                  >
-                                    {tag}
-                                  </span>
-                                ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-blue-50 p-3 rounded-lg">
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="text-blue-700">
-                              <strong>Thời gian đăng tốt nhất:</strong>{" "}
-                              {content.bestTimeToPost}
-                            </div>
-                            <div className="text-green-700 font-medium">
-                              Ước tính tương tác:{" "}
-                              {content.estimatedReach
-                                ? Math.floor(
-                                    content.estimatedReach * 0.1
-                                  ).toLocaleString()
-                                : "0"}
-                            </div>
-                          </div>
-                        </div>
+                        {/* Removed hashtags, best time, and estimated interaction sections as requested */}
                       </div>
                     );
                   })}
                 </div>
 
                 {/* Action buttons */}
-                <div className="flex justify-between items-center pt-4 border-t">
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center pt-4 border-t">
                   <div className="text-sm text-gray-600">
                     {selectedContentIds.length > 0 ? (
                       <>
@@ -531,17 +487,17 @@ const AIContentGenerator = ({
                       <>Chưa chọn nội dung nào để publish</>
                     )}
                   </div>
-                  <div className="flex space-x-3">
+                  <div className="flex flex-col-reverse sm:flex-row gap-2 sm:space-x-3">
                     <button
                       onClick={handleBackToSettings}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
                     >
                       Tạo lại
                     </button>
                     {selectedContentIds.length > 0 && (
                       <button
                         onClick={handleSaveSelectedContent}
-                        className="px-6 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                        className="w-full sm:w-auto px-6 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
                       >
                         <span>💾 Lưu nội dung đã chọn</span>
                         <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
@@ -552,7 +508,7 @@ const AIContentGenerator = ({
                     {selectedContentIds.length === 0 && (
                       <button
                         disabled
-                        className="px-6 py-2 text-sm font-medium bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
+                        className="w-full sm:w-auto px-6 py-2 text-sm font-medium bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
                       >
                         Chọn nội dung để publish
                       </button>
@@ -738,17 +694,17 @@ const AIContentGenerator = ({
 
           {/* Footer buttons - chỉ hiển thị khi chưa có kết quả */}
           {!showResults && (
-            <div className="flex justify-between items-center p-6 border-t bg-gray-50">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center p-6 border-t bg-gray-50">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
               >
                 Hủy
               </button>
               <button
                 onClick={generateContent}
                 disabled={generating}
-                className={`px-6 py-2 text-sm font-medium rounded-lg transition-colors ${
+                className={`w-full sm:w-auto px-6 py-2 text-sm font-medium rounded-lg transition-colors ${
                   generating
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-green-600 text-white hover:bg-green-700"
@@ -794,12 +750,6 @@ const AIContentGenerator = ({
                       <h3 className="text-xl font-bold text-gray-900">
                         Chi tiết nội dung
                       </h3>
-                      <p className="text-sm text-gray-600">
-                        Loại:{" "}
-                        <span className="font-medium">
-                          {selectedContentForDetail.type}
-                        </span>
-                      </p>
                     </div>
                   </div>
                   <button
@@ -823,39 +773,14 @@ const AIContentGenerator = ({
                     </div>
                   </div>
 
-                  {/* Hashtags */}
-                  <div>
-                    <h5 className="font-medium text-gray-900 mb-3">
-                      # Hashtags:
-                    </h5>
-                    <div className="flex flex-wrap gap-1">
-                      {selectedContentForDetail.hashtag &&
-                      selectedContentForDetail.hashtag.trim() ? (
-                        selectedContentForDetail.hashtag
-                          .split(/\s*#/)
-                          .filter(Boolean)
-                          .map((tag, i) => (
-                            <span
-                              key={i}
-                              className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs"
-                            >
-                              #{tag.trim()}
-                            </span>
-                          ))
-                      ) : (
-                        <span className="text-xs text-gray-400">
-                          Không có hashtag nào
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  {/* Removed hashtag list in detail modal */}
 
                   {/* Suggested Images */}
                   <div>
                     <h5 className="font-medium text-gray-900 mb-3">
                       🖼️ Đề xuất hình ảnh:
                     </h5>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {selectedContentForDetail.imageUrl ? (
                         <div className="bg-gray-100 p-3 rounded-lg text-center">
                           <img
@@ -906,16 +831,6 @@ const AIContentGenerator = ({
                     Đóng
                   </button>
                   <div className="flex space-x-3">
-                    <button
-                      onClick={() => {
-                        setShowContentDetail(false);
-                        handleEditContent(selectedContentForDetail);
-                      }}
-                      className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                      <Edit size={16} className="inline mr-1" />
-                      Chỉnh sửa
-                    </button>
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(
@@ -996,27 +911,7 @@ const AIContentGenerator = ({
                     </p>
                   </div>
 
-                  {/* Edit Hashtags */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      # Hashtags (phân cách bằng dấu phẩy):
-                    </label>
-                    <input
-                      type="text"
-                      value={editingContent.hashtags?.join(", ") || ""}
-                      onChange={(e) =>
-                        setEditingContent({
-                          ...editingContent,
-                          hashtags: e.target.value
-                            .split(",")
-                            .map((tag) => tag.trim())
-                            .filter((tag) => tag),
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="#hashtag1, #hashtag2, #hashtag3"
-                    />
-                  </div>
+                  {/* Removed hashtag editing section */}
                 </div>
 
                 <div className="flex justify-between items-center p-6 border-t bg-gray-50">

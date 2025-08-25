@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Wand2, Sparkles, Info } from "lucide-react";
-import { getAllCampaigns } from "../../service/campaign_service";
-import { generateTopicsWithAI } from "../../service/topic_service";
+// import { getAllCampaigns } from "../../service/campaign_service";
+import { generateTopicsWithAI } from "../../service/topicService";
 import { useParams } from "react-router-dom";
 import campaignService from "../../service/campaignService";
 

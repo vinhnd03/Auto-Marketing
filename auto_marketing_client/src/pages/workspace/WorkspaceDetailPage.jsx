@@ -23,7 +23,7 @@ import {
   approveTopic,
   deleteTopicsByCampaignAndStatus,
   getTopicsByCampaign,
-} from "../../service/topic_service";
+} from "../../service/topicService";
 import dayjs from "dayjs";
 import { getWorkspaceDetail } from "../../service/workspace/workspace_service";
 import { ArrowUpCircle } from "lucide-react";

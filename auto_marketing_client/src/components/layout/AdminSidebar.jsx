@@ -342,7 +342,7 @@ const AdminSidebar = ({ collapsed }) => {
               collapsed ? "w-10 h-10 rounded-md" : "w-8 h-8 rounded-lg"
             }`}
           >
-            <Shield size={collapsed ? 22 : 18} className="text-white" />
+            <Shield size={collapsed ? 18 : 18} className="text-white" />
           </div>
           <div
             className={`transition-opacity duration-200 ml-2 ${

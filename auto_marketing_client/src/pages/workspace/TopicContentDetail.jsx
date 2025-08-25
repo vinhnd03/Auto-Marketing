@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AIContentGenerator from "../../components/ai/AIContentGenerator";
 import { Wand2 } from "lucide-react";
-import { getPostsByTopic } from "../../service/post_service";
+import { getPostsByTopic } from "../../service/postService";
 import dayjs from "dayjs";
 
 const TopicContentDetail = ({ topic, onBack }) => {
@@ -113,6 +113,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
                 ← Quay lại danh sách content
               </button>
               <span className="text-xs text-gray-500 sm:ml-4">
+                Ngày tạo:{" "}
                 {selectedContent.createdAt
                   ? dayjs(selectedContent.createdAt).format("DD-MM-YYYY")
                   : ""}
@@ -233,6 +234,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
                         Xem chi tiết
                       </button>
                       <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">
+                        Ngày tạo:{" "}
                         {content.createdAt
                           ? dayjs(content.createdAt).format("DD-MM-YYYY")
                           : ""}
