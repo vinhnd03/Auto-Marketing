@@ -2,6 +2,7 @@ package com.codegym.auto_marketing_server.entity;
 
 
 import com.codegym.auto_marketing_server.enums.PostStatus;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -49,6 +50,7 @@ public class Post {
 
     @ManyToOne
     @JoinColumn(name = "topic_id")
+    @JsonBackReference
     private Topic topic;
 
     private String imageUrl;

@@ -7,7 +7,10 @@ import { Dialog } from "@headlessui/react";
 import toast, { Toaster } from "react-hot-toast";
 import { createSchedule } from "../../service/publish/scheduleManagerService";
 import { useAuth } from "../../context/AuthContext";
-
+import { useParams } from "react-router-dom";
+import campaignService from "../../service/campaignService";
+import { getTopicsByCampaignId } from "../../service/topic_service";
+import { getPostsByFilter } from "../../service/post_service";
 dayjs.locale("vi");
 dayjs.extend(isoWeek);
 
@@ -15,6 +18,12 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
 
 export default function SchedulePostCalendar({ onSubmit }) {
   const { user } = useAuth(); 
+  const { workspaceId } = useParams();
+
+  const [campaigns, setCampaigns] = useState([]);
+  const [topics, setTopics] = useState([]);
+  const [selectedCampaign, setSelectedCampaign] = useState("");
+  const [selectedTopic, setSelectedTopic] = useState("");
   const [availableContents, setAvailableContents] = useState([]);
   const [userPages, setUserPages] = useState([]);
   const [posts, setPosts] = useState([]);
@@ -29,14 +38,40 @@ export default function SchedulePostCalendar({ onSubmit }) {
   const daysOfWeek = Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day"));
   const now = dayjs();
 
+  // --- Load Campaigns theo workspace ---
   useEffect(() => {
-    axios.get("http://localhost:8080/api/v1/posts/all", { withCredentials: true })
-      .then(res => {
-        const dataArray = Array.isArray(res.data) ? res.data : [];
-        setAvailableContents(dataArray.map(p => ({ ...p, id: p.id.toString() })));
+    if (workspaceId) {
+      campaignService.findCampaignByWorkspaceId(workspaceId)
+        .then(setCampaigns)
+        .catch((err) => toast.error("Lỗi tải campaigns: " + err.message));
+    }
+  }, [workspaceId]);
+
+   // --- Load Topics khi chọn campaign ---
+  useEffect(() => {
+  if (selectedCampaign) {
+    getTopicsByCampaignId(selectedCampaign)
+      .then((data) => {
+        setTopics(Array.isArray(data) ? data : []);
       })
-      .catch(err => toast.error("Lỗi tải bài viết: " + err.message));
-  }, []);
+      .catch((err) => toast.error("Lỗi tải topics: " + err.message));
+  } else {
+    setTopics([]);
+    setSelectedTopic("");
+  }
+}, [selectedCampaign]);
+
+
+   // --- Load Posts khi chọn campaign/topic ---
+  useEffect(() => {
+    if (!workspaceId) return;
+    getPostsByFilter(workspaceId, selectedCampaign, selectedTopic)
+      .then((data) => {
+        const array = Array.isArray(data) ? data : [];
+        setAvailableContents(array.map((p) => ({ ...p, id: p.id.toString() })));
+      })
+      .catch((err) => toast.error("Lỗi tải bài viết: " + err.message));
+  }, [workspaceId, selectedCampaign, selectedTopic]);
 
   useEffect(() => {
     if (!user) return;
@@ -202,61 +237,91 @@ export default function SchedulePostCalendar({ onSubmit }) {
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
-            <Dialog.Title className="text-lg font-semibold mb-4">Chọn nội dung để đăng</Dialog.Title>
+  <Dialog.Title className="text-lg font-semibold mb-4">Chọn nội dung để đăng</Dialog.Title>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Thời gian</label>
-              <div className="flex gap-2">
-                <input type="text" readOnly value={selectedTime ? selectedTime.format("dddd DD/MM HH") : ""} className="border rounded px-2 py-1 text-sm w-full" />
-                <select value={minute} onChange={e => setMinute(e.target.value)} className="border rounded px-2 py-1 text-sm">
-                  {["00","15","30","45"].map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-              </div>
-            </div>
+  {/* Chọn Campaign */}
+  <div className="mb-2">
+    <label className="block text-sm font-medium mb-1">Chọn Campaign</label>
+    <select
+      value={selectedCampaign}
+      onChange={e => setSelectedCampaign(e.target.value)}
+      className="border rounded px-2 py-1 text-sm w-full"
+    >
+      <option value="">-- Chọn Campaign --</option>
+      {campaigns.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+    </select>
+  </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Chọn bài viết</label>
-              <select
-                value={selectedContentId}
-                onChange={e => setSelectedContentId(e.target.value)}
-                className="border rounded px-2 py-1 text-sm w-full"
-              >
-                <option value="">-- Chọn bài viết --</option>
-                {availableContents.map(c => (
-                  <option key={c.id} value={c.id}>{c.title}</option>
-                ))}
-              </select>
-            </div>
+  {/* Chọn Topic */}
+  <div className="mb-2">
+    <label className="block text-sm font-medium mb-1">Chọn Topic</label>
+    <select
+  value={selectedTopic}
+  onChange={(e) => setSelectedTopic(e.target.value)}
+  className="border rounded px-2 py-1 text-sm w-full"
+>
+  <option value="">-- Chọn topic --</option>
+  {(Array.isArray(topics) ? topics : []).map(t => (
+    <option key={t.id} value={t.id}>{t.name}</option>
+  ))}
+</select>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Chọn fanpage</label>
-              <div className="flex flex-col max-h-40 overflow-y-auto border rounded px-2 py-1">
-                {Array.isArray(userPages) && userPages.map(fp => (
-                  <label key={fp.id} className="flex items-center gap-2 mb-1">
-                    <input
-                      type="checkbox"
-                      value={fp.id}
-                      checked={selectedFanpageIds.includes(fp.id.toString())}
-                      onChange={e => {
-                        const value = e.target.value;
-                        setSelectedFanpageIds(prev =>
-                          prev.includes(value)
-                            ? prev.filter(id => id !== value)
-                            : [...prev, value]
-                        );
-                      }}
-                    />
-                    <span>{fp.pageName}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+  </div>
 
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Hủy</button>
-              <button onClick={savePost} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Lưu</button>
-            </div>
-          </Dialog.Panel>
+  {/* Chọn Post */}
+  <div className="mb-4">
+    <label className="block text-sm font-medium mb-1">Chọn bài viết</label>
+    <select
+      value={selectedContentId}
+      onChange={e => setSelectedContentId(e.target.value)}
+      className="border rounded px-2 py-1 text-sm w-full"
+    >
+      <option value="">-- Chọn bài viết --</option>
+      {availableContents.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+    </select>
+  </div>
+
+  {/* Thời gian */}
+  <div className="mb-4">
+    <label className="block text-sm font-medium mb-1">Thời gian</label>
+    <div className="flex gap-2">
+      <input type="text" readOnly value={selectedTime ? selectedTime.format("dddd DD/MM HH") : ""} className="border rounded px-2 py-1 text-sm w-full" />
+      <select value={minute} onChange={e => setMinute(e.target.value)} className="border rounded px-2 py-1 text-sm">
+        {["00","15","30","45"].map(m => <option key={m} value={m}>{m}</option>)}
+      </select>
+    </div>
+  </div>
+
+  {/* Chọn fanpage */}
+  <div className="mb-4">
+    <label className="block text-sm font-medium mb-1">Chọn fanpage</label>
+    <div className="flex flex-col max-h-40 overflow-y-auto border rounded px-2 py-1">
+      {userPages.map(fp => (
+        <label key={fp.id} className="flex items-center gap-2 mb-1">
+          <input
+            type="checkbox"
+            value={fp.id}
+            checked={selectedFanpageIds.includes(fp.id.toString())}
+            onChange={e => {
+              const value = e.target.value;
+              setSelectedFanpageIds(prev =>
+                prev.includes(value)
+                  ? prev.filter(id => id !== value)
+                  : [...prev, value]
+              );
+            }}
+          />
+          <span>{fp.pageName}</span>
+        </label>
+      ))}
+    </div>
+  </div>
+
+  <div className="flex justify-end gap-2">
+    <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Hủy</button>
+    <button onClick={savePost} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Lưu</button>
+  </div>
+</Dialog.Panel>
         </div>
       </Dialog>
     </div>

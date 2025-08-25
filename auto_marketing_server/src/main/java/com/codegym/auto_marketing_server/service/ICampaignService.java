@@ -22,4 +22,5 @@ public interface ICampaignService {
 
     List<Campaign> importFromExcel(MultipartFile file, Long workspaceId);
     List<Campaign> findAll();
+    List<Campaign> getCampaignsByWorkspace(Long workspaceId);
 }

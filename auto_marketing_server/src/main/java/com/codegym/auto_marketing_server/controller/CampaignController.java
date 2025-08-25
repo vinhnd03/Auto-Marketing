@@ -178,7 +178,12 @@ public class CampaignController {
                     .body("Có lỗi xảy ra: " + e.getMessage());
         }
     }
-
+    @GetMapping("/workspaceId")
+    public ResponseEntity<List<Campaign>> getCampaignsByWorkspace(
+            @RequestParam Long workspaceId
+    ) {
+        return ResponseEntity.ok(campaignService.getCampaignsByWorkspace(workspaceId));
+    }
 
 //    @GetMapping
 //    @Operation(

@@ -2,6 +2,7 @@ package com.codegym.auto_marketing_server.controller;
 
 import com.codegym.auto_marketing_server.dto.TopicGenerationRequestDTO;
 import com.codegym.auto_marketing_server.dto.TopicResponseDTO;
+import com.codegym.auto_marketing_server.entity.Topic;
 import com.codegym.auto_marketing_server.enums.TopicStatus;
 import com.codegym.auto_marketing_server.service.ITopicService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -153,5 +154,12 @@ public class TopicController {
         topicService.deleteByCampaignAndStatus(campaignId, status);
         log.info("🗑️ Deleted topics with status {} for campaign ID: {}", status, campaignId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/campaignId")
+    public ResponseEntity<List<Topic>> getTopicsByCampaignId(
+            @RequestParam Long campaignId
+    ) {
+        return ResponseEntity.ok(topicService.getTopicsByCampaignId(campaignId));
     }
 }

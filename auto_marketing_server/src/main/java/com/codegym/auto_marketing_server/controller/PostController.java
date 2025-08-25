@@ -1,6 +1,7 @@
 package com.codegym.auto_marketing_server.controller;
 
 import com.codegym.auto_marketing_server.dto.ContentGenerationRequestDTO;
+import com.codegym.auto_marketing_server.dto.PostFilterDTO;
 import com.codegym.auto_marketing_server.dto.PostResponseDTO;
 import com.codegym.auto_marketing_server.enums.PostStatus;
 import com.codegym.auto_marketing_server.service.IPostService;
@@ -105,4 +106,19 @@ public class PostController {
         List<PostResponseDTO> posts = postService.getAllPosts();
         return ResponseEntity.ok(posts);
     }
+
+    @GetMapping("/filter")
+    @Operation(
+            summary = "Get posts by workspace/campaign/topic",
+            description = "Retrieve posts filtered by workspace, campaign, and topic"
+    )
+    public ResponseEntity<List<PostFilterDTO>> getPostsByFilters(
+            @RequestParam(required = false) Long workspaceId,
+            @RequestParam(required = false) Long campaignId,
+            @RequestParam(required = false) Long topicId
+    ) {
+        List<PostFilterDTO> posts = postService.getPostsByFilters(workspaceId, campaignId, topicId);
+        return ResponseEntity.ok(posts);
+    }
+
 }

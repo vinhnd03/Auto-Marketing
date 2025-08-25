@@ -1,6 +1,7 @@
 package com.codegym.auto_marketing_server.entity;
 
 import com.codegym.auto_marketing_server.enums.TopicStatus;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,5 +39,6 @@ public class Topic {
 
     // Thêm annotation này để cascade xóa post khi xóa topic
     @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Post> posts;
 }

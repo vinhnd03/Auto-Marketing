@@ -55,6 +55,7 @@ const fetchSchedules = async () => {
       );
       setEditingPost(null);
       toast.success("Cập nhật thành công!");
+      
     } catch (err) {
       console.error("Lỗi update:", err.response || err);
       toast.error("Cập nhật thất bại!");

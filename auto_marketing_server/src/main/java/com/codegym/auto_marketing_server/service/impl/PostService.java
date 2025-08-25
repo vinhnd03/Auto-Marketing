@@ -1,6 +1,7 @@
 package com.codegym.auto_marketing_server.service.impl;
 
 import com.codegym.auto_marketing_server.dto.ContentGenerationRequestDTO;
+import com.codegym.auto_marketing_server.dto.PostFilterDTO;
 import com.codegym.auto_marketing_server.dto.PostResponseDTO;
 import com.codegym.auto_marketing_server.entity.Post;
 import com.codegym.auto_marketing_server.entity.Topic;
@@ -273,4 +274,11 @@ public class PostService implements IPostService {
                 .map(this::mapToResponseDTO)
                 .toList();
     }
+
+    @Override
+    public List<PostFilterDTO> getPostsByFilters(Long workspaceId, Long campaignId, Long topicId) {
+        return postRepository.findPostFilterDTOs(workspaceId, campaignId, topicId);
+    }
+
+
 }

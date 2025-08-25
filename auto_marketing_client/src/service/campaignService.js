@@ -1,6 +1,19 @@
 import axios from "axios";
 const URL = "http://localhost:8080/api/campaign";
 
+const findCampaignByWorkspaceId = async (workspaceId) => {
+  try {
+    const resp = await axios.get(`${URL}/workspaceId`,{
+      params: {workspaceId},
+      withCredentials:true
+    })
+    console.log(resp.data);
+    return resp.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
 const findAllCampaign = async (
   page = 0,
   size = 10,
@@ -118,4 +131,5 @@ export default {
   update,
   softDelete,
   uploadExcel,
+  findCampaignByWorkspaceId
 };
