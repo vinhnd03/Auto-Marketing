@@ -76,7 +76,6 @@ public class UserService implements IUserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
         if (password != null && !password.isBlank()) {
-            System.out.println(password);
             user.setPassword(passwordEncoder.encode(password));
         }
         userRepository.save(user);

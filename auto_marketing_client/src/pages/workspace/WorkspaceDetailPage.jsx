@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import AIGeneratedTopicCard from "../../components/ai/AIGeneratedTopicCard";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import TopicContentDetail from "./TopicContentDetail";
@@ -11,7 +12,6 @@ import {
   Wand2,
   BarChart3,
   Settings,
-  Play,
   MoreHorizontal,
   Send,
   Table,
@@ -24,13 +24,31 @@ import {
   deleteTopicsByCampaignAndStatus,
   getTopicsByCampaign,
 } from "../../service/topic_service";
-
 import dayjs from "dayjs";
 import { getWorkspaceDetail } from "../../service/workspace/workspace_service";
+import { ArrowUpCircle } from "lucide-react";
 import campaignService from "../../service/campaignService";
 import axios from "axios";
 
+import { useAuth } from "../../context/AuthContext";
 const WorkspaceDetailPage = () => {
+  // State cho tìm kiếm campaign
+  const [campaignSearch, setCampaignSearch] = useState("");
+  const [filteredCampaigns, setFilteredCampaigns] = useState([]);
+  // Scroll to top button visibility
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 200);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const { workspaceId } = useParams();
   const [workspace, setWorkspace] = useState(null);
   const [loadingWorkspace, setLoadingWorkspace] = useState(true);
@@ -43,9 +61,12 @@ const WorkspaceDetailPage = () => {
   const [savingTopics, setSavingTopics] = useState(false);
   const [apiCampaigns, setApiCampaigns] = useState([]);
   const [topicsPageByCampaign, setTopicsPageByCampaign] = useState({});
-
+  const [totalCampaign, setTotalCampaign] = useState(0);
+  const [totalCampaignFirstLoading, setTotalCampaignFirstLoading] = useState(0);
   const [confirmedPosts, setConfirmedPosts] = useState([]);
+  const [firstLoad, setFirstLoad] = useState(true);
   const DEFAULT_TOPICS_PER_PAGE = 6;
+  const { user } = useAuth();
   // Lọc danh sách bài viết đã xác nhận (mock)
   const initialPosts = [
     {
@@ -64,7 +85,14 @@ const WorkspaceDetailPage = () => {
     },
   ];
   const [posts, setPosts] = useState(initialPosts);
-
+  const fetchCountCampaignFirstLoading = async () => {
+    try {
+      const campaignNumber = await campaignService.countCampaign(user.id);
+      setTotalCampaignFirstLoading(campaignNumber);
+    } catch (err) {
+      setTotalCampaignFirstLoading(null);
+    }
+  };
   // Fetch campaigns from API
 
   useEffect(() => {
@@ -86,7 +114,8 @@ const WorkspaceDetailPage = () => {
     };
 
     fetchCampaigns();
-  }, []);
+    fetchCountCampaignFirstLoading();
+  }, [totalCampaign, workspaceId]);
 
   // Reset phân trang khi workspace thay đổi
   useEffect(() => {
@@ -208,7 +237,6 @@ const WorkspaceDetailPage = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      active: { color: "bg-green-100 text-green-800", text: "Đang chạy" },
       draft: { color: "bg-yellow-100 text-yellow-800", text: "Nháp" },
       completed: { color: "bg-gray-100 text-gray-800", text: "Hoàn thành" },
       paused: { color: "bg-red-100 text-red-800", text: "Tạm dừng" },
@@ -227,7 +255,7 @@ const WorkspaceDetailPage = () => {
   const handleQuickAction = (action) => {
     switch (action) {
       case "create-campaign":
-        toast.success("Tính năng đang phát triển - Tạo campaign mới");
+        setActiveTab("campaigns");
         break;
       case "generate-topics":
         setShowTopicGenerator(true);
@@ -246,45 +274,57 @@ const WorkspaceDetailPage = () => {
   const handleTopicGenerated = async (newTopics) => {
     console.log("Topics được tạo:", newTopics);
 
-    // Sử dụng topics từ AITopicGenerator
-    const createdTopicIds = newTopics.map((topic) => topic.id);
+    // Lấy campaignId từ topic đầu tiên (giả sử cùng campaign)
+    const campaignId = newTopics[0]?.campaignId;
+    if (!campaignId) {
+      toast.error("Không xác định được campaign để lấy topics mới!");
+      return;
+    }
 
-    // Cập nhật workspace với topics mới
-    setWorkspace((prevWorkspace) => {
-      const updatedWorkspace = { ...prevWorkspace };
+    try {
+      // Lấy danh sách id của các topic vừa tạo
+      const generatedTopicIds = newTopics.map((topic) => topic.id);
 
-      // Tìm campaign tương ứng và thêm topics
-      newTopics.forEach((topic) => {
+      // Gọi lại API lấy danh sách topic mới nhất từ BE
+      const latestTopics = await getTopicsByCampaign(campaignId);
+
+      // Chỉ lấy các topic vừa tạo (lọc theo id)
+      const newGeneratedTopics = latestTopics.filter((topic) =>
+        generatedTopicIds.includes(topic.id)
+      );
+
+      setWorkspace((prevWorkspace) => {
+        const updatedWorkspace = { ...prevWorkspace };
         const campaignIndex = updatedWorkspace.campaigns.findIndex(
-          (c) => c.id === topic.campaignId
+          (c) => c.id === campaignId
         );
-
         if (campaignIndex !== -1) {
-          if (!updatedWorkspace.campaigns[campaignIndex].topicsList) {
-            updatedWorkspace.campaigns[campaignIndex].topicsList = [];
-          }
-          updatedWorkspace.campaigns[campaignIndex].topicsList.push({
-            ...topic,
-            isNew: true,
-            createdAt: new Date().toISOString().split("T")[0],
-            pendingPosts: Math.floor(Math.random() * 5) + 1, // Random số content cần tạo
-          });
-          updatedWorkspace.campaigns[campaignIndex].topics += 1;
+          updatedWorkspace.campaigns[campaignIndex].topicsList = latestTopics;
+          updatedWorkspace.campaigns[campaignIndex].topics =
+            latestTopics.length;
         }
+        return updatedWorkspace;
       });
+      setNewlyCreatedTopics(newGeneratedTopics.map((topic) => topic.id));
+      setActiveTab("topics");
+      toast.dismiss();
+      toast.success(
+        `Đã tạo thành công ${newGeneratedTopics.length} topics mới!`
+      );
 
-      return updatedWorkspace;
-    });
-
-    setNewlyCreatedTopics(createdTopicIds);
-    setActiveTab("topics");
-
-    toast.success(`Đã tạo thành công ${newTopics.length} topics mới!`);
+      // Reload workspace to ensure new campaigns/topics are shown
+      if (typeof fetchWorkspaceData === "function") {
+        fetchWorkspaceData();
+      }
+    } catch (err) {
+      toast.error("Không thể lấy danh sách topic mới từ server!");
+    }
   };
 
   const handleHideAITopics = () => {
     setNewlyCreatedTopics([]);
     setApprovedTopics(new Set()); // Reset approved topics
+    toast.dismiss();
     toast.success("Đã ẩn section AI Topics!", {
       duration: 2000,
       style: {
@@ -458,8 +498,10 @@ const WorkspaceDetailPage = () => {
     }
   };
 
-  // Handle approve single topic
+  // Handle approve single topic, giữ vị trí scroll khi chọn checkbox
   const handleApproveTopic = (topicId) => {
+    // Lưu vị trí scroll hiện tại
+    const scrollY = window.scrollY;
     setApprovedTopics((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(topicId)) {
@@ -469,6 +511,10 @@ const WorkspaceDetailPage = () => {
       }
       return newSet;
     });
+    // Khôi phục vị trí scroll sau khi cập nhật state
+    setTimeout(() => {
+      window.scrollTo({ top: scrollY, behavior: "auto" });
+    }, 0);
   };
 
   const handleSaveApprovedTopics = async () => {
@@ -561,32 +607,37 @@ const WorkspaceDetailPage = () => {
   // Ở đây mình giả sử confirmed = status === "active" và posts > 0
   // Lấy danh sách nội dung khả dụng (content) từ campaign đầu tiên làm ví dụ
   const [availableContents, setAvailableContents] = useState([]);
-  
-// Lấy danh sách bài viết từ DB
+
+  // Lấy danh sách bài viết từ DB
   useEffect(() => {
-    axios.get("http://localhost:8080/api/v1/posts/all", { withCredentials: true })
-      .then(res => {
+    axios
+      .get("http://localhost:8080/api/v1/posts/all", { withCredentials: true })
+      .then((res) => {
         const dataArray = Array.isArray(res.data) ? res.data : [];
-        const formattedData = dataArray.map(p => ({
+        const formattedData = dataArray.map((p) => ({
           id: p.id.toString(),
           title: p.title,
           content: p.content,
           hashtag: p.hashtag,
           tone: p.tone,
           contentType: p.contentType,
-          targetAudience: p.targetAudience
+          targetAudience: p.targetAudience,
         }));
         setAvailableContents(formattedData);
       })
-      .catch(err => console.error(err));
+      .catch((err) => console.error(err));
   }, []);
 
   const handleScheduleSubmit = (posts) => {
     console.log("Posts mới được lên lịch:", posts);
     setConfirmedPosts(posts);
   };
-  useEffect(() => {
-    const fetchWorkspaceData = async () => {
+
+  const handleDeletePost = (deletedPost) => {
+    setPosts((prev) => prev.filter((p) => p.id !== deletedPost.id));
+  };
+
+  const fetchWorkspaceData = async () => {
       setLoadingWorkspace(true);
       try {
         // 1. Lấy workspace từ API
@@ -595,14 +646,16 @@ const WorkspaceDetailPage = () => {
         // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
         const campaignsData =
           wsData.campaigns ??
-          (await campaignService.findAllCampaign(
-            0,
-            10,
-            "",
-            "",
-            "",
-            workspaceId
-          )).content;
+          (
+            await campaignService.findAllCampaign(
+              0,
+              10,
+              "",
+              "",
+              "",
+              workspaceId
+            )
+          ).content;
         // 3. Với mỗi campaign => lấy topics
         const campaignsWithTopics = await Promise.all(
           campaignsData.map(async (campaign) => {
@@ -623,8 +676,28 @@ const WorkspaceDetailPage = () => {
       }
     };
 
+  useEffect(() => {
+
     fetchWorkspaceData();
   }, [workspaceId]);
+
+
+  // Lọc campaign theo tên khi search
+  useEffect(() => {
+    if (!workspace || !workspace.campaigns) {
+      setFilteredCampaigns([]);
+      return;
+    }
+    if (!campaignSearch.trim()) {
+      setFilteredCampaigns(workspace.campaigns);
+    } else {
+      setFilteredCampaigns(
+        workspace.campaigns.filter((c) =>
+          (c.name || "").toLowerCase().includes(campaignSearch.toLowerCase())
+        )
+      );
+    }
+  }, [campaignSearch, workspace]);
 
   if (loadingWorkspace) {
     return <div>Đang tải workspace...</div>;
@@ -636,17 +709,9 @@ const WorkspaceDetailPage = () => {
   const stats = [
     {
       label: "Tổng chiến dịch",
-      value: workspace && workspace.campaigns ? workspace.campaigns.length : 0,
+      value: firstLoad ? totalCampaignFirstLoading : totalCampaign,
       color: "blue",
       icon: <Target size={24} />,
-    },
-    {
-      label: "Đang chạy",
-      value: apiCampaigns
-        ? apiCampaigns.filter((c) => c.status === "ACTIVE").length
-        : 0,
-      color: "green",
-      icon: <Play size={24} />,
     },
     {
       label: "Tổng chủ đề",
@@ -679,6 +744,16 @@ const WorkspaceDetailPage = () => {
 
   return (
     <div className="bg-gray-50 py-8">
+      {/* Scroll to top button */}
+      {showScrollTop && (
+        <button
+          onClick={handleScrollToTop}
+          className="fixed bottom-6 right-6 z-[9999] bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg p-3 flex items-center justify-center transition-all"
+          aria-label="Scroll to top"
+        >
+          <ArrowUpCircle size={32} />
+        </button>
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-6">
           {/* Header */}
@@ -740,7 +815,9 @@ const WorkspaceDetailPage = () => {
               {quickActions.map((action) => (
                 <button
                   key={action.action}
-                  onClick={() => handleQuickAction(action.action)}
+                  onClick={() => {
+                    handleQuickAction(action.action);
+                  }}
                   className="p-6 border border-gray-200 rounded-xl hover:shadow-md transition-all text-left group"
                 >
                   <div
@@ -881,13 +958,22 @@ const WorkspaceDetailPage = () => {
                   <CampaignTable
                     campaigns={transformedCampaigns}
                     onUpdateCampaigns={handleUpdateCampaigns}
+                    onTotalCampaignChange={setTotalCampaign}
                   />
                 </div>
               )}
 
               {activeTab === "topics" && (
                 <div className="space-y-6">
-                  <div className="flex items-center justify-end">
+                  {/* Thanh tìm kiếm campaign */}
+                  <div className="flex items-center justify-between mb-4">
+                    <input
+                      type="text"
+                      className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="Tìm kiếm tên chiến dịch  ..."
+                      value={campaignSearch}
+                      onChange={(e) => setCampaignSearch(e.target.value)}
+                    />
                     <div className="flex space-x-3">
                       {/* Nút generate nhanh */}
                       {newlyCreatedTopics.length > 0 && (
@@ -948,7 +1034,6 @@ const WorkspaceDetailPage = () => {
                           {newlyCreatedTopics.map((topicId) => {
                             let foundTopic = null;
                             let foundCampaign = null;
-
                             workspace.campaigns.forEach((campaign) => {
                               const topic = campaign.topicsList?.find(
                                 (t) => t.id === topicId
@@ -958,102 +1043,17 @@ const WorkspaceDetailPage = () => {
                                 foundCampaign = campaign;
                               }
                             });
-
                             if (!foundTopic) return null;
-
                             return (
-                              <div
-                                key={`ai-topic-${foundTopic.id}-${Date.now()}`}
-                                className="bg-white border-2 border-purple-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group"
-                              >
-                                <div className="absolute inset-0 bg-gradient-to-r from-purple-100 to-pink-100 opacity-30"></div>
-
-                                <div className="absolute -top-2 -right-2 z-10">
-                                  <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg animate-pulse border-2 border-white">
-                                    ⭐ AI TẠO MỚI
-                                  </div>
-                                </div>
-
-                                <div className="relative z-10">
-                                  {/* Checkbox để approve topic */}
-                                  <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center space-x-3">
-                                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                                        <Wand2
-                                          className="text-white"
-                                          size={18}
-                                        />
-                                      </div>
-                                      <div>
-                                        <div className="text-xs text-purple-600 font-medium">
-                                          {foundCampaign.name}
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <div className="flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-bold">
-                                            <Wand2 size={10} className="mr-1" />
-                                            AI Generate
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Checkbox approve */}
-                                    <label className="flex items-center cursor-pointer">
-                                      <input
-                                        type="checkbox"
-                                        checked={approvedTopics.has(
-                                          foundTopic.id
-                                        )}
-                                        onChange={() =>
-                                          handleApproveTopic(foundTopic.id)
-                                        }
-                                        className="sr-only"
-                                      />
-                                      <div
-                                        className={`w-6 h-6 border-2 rounded-lg flex items-center justify-center transition-all ${
-                                          approvedTopics.has(foundTopic.id)
-                                            ? "bg-green-500 border-green-500 text-white"
-                                            : "border-gray-300 hover:border-green-400"
-                                        }`}
-                                      >
-                                        {approvedTopics.has(foundTopic.id) && (
-                                          <svg
-                                            className="w-4 h-4"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                          >
-                                            <path
-                                              fillRule="evenodd"
-                                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                              clipRule="evenodd"
-                                            />
-                                          </svg>
-                                        )}
-                                      </div>
-                                      <span className="ml-2 text-sm font-medium text-gray-700">
-                                        {approvedTopics.has(foundTopic.id)
-                                          ? "Đã chọn"
-                                          : "Chọn lưu"}
-                                      </span>
-                                    </label>
-                                  </div>
-
-                                  <h4 className="text-lg font-bold text-purple-900 mb-3 line-clamp-2">
-                                    {foundTopic.title}
-                                  </h4>
-                                  <p className="text-purple-700 text-sm mb-4 line-clamp-3">
-                                    {foundTopic.description}
-                                  </p>
-
-                                  <div className="text-center">
-                                    <p className="text-xs text-gray-500 mb-2">
-                                      {approvedTopics.has(foundTopic.id)
-                                        ? "✅ Topic này sẽ được lưu"
-                                        : "⏳ Chọn checkbox để lưu topic này"}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
+                              <AIGeneratedTopicCard
+                                key={`ai-topic-${foundTopic.id}`}
+                                topic={foundTopic}
+                                campaign={foundCampaign}
+                                checked={approvedTopics.has(foundTopic.id)}
+                                onCheck={() =>
+                                  handleApproveTopic(foundTopic.id)
+                                }
+                              />
                             );
                           })}
                         </div>
@@ -1120,8 +1120,8 @@ const WorkspaceDetailPage = () => {
                   ) : (
                     <>
                       {/* Danh sách các campaign và topic đã có */}
-                      {workspace.campaigns.map((campaign) => {
-                        // Lấy danh sách topic đã approved
+                      {filteredCampaigns.map((campaign) => {
+                        // ...existing code...
                         const topicsListArr = Array.isArray(campaign.topicsList)
                           ? campaign.topicsList
                           : [];
@@ -1332,9 +1332,7 @@ const WorkspaceDetailPage = () => {
                 />
               )}
 
-              {activeTab === "publishedManager" && (
-                <ScheduledPostsList />
-              )}
+              {activeTab === "publishedManager" && <ScheduledPostsList />}
 
               {activeTab === "analytics" && (
                 <div className="text-center py-12">

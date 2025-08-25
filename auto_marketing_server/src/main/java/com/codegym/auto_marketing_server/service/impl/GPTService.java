@@ -263,7 +263,7 @@ public class GPTService implements IGPTService {
         // THÊM YÊU CẦU VỀ TIÊU ĐỀ
         prompt.append("YÊU CẦU TIÊU ĐỀ:\n");
         prompt.append("• Tiêu đề bài viết PHẢI NỔI BẬT, SÚC TÍCH, TỐI ĐA 70 KÝ TỰ.\n");
-        prompt.append("• Nếu tiêu đề vượt quá 70 ký tự, HÃY NGAY LẬP TỨC rút ngắn lại còn tối đa 70 ký tự, KHÔNG giải thích, KHÔNG giữ lại emoji nếu bị cắt.\n");
+        prompt.append("• Nếu tiêu đề vượt quá ,P TỨC rút ngắn lại còn tối đa 70 ký tự, KHÔNG giải thích, KHÔNG giữ lại emoji nếu bị cắt.\n");
         prompt.append("• KHÔNG được bắt đầu title bằng các cụm từ dài dòng, lan man, hoặc quá chung chung như \"Trong thời đại công nghệ phát triển...\", \"🌟 Trong thời đại công nghệ số hiện nay...\".\n");
         prompt.append("• Ưu tiên tiêu đề là một câu hoặc một cụm từ mạnh mẽ, truyền cảm hứng, KHÔNG lặp lại nội dung của phần mô tả.\n");
         prompt.append("• KHÔNG sử dụng emoji ở đầu tiêu đề. Nếu sử dụng emoji, chỉ được đặt ở cuối tiêu đề và chỉ khi không bị cắt mất khi rút ngắn.\n\n");

@@ -27,4 +27,7 @@ public interface IWorkspaceService {
     Workspace findById(Long id);
 
     boolean existsByNameForUserExceptId(String name, Long userId, Long excludeId);
+
+    void updateWorkspaceStatusForUser(Long userId, List<Long> activeIds);
+
 }

@@ -68,13 +68,13 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
     setError(null);
     try {
       const campaignsData = await campaignService.findAllCampaign(
-                0,
-                10,
-                "",
-                "",
-                "",
-                workspaceId
-              );
+        0,
+        10,
+        "",
+        "",
+        "",
+        workspaceId
+      );
       setCampaigns(campaignsData.content);
     } catch (err) {
       console.error("Error fetching campaigns:", err);
@@ -117,7 +117,10 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
       };
 
       // Call real API to generate topics
-      const generatedTopics = await generateTopicsWithAI(requestData);
+      const response = await generateTopicsWithAI(requestData);
+      const generatedTopics = Array.isArray(response)
+        ? response
+        : response.topics || [];
 
       // Transform API response to match UI format
       const transformedTopics = generatedTopics.map((topic, index) => ({
@@ -133,10 +136,7 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
         pendingPosts: 0,
         publishedPosts: 0,
         engagement: "0",
-        status:
-          topic.status === "PENDING"
-            ? "needs_content"
-            : topic.status.toLowerCase(),
+        status: "APPROVED", // Force status to APPROVED so topics show instantly
         aiGenerated: topic.generatedByAI,
         createdDate: topic.createdAt,
         platforms: campaigns.find((c) => c.id === topic.campaignId)
@@ -302,11 +302,13 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
                   disabled={campaigns.length === 0}
                 >
                   <option value="">-- Chọn chiến dịch --</option>
-                  {campaigns.map((campaign) => (
-                    <option key={campaign.id} value={campaign.id}>
-                      {campaign.name}
-                    </option>
-                  ))}
+                  {campaigns
+                    .filter((campaign) => campaign.status === "ACTIVE")
+                    .map((campaign) => (
+                      <option key={campaign.id} value={campaign.id}>
+                        {campaign.name}
+                      </option>
+                    ))}
                 </select>
               )}
               {!loading && campaigns.length === 0 && !error && (

@@ -37,6 +37,7 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -49,11 +50,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/api/auth/**", "/api/social/connect/facebook/callback","/api/v1/plans","api/payment/vn-pay-callback").permitAll()
-                                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-                                .requestMatchers("/api/user/**", "/api/schedules/**,").hasAnyAuthority("USER", "ADMIN")
-//                        .requestMatchers("/api/w").authenticated()
-                                .anyRequest().authenticated()
+                        .requestMatchers("/api/auth/**", "/api/social/connect/facebook/callback",
+                                "/api/v1/plans", "api/payment/vn-pay-callback").permitAll()
+                        .requestMatchers("/api/user/**", "/api/schedules/**", "/api/v1/**").hasAnyAuthority("USER", "ADMIN")
+                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+
+                        .anyRequest().authenticated()
                 )
 //                .oauth2Login(oauth -> oauth
 ////                        .loginPage("/api/auth/google")
@@ -77,7 +79,7 @@ public class SecurityConfig {
                             resp.setStatus(HttpServletResponse.SC_OK);
                         })
                 )
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -89,7 +91,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(frontendUrl)); // domain frontend// domain frontend
+        configuration.setAllowedOrigins(Arrays.asList(frontendUrl, "http://127.0.0.1:3000")); // domain frontend// domain frontend
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true); // <--- QUAN TRỌNG
@@ -103,10 +105,10 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtService, userDetailsService);
-    }
+//    @Bean
+//    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+//        return new JwtAuthenticationFilter(jwtService, userDetailsService);
+//    }
 
     @Bean
     @Order(1)

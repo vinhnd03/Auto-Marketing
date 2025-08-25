@@ -1,61 +1,70 @@
 package com.codegym.auto_marketing_server.controller.worspace;
 
+
+import com.codegym.auto_marketing_server.controller.workspace.WorkspaceController;
+
 import com.codegym.auto_marketing_server.entity.Subscription;
 import com.codegym.auto_marketing_server.service.ISubscriptionService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.ResponseEntity;
+
 import java.util.Optional;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 public class WorkspaceController_workspaceLimit {
-    @Autowired
-    private MockMvc mockMvc;
 
-    @MockitoBean
+    @Mock
     private ISubscriptionService subscriptionService;
 
+    @InjectMocks
+    private WorkspaceController workspaceController;
 
-    @Test
-    public void workspaceLimit_1() throws Exception {
-        mockMvc.perform(get("/api/v1/workspaces/{id}/workspace-limit", (Object) null))
-                .andExpect(status().is4xxClientError());
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
+    /**
+     * Case 1: User có subscription active -> trả về số workspace tối đa
+     */
     @Test
-    public void workspaceLimit_2() throws Exception {
-        Long id = 1L;
-        Mockito.when(subscriptionService.findActiveByUserId(id))
-                .thenReturn(Optional.empty());
+    void workspaceLimit_caseUserHasActiveSubscription() {
+        Long userId = 1L;
+        Subscription subscription = new Subscription();
+        subscription.setId(10L);
 
-        mockMvc.perform(get("/api/v1/workspaces/{id}/workspace-limit", id))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Bạn chưa mua gói dịch vụ hoặc gói của bạn đã hết hạn"));
-    }
-
-    @Test
-    public void workspaceLimit_3() throws Exception {
-        Long id = 1L;
-        Subscription sub = new Subscription();
-        sub.setId(10L);
-
-        Mockito.when(subscriptionService.findActiveByUserId(id))
-                .thenReturn(Optional.of(sub));
-        Mockito.when(subscriptionService.findMaxWorkspaceByCurrenSubscription(sub.getId()))
+        when(subscriptionService.findActiveByUserId(userId))
+                .thenReturn(Optional.of(subscription));
+        when(subscriptionService.findMaxWorkspaceByCurrenSubscription(subscription.getId()))
                 .thenReturn(5);
 
-        mockMvc.perform(get("/api/v1/workspaces/{id}/workspace-limit", id))
-                .andExpect(status().isOk())
-                .andExpect(content().string("5"));
+        ResponseEntity<?> response = workspaceController.workspaceLimit(userId);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(5, response.getBody());
     }
+
+    /**
+     * Case 2: User không có subscription hoặc đã hết hạn -> trả về message
+     */
+    @Test
+    void workspaceLimit_caseUserNoActiveSubscription() {
+        Long userId = 2L;
+
+        when(subscriptionService.findActiveByUserId(userId))
+                .thenReturn(Optional.empty());
+
+        ResponseEntity<?> response = workspaceController.workspaceLimit(userId);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("Bạn chưa mua gói dịch vụ hoặc gói của bạn đã hết hạn", response.getBody());
+    }
+
 }

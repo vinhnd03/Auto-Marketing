@@ -3,6 +3,7 @@ package com.codegym.auto_marketing_server.service.impl;
 import com.codegym.auto_marketing_server.entity.Subscription;
 import com.codegym.auto_marketing_server.entity.Workspace;
 import com.codegym.auto_marketing_server.entity.Workspace;
+import com.codegym.auto_marketing_server.enums.WorkspaceStatus;
 import com.codegym.auto_marketing_server.repository.IWorkspaceRepository;
 import com.codegym.auto_marketing_server.service.ISubscriptionService;
 import com.codegym.auto_marketing_server.service.IWorkspaceService;
@@ -75,5 +76,19 @@ public class WorkspaceService implements IWorkspaceService {
     @Override
     public boolean existsByNameForUserExceptId(String name, Long userId, Long excludeId) {
         return workspaceRepository.countWorkspaceByNameAndUserExceptId(name, userId, excludeId) > 0;
+    }
+
+    @Override
+    public void updateWorkspaceStatusForUser(Long userId, List<Long> activeIds) {
+        List<Workspace> workspaces = searchWorkspaceByUserId(userId);
+
+        for (Workspace ws : workspaces) {
+            if (activeIds.contains(ws.getId())) {
+                ws.setStatus(WorkspaceStatus.ACTIVE);
+            } else {
+                ws.setStatus(WorkspaceStatus.INACTIVE);
+            }
+            workspaceRepository.save(ws);
+        }
     }
 }

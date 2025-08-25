@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,34 +30,45 @@ public class TopicController {
 
     private final ITopicService topicService;
 
+//    @PostMapping("/generate")
+//    @Operation(
+//            summary = "Generate marketing topics using AI",
+//            description = "Generate multiple marketing topics for a campaign using AI. " +
+//                    "The AI will create relevant, engaging topics based on the campaign information.",
+//            responses = {
+//                    @ApiResponse(responseCode = "200", description = "Topics generated successfully",
+//                            content = @Content(schema = @Schema(implementation = TopicResponseDTO.class))),
+//                    @ApiResponse(responseCode = "400", description = "Invalid request data"),
+//                    @ApiResponse(responseCode = "404", description = "Campaign not found"),
+//                    @ApiResponse(responseCode = "500", description = "AI generation failed")
+//            }
+//    )
+//    public CompletableFuture<ResponseEntity<List<TopicResponseDTO>>> generateTopics(
+//            @Valid @RequestBody TopicGenerationRequestDTO request) {
+//
+//        log.info("🎯 Generating {} topics for campaign ID: {}",
+//                request.getNumberOfTopics(), request.getCampaignId());
+//
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        System.out.println(">>> Controller auth: " + auth);
+//
+//        return topicService.generateTopicsWithAI(request)
+//                .thenApply(topics -> {
+//                    log.info("✅ Successfully generated {} topics", topics.size());
+//                    return ResponseEntity.ok(topics);
+//                })
+//                .exceptionally(throwable -> {
+//                    log.error("❌ Failed to generate topics: {}", throwable.getMessage());
+//                    return ResponseEntity.internalServerError().build();
+//                });
+//    }
+
     @PostMapping("/generate")
-    @Operation(
-            summary = "Generate marketing topics using AI",
-            description = "Generate multiple marketing topics for a campaign using AI. " +
-                    "The AI will create relevant, engaging topics based on the campaign information.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Topics generated successfully",
-                            content = @Content(schema = @Schema(implementation = TopicResponseDTO.class))),
-                    @ApiResponse(responseCode = "400", description = "Invalid request data"),
-                    @ApiResponse(responseCode = "404", description = "Campaign not found"),
-                    @ApiResponse(responseCode = "500", description = "AI generation failed")
-            }
-    )
-    public CompletableFuture<ResponseEntity<List<TopicResponseDTO>>> generateTopics(
+    public ResponseEntity<List<TopicResponseDTO>> generateTopics(
             @Valid @RequestBody TopicGenerationRequestDTO request) {
 
-        log.info("🎯 Generating {} topics for campaign ID: {}",
-                request.getNumberOfTopics(), request.getCampaignId());
-
-        return topicService.generateTopicsWithAI(request)
-                .thenApply(topics -> {
-                    log.info("✅ Successfully generated {} topics", topics.size());
-                    return ResponseEntity.ok(topics);
-                })
-                .exceptionally(throwable -> {
-                    log.error("❌ Failed to generate topics: {}", throwable.getMessage());
-                    return ResponseEntity.internalServerError().build();
-                });
+        List<TopicResponseDTO> topics = topicService.generateTopicsWithAI(request).join();
+        return ResponseEntity.ok(topics);
     }
 
     @GetMapping("/campaign/{campaignId}")

@@ -6,7 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import verifyToken from "../../service/tokenService";
 import authService from "../../service/authService";
-import Preloader from './../../components/ui/Preloader';
+import Preloader from "./../../components/ui/Preloader";
 
 // Validation schema
 const registerSchema = Yup.object({
@@ -53,28 +53,30 @@ const ResetPasswordPage = () => {
   }, [token]);
 
   const handleSubmit = async (values, { setSubmitting }) => {
-  try {
-    const newPassword = values.password;
-    const result = await authService.changePassword(token, newPassword);
+    try {
+      const newPassword = values.password;
+      const result = await authService.changePassword(token, newPassword);
 
-    if (result.success) {
-      toast.success(result.data?.message || "Đặt lại mật khẩu thành công!");
-      setIsLoading(true);
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
-    } else {
-      toast.error(result.error || "Đặt lại mật khẩu thất bại");
+      if (result.success) {
+        toast.dismiss();
+        toast.success(result.data?.message || "Đặt lại mật khẩu thành công!", {
+          duration: 1500,
+        });
+        setIsLoading(true);
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500);
+      } else {
+        toast.error(result.error || "Đặt lại mật khẩu thất bại");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+    } finally {
+      setSubmitting(false);
     }
-  } catch (error) {
-    console.error(error);
-    toast.error("Có lỗi xảy ra, vui lòng thử lại");
-  } finally {
-    
-    setSubmitting(false);
-  }
-};
-  if(isLoading) return (<Preloader/>)
+  };
+  if (isLoading) return <Preloader />;
 
   return !isExpiry ? (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

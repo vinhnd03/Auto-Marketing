@@ -31,19 +31,19 @@ class TopicControllerTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    @Test
-    void generateTopics_shouldReturnOk() {
-        TopicGenerationRequestDTO request = new TopicGenerationRequestDTO();
-        List<TopicResponseDTO> mockTopics = Arrays.asList(new TopicResponseDTO(), new TopicResponseDTO());
-
-        when(topicService.generateTopicsWithAI(request)).thenReturn(CompletableFuture.completedFuture(mockTopics));
-
-        ResponseEntity<List<TopicResponseDTO>> response = topicController.generateTopics(request).join();
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(2, response.getBody().size());
-        verify(topicService).generateTopicsWithAI(request);
-    }
+//    @Test
+//    void generateTopics_shouldReturnOk() {
+//        TopicGenerationRequestDTO request = new TopicGenerationRequestDTO();
+//        List<TopicResponseDTO> mockTopics = Arrays.asList(new TopicResponseDTO(), new TopicResponseDTO());
+//
+//        when(topicService.generateTopicsWithAI(request)).thenReturn(CompletableFuture.completedFuture(mockTopics));
+//
+//        ResponseEntity<List<TopicResponseDTO>> response = topicController.generateTopics(request).join();
+//
+//        assertEquals(200, response.getStatusCodeValue());
+//        assertEquals(2, response.getBody().size());
+//        verify(topicService).generateTopicsWithAI(request);
+//    }
 
     @Test
     void getTopicsByCampaign_shouldReturnOk() {

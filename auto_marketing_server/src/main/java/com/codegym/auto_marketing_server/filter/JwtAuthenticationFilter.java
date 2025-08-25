@@ -2,6 +2,7 @@ package com.codegym.auto_marketing_server.filter;
 
 import com.codegym.auto_marketing_server.security.jwt.service.JwtService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @Component
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
 
         String token = null;
         if (request.getCookies() != null) {
@@ -72,10 +75,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 if (jwtService.validateToken(token)) {
                     String username = jwtService.getUsernameFromToken(token);
-                    UserDetails user = userDetailsService.loadUserByUsername(username);
-                    UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(auth);
+
+                    if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                        UserDetails user = userDetailsService.loadUserByUsername(username);
+                        UsernamePasswordAuthenticationToken auth =
+                                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    }
                 } else {
                     // Token invalid
                     clearJwtCookie(response);
@@ -84,7 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalid");
                     return;
                 }
-            } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+            } catch (ExpiredJwtException ex) {
                 clearJwtCookie(response);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Token expired");

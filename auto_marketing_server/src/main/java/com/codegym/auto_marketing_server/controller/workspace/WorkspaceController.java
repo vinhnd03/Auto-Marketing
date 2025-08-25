@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,8 +38,18 @@ public class WorkspaceController {
     private final SubscriptionManagementService subscriptionManagementService;
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<?> searchWorkspaceByUserId(@PathVariable Long id) {
+    public ResponseEntity<?> searchWorkspaceByUserId(@PathVariable(required = false) Long id) {
+        if (id == null) {
+            return ResponseEntity.badRequest().body("User ID không hợp lệ");
+        }
+
         List<Workspace> workspaces = workspaceService.searchWorkspaceByUserId(id);
+
+        if (workspaces == null || workspaces.isEmpty()) {
+            // trả về 201 + danh sách rỗng
+            return ResponseEntity.status(201).body(Collections.emptyList());
+        }
+
         return ResponseEntity.ok(workspaces);
     }
 
@@ -177,22 +188,16 @@ public class WorkspaceController {
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<?> updateWorkspaceStatus(@PathVariable Long id, @RequestBody WorkspaceStatusUpdateDTO dto) {
+    public ResponseEntity<?> updateWorkspaceStatus(
+            @PathVariable Long id,
+            @RequestBody WorkspaceStatusUpdateDTO dto) {
+
         if (dto == null || dto.getIds() == null || dto.getIds().isEmpty()) {
             return ResponseEntity.badRequest().body("Danh sách Id không hợp lệ");
         }
-        List<Workspace> workspaces = workspaceService.searchWorkspaceByUserId(id);
+
         try {
-            List<Long> activeIds = dto.getIds();
-            for (Workspace ws : workspaces) {
-                if (activeIds.contains(ws.getId())) {
-                    ws.setStatus(WorkspaceStatus.ACTIVE);
-                    workspaceService.save(ws);
-                } else {
-                    ws.setStatus(WorkspaceStatus.INACTIVE);
-                    workspaceService.save(ws);
-                }
-            }
+            workspaceService.updateWorkspaceStatusForUser(id, dto.getIds());
             return ResponseEntity.ok("Cập nhật trạng thái thành công");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

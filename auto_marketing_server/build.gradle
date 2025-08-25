@@ -39,6 +39,8 @@ dependencies {
 
     //Mail
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'jakarta.mail:jakarta.mail-api:2.1.2'
+    implementation 'com.sun.mail:jakarta.mail:2.0.1'
 
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

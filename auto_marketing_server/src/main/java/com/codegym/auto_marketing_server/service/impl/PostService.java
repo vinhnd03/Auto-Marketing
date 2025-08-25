@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.net.URL;
@@ -43,6 +44,8 @@ public class PostService implements IPostService {
     @Override
     public CompletableFuture<List<PostResponseDTO>> generateContentWithAI(ContentGenerationRequestDTO request) {
         return CompletableFuture.supplyAsync(() -> {
+            long start = System.currentTimeMillis();
+
             try {
                 Topic topic = topicService.findById(request.getTopicId());
                 if (topic.getStatus() != TopicStatus.APPROVED) {
@@ -51,32 +54,48 @@ public class PostService implements IPostService {
                 List<Post> generatedPosts = new ArrayList<>();
 
                 for (int i = 0; i < request.getNumberOfPosts(); i++) {
+                    long postStart = System.currentTimeMillis();
+                    log.info("⏳ [AI GEN] Bắt đầu gen bài số {} cho topic {}", i + 1, topic.getId());
+
                     // 1. Gen content
                     String gptResponse = gptService.generateLongFormContent(topic, request).get();
 
-                    // 2. Gen image prompt từ content
-                    String imagePrompt = gptService.generateImagePromptFromContent(gptResponse).get();
-
-                    // 3. Gọi OpenAI API để lấy url ảnh thật
-                    String aiImageUrl = openAIImageService.generateImageUrlFromPrompt(imagePrompt);
-
-                    // 4. Download ảnh về file tạm
-                    File imageFile = downloadImageToFile(aiImageUrl);
-
-                    // 5. Upload lên Cloudinary
-                    String imageUrl = cloudinaryService.uploadImage(imageFile);
-
-                    // 6. Xoá file tạm
-                    imageFile.delete();
-
-                    // 7. Tạo post, lưu imageUrl
                     Post post = createPostFromGPTResponse(gptResponse, topic, request);
-                    post.setImageUrl(imageUrl);
+
+                    // 2. Nếu chọn kiểu "image" hoặc "mixed" thì mới gen image
+                    if ("image".equalsIgnoreCase(request.getContentType()) || "mixed".equalsIgnoreCase(request.getContentType())) {
+                        // Gen image prompt từ content
+                        String imagePrompt = gptService.generateImagePromptFromContent(gptResponse).get();
+
+                        // Gọi OpenAI API để lấy url ảnh thật
+                        String aiImageUrl = openAIImageService.generateImageUrlFromPrompt(imagePrompt);
+
+                        // Download ảnh về file tạm
+                        File imageFile = downloadImageToFile(aiImageUrl);
+
+                        // Upload lên Cloudinary
+                        String imageUrl = cloudinaryService.uploadImage(imageFile);
+
+                        // Xoá file tạm
+                        imageFile.delete();
+
+                        // Lưu imageUrl vào post
+                        post.setImageUrl(imageUrl);
+                    } else {
+                        // Nếu chỉ văn bản thì imageUrl để null hoặc rỗng
+                        post.setImageUrl(null);
+                    }
 
                     generatedPosts.add(post);
+
+                    long postTime = System.currentTimeMillis() - postStart;
+                    log.info("✅ [AI GEN] Hoàn thành bài số {} trong {} ms ({} giây)", i + 1, postTime, postTime / 1000.0);
                 }
 
                 List<Post> savedPosts = postRepository.saveAll(generatedPosts);
+
+                long duration = System.currentTimeMillis() - start;
+                log.info("🎉 [AI GEN] Tổng thời gian gen {} bài: {} ms ({} giây)", request.getNumberOfPosts(), duration, duration / 1000.0);
 
                 return savedPosts.stream()
                         .map(this::mapToResponseDTO)
@@ -134,6 +153,28 @@ public class PostService implements IPostService {
     @Override
     public Post save(Post post) {
         return postRepository.save(post);
+    }
+
+    @Override
+    @Transactional // <-- Thêm annotation này để đảm bảo transaction
+    public List<PostResponseDTO> approveAndCleanPosts(Long topicId, List<Long> selectedPostIds) {
+        // Approve selected posts
+        List<Post> selectedPosts = postRepository.findAllById(selectedPostIds);
+        for (Post post : selectedPosts) {
+            post.setStatus(PostStatus.APPROVED);
+            post.setUpdatedAt(LocalDate.now());
+        }
+        postRepository.saveAll(selectedPosts); // <-- Đảm bảo gọi saveAll sau khi setStatus
+
+        // Delete unselected DRAFT posts for this topic
+        List<Post> draftPosts = postRepository.findByTopicIdAndStatus(topicId, PostStatus.DRAFT);
+        List<Post> toDelete = draftPosts.stream()
+                .filter(post -> !selectedPostIds.contains(post.getId()))
+                .toList();
+        postRepository.deleteAll(toDelete);
+
+        // Return approved posts as DTO
+        return selectedPosts.stream().map(this::mapToResponseDTO).toList();
     }
 
     private Post createPostFromGPTResponse(String gptResponse, Topic topic, ContentGenerationRequestDTO request) {

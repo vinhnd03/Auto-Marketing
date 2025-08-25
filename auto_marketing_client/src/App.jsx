@@ -40,7 +40,7 @@ import PaymentResultComponent from "./components/pricing/PaymentResultComponent"
 import AdminLayout from "./components/layout/AdminLayout";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import RevenueStatsPage from "./pages/admin/RevenueStatsPage";
-
+import { ForbiddenPage, NotFoundPage } from "./pages/error/ErrorPage ";
 import AdminRoute from "./routes/AdminRoute";
 import GuestRoute from "./routes/GuestRoute";
 import OAuth2Success from "./pages/auth/OAuthSucess";
@@ -53,6 +53,8 @@ import DetailUserComponent from "./components/admin/DetailUser";
 import PackageStatsPage from "./pages/admin/PackageStatsPage";
 import PlanPage from "./pages/admin/PlanPage";
 import NewPackagePurchased from "./components/admin/NewPackagePurchased";
+
+import GlobalScrollToTop from "./components/ui/GlobalScrollToTop";
 
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
@@ -78,12 +80,12 @@ const AppLayout = ({children}) => {
     const isAdminPage = location.pathname.startsWith("/admin");
     const isLegalPage = ["/terms", "/privacy"].includes(location.pathname);
 
-    const isErrorPage = ["/not-found"].includes(location.pathname);
-    // Hiển thị Navbar ở tất cả pages trừ auth pages, admin pages và legal pages
-    const shouldShowNavbar = !isAuthPage && !isAdminPage && !isLegalPage && !isErrorPage;
+  const isErrorPage = ["/not-found"].includes(location.pathname);
+  // Hiển thị Navbar ở tất cả pages trừ auth pages, admin pages và legal pages
+  const shouldShowNavbar = !isAuthPage && !isAdminPage && !isLegalPage && !isErrorPage;
 
-    // Hiển thị Footer ở tất cả pages trừ auth pages và admin pages (bao gồm cả legal pages)
-    const shouldShowFooter = !isAuthPage && !isAdminPage && !isErrorPage;
+  // Hiển thị Footer ở tất cả pages trừ auth pages và admin pages (bao gồm cả legal pages)
+  const shouldShowFooter = !isAuthPage && !isAdminPage && !isErrorPage;
 
     return (
         <div className="min-h-screen flex flex-col">
@@ -99,164 +101,172 @@ AppLayout.propTypes = {
 };
 
 function App() {
-    const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        // gọi hook custom trong effect để đảm bảo AuthProvider đã mount
-    }, []);
+  useEffect(() => {
+    // gọi hook custom trong effect để đảm bảo AuthProvider đã mount
+  }, []);
 
-    useEffect(() => {
-        setTimeout(() => setLoading(false), 1200);
-    }, []);
-    if (loading) return <Preloader />;
+  useEffect(() => {
+    setTimeout(() => setLoading(false), 1200);
+  }, []);
+  if (loading) return <Preloader />;
 
-    return (
-        <>
-            <AxiosInterceptor />
-            <ScrollToTop />
-            <Routes>
-                {/* Admin Routes - Separate layout */}
+  return (
+    <>
+      <AxiosInterceptor />
+      <ScrollToTop />
+      <Routes>
+        {/* Admin Routes - Separate layout */}
+        <Route
+          path="/admin/*"
+          element={
+            <AdminRoute>
+              <AdminLayout>
+                <Routes>
+                    <Route index element={<AdminDashboard/>}/>
+                    <Route path="users/list" element={<ListUsers/>}/>
+                    <Route path="users/new" element={<ListUserByDate/>}/>
+                    <Route path={"users/detail/:id"} element={<DetailUserComponent/>}/>
+                    <Route path="customers/statistics_customer" element={<NewCustomerStatistic/>}/>
+                    <Route path="customers/statistics_packages" element={<NewPackagePurchased/>}/>
+                    <Route path="revenue" element={<RevenueStatsPage/>}/>
+                    <Route path="packages" element={<PackageStatsPage/>}/>
+                    <Route path="plans" element={<PlanPage/>}/>
+                </Routes>
+              </AdminLayout>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/*"
+          element={
+            <AppLayout>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/blog" element={<BlogPage />} />
+                <Route path="/help" element={<HelpPage />} />
+                <Route path="/faq" element={<FAQPage />} />
+                <Route path="/guide" element={<GuidePage />} />
+                <Route path="/sitemap" element={<SitemapPage />} />
                 <Route
-                    path="/admin/*"
-                    element={
-                        <AdminRoute>
-                            <AdminLayout>
-                                <Routes>
-                                    <Route index element={<AdminDashboard/>}/>
-                                    <Route path="users/list" element={<ListUsers/>}/>
-                                    <Route path="users/new" element={<ListUserByDate/>}/>
-                                    <Route path={"users/detail/:id"} element={<DetailUserComponent/>}/>
-                                    <Route path="customers/statistics_customer" element={<NewCustomerStatistic/>}/>
-                                    <Route path="customers/statistics_packages" element={<NewPackagePurchased/>}/>
-                                    <Route path="revenue" element={<RevenueStatsPage/>}/>
-                                    <Route path="packages" element={<PackageStatsPage/>}/>
-                                    <Route path="plans" element={<PlanPage/>}/>
-                                </Routes>
-                            </AdminLayout>
-                        </AdminRoute>
-                    }
+                  path="/login"
+                  element={
+                    <GuestRoute>
+                      <LoginPage />
+                    </GuestRoute>
+                  }
                 />
                 <Route
-                    path="/*"
-                    element={
-                        <AppLayout>
-                            <Routes>
-                                <Route path="/" element={<Home />} />
-                                <Route path="/about" element={<AboutPage />} />
-                                <Route path="/blog" element={<BlogPage />} />
-                                <Route path="/help" element={<HelpPage />} />
-                                <Route path="/faq" element={<FAQPage />} />
-                                <Route path="/guide" element={<GuidePage />} />
-                                <Route path="/sitemap" element={<SitemapPage />} />
-                                <Route
-                                    path="/login"
-                                    element={
-                                        <GuestRoute>
-                                            <LoginPage />
-                                        </GuestRoute>
-                                    }
-                                />
-                                <Route
-                                    path="/register"
-                                    element={
-                                        <GuestRoute>
-                                            <RegisterPage />
-                                        </GuestRoute>
-                                    }
-                                />
-                                <Route path="/oauth2/success" element={<OAuth2Success />} />
-                                <Route path="/terms" element={<TermsPage />} />
-                                <Route path="/privacy" element={<PrivacyPage />} />
-                                <Route path="/contact" element={<ContactPage />} />
-                                <Route path="/features" element={<FeaturesPage />} />
-                                <Route path="/pricing" element={<ListComponent />} />
-                                <Route
-                                    path="/forgot-password"
-                                    element={<ForgotPasswordPage />}
-                                />
-                                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                                <Route
-                                    path="/payment-result"
-                                    element={
-                                        <ProtectedRoute>
-                                            <PaymentResultComponent />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path="/campaign-manager"
-                                    element={
-                                        <ProtectedRoute>
-                                            <CampaignManager />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path="/profile"
-                                    element={
-                                        <ProtectedRoute>
-                                            <Profile />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path="/settings"
-                                    element={
-                                        <ProtectedRoute>
-                                            {" "}
-                                            <Settings />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path="/workspace"
-                                    element={
-                                        <ProtectedRoute>
-                                            {" "}
-                                            <WorkspacePage />{" "}
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path="/workspaces/:workspaceId"
-                                    element={
-                                        <ProtectedRoute>
-                                            <WorkspaceDetailPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route path="/*" element={<Navigate to="/not-found" replace />} />
-                            </Routes>
-                        </AppLayout>
-                    }
+                  path="/register"
+                  element={
+                    <GuestRoute>
+                      <RegisterPage />
+                    </GuestRoute>
+                  }
                 />
-            </Routes>
-            <Toaster
-                position="top-right"
-                toastOptions={{
-                    duration: 2500,
-                    style: {
-                        background: "#363636",
-                        color: "#fff",
-                    },
-                    success: {
-                        duration: 2500,
-                        style: {
-                            background: "#10B981",
-                            color: "#fff",
-                        },
-                    },
-                    error: {
-                        duration: 2500,
-                        style: {
-                            background: "#EF4444",
-                            color: "#fff",
-                        },
-                    },
-                }}
-            />
-        </>
-    );
+                <Route path="/oauth2/success" element={<OAuth2Success />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/features" element={<FeaturesPage />} />
+                <Route path="/pricing" element={<ListComponent />} />
+                <Route
+                  path="/forgot-password"
+                  element={<ForgotPasswordPage />}
+                />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route
+                  path="/payment-result"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentResultComponent />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/campaign-manager"
+                  element={
+                    <ProtectedRoute>
+                      <CampaignManager />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      {" "}
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/workspace"
+                  element={
+                    <ProtectedRoute>
+                      <WorkspacePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/workspaces/:workspaceId"
+                  element={
+                    <ProtectedRoute>
+                      <WorkspaceDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/*"
+                  element={<Navigate to="/not-found" replace />}
+                />
+              </Routes>
+            </AppLayout>
+          }
+        />
+        <Route path="/unauthorized" element={<ForbiddenPage />} />
+        <Route path="/not-found" element={<NotFoundPage />} />
+      </Routes>
+      <GlobalScrollToTop />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2500,
+          style: {
+            background: "#363636",
+            color: "#fff",
+            zIndex: 999999,
+          },
+          success: {
+            duration: 2500,
+            style: {
+              background: "#10B981",
+              color: "#fff",
+              zIndex: 999999,
+            },
+          },
+          error: {
+            duration: 2500,
+            style: {
+              background: "#EF4444",
+              color: "#fff",
+              zIndex: 999999,
+            },
+          },
+        }}
+      />
+    </>
+  );
 }
 
 export default App;
