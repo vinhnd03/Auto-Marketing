@@ -313,7 +313,7 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
                   </div>
                   <div className="py-2">
                     <Link
-                      to="/admin/profile"
+                      to="/profile"
                       className="flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100"
                       onClick={() => setShowUserMenu(false)}
                     >
@@ -321,7 +321,7 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
                       <span>Hồ sơ Admin</span>
                     </Link>
                     <Link
-                      to="/admin/settings"
+                      to="/settings"
                       className="flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100"
                       onClick={() => setShowUserMenu(false)}
                     >

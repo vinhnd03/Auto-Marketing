@@ -22,6 +22,9 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
     public void sendResetPasswordEmail(String to, String name, String resetLink)
             throws MessagingException { // chỉ giữ MessagingException
         try {
@@ -51,6 +54,7 @@ public class EmailService {
         context.setVariable("name", name);
         context.setVariable("planName", planName);
         context.setVariable("endDate", endDate);
+        context.setVariable("planPage", frontendUrl + "/pricing");
 
         String htmlContent = templateEngine.process("subscription-expiry", context);
 

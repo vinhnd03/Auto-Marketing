@@ -68,7 +68,7 @@ export default function Profile() {
         return;
       }
 
-      // Kiểm tra dung lượng file (ví dụ: max 2MB)
+      // Kiểm tra dung lượng file
       const maxSizeInMB = 5;
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
       if (file.size > maxSizeInBytes) {
@@ -120,7 +120,7 @@ export default function Profile() {
       .email("Email không hợp lệ"),
 
     phone: Yup.string()
-      .required("Số điện thoại không được để trống")
+      // .required("Số điện thoại không được để trống")
       .matches(/^0\d{9,10}$/, "Số điện thoại không hợp lệ"),
   });
 
