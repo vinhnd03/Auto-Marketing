@@ -266,6 +266,21 @@ export default function CampaignManager() {
                 </button>
               </div>
 
+              {/* Refresh Active (Chủ đề) tab trigger */}
+              <button
+                type="button"
+                onClick={() => {
+                  // phát sự kiện để tab "Chủ đề"/Active refetch ngay
+                  window.dispatchEvent(
+                    new CustomEvent("campaign:refresh-active")
+                  );
+                }}
+                className="px-3 py-2 text-sm border rounded hover:bg-gray-50"
+                title="Làm mới tab Chủ đề"
+              >
+                Làm mới Chủ đề
+              </button>
+
               {/* Records per page */}
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-600">Hiển thị:</label>

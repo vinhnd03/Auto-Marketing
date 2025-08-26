@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Target,
@@ -20,8 +20,8 @@ export default function CampaignsPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [showMobileFilter, setShowMobileFilter] = useState(false);
 
-  // Dữ liệu mẫu
-  const campaigns = [
+  // Dữ liệu mẫu (khởi tạo)
+  const initialCampaigns = [
     {
       id: 1,
       name: "Chiến dịch Black Friday 2024",
@@ -75,6 +75,40 @@ export default function CampaignsPage() {
       conversion: 480,
     },
   ];
+
+  // State để có thể cập nhật ngay khi có campaign mới
+  const [campaigns, setCampaigns] = useState(initialCampaigns);
+
+  // Lắng nghe sự kiện tạo campaign và cập nhật list ngay lập tức
+  useEffect(() => {
+    const handler = (e) => {
+      const newCampaign = e.detail;
+      if (!newCampaign) return;
+      setCampaigns((prev) => {
+        const index = prev.findIndex((c) => c.id === newCampaign.id);
+        if (index !== -1) {
+          const updated = [...prev];
+          updated[index] = { ...prev[index], ...newCampaign };
+          return updated;
+        }
+        return [newCampaign, ...prev];
+      });
+    };
+
+    window.addEventListener("campaign:created", handler);
+
+    // Trường hợp sự kiện bắn trước khi mount: đọc từ localStorage
+    try {
+      const cached = localStorage.getItem("lastCreatedCampaign");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        handler({ detail: parsed });
+        localStorage.removeItem("lastCreatedCampaign");
+      }
+    } catch (_) {}
+
+    return () => window.removeEventListener("campaign:created", handler);
+  }, []);
 
   const getStatusBadge = (status) => {
     const statusConfig = {

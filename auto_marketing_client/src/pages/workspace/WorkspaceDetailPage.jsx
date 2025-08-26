@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AIGeneratedTopicCard from "../../components/ai/AIGeneratedTopicCard";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -60,6 +60,7 @@ const WorkspaceDetailPage = () => {
   const [approvedTopics, setApprovedTopics] = useState(new Set());
   const [savingTopics, setSavingTopics] = useState(false);
   const [apiCampaigns, setApiCampaigns] = useState([]);
+  const topicsTopRef = useRef(null);
   const [topicsPageByCampaign, setTopicsPageByCampaign] = useState({});
   const [totalCampaign, setTotalCampaign] = useState(0);
   const [totalCampaignFirstLoading, setTotalCampaignFirstLoading] = useState(0);
@@ -672,17 +673,39 @@ const WorkspaceDetailPage = () => {
     fetchWorkspaceData();
   }, [workspaceId]);
 
+  // Khi người dùng chuyển tab sang "Chủ đề", tự động refetch workspace/campaigns
+  useEffect(() => {
+    if (activeTab === "topics") {
+      // Phát tín hiệu cho các trang khác nếu cần và làm mới dữ liệu tại chỗ
+      try {
+        window.dispatchEvent(new CustomEvent("campaign:refresh-active"));
+      } catch (_) {}
+      fetchWorkspaceData();
+      // Scroll tới phần đầu của tab Chủ đề
+      requestAnimationFrame(() => {
+        if (topicsTopRef.current) {
+          const el = topicsTopRef.current;
+          const top = el.getBoundingClientRect().top + window.scrollY - 80;
+          window.scrollTo({ top, behavior: "smooth" });
+        }
+      });
+    }
+  }, [activeTab]);
+
   // Lọc campaign theo tên khi search
   useEffect(() => {
     if (!workspace || !workspace.campaigns) {
       setFilteredCampaigns([]);
       return;
     }
+    const onlyActive = workspace.campaigns.filter(
+      (c) => String(c.status).toUpperCase() === "ACTIVE"
+    );
     if (!campaignSearch.trim()) {
-      setFilteredCampaigns(workspace.campaigns);
+      setFilteredCampaigns(onlyActive);
     } else {
       setFilteredCampaigns(
-        workspace.campaigns.filter((c) =>
+        onlyActive.filter((c) =>
           (c.name || "").toLowerCase().includes(campaignSearch.toLowerCase())
         )
       );
@@ -943,7 +966,7 @@ const WorkspaceDetailPage = () => {
                 </div>
               )}
               {activeTab === "topics" && (
-                <div className="space-y-4 md:space-y-6">
+                <div className="space-y-4 md:space-y-6" ref={topicsTopRef}>
                   {/* Thanh tìm kiếm campaign */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <input

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Play,
@@ -18,8 +18,8 @@ import {
 export default function ActiveCampaignsPage() {
   const [showMobileStats, setShowMobileStats] = useState(false);
 
-  // Dữ liệu mẫu cho chiến dịch đang chạy
-  const activeCampaigns = [
+  // Dữ liệu mẫu cho chiến dịch đang chạy (khởi tạo)
+  const initialActive = [
     {
       id: 1,
       name: "Chiến dịch Black Friday 2024",
@@ -69,6 +69,80 @@ export default function ActiveCampaignsPage() {
       roas: 2.8,
     },
   ];
+
+  // State để cập nhật theo realtime khi có campaign ACTIVE mới
+  const [activeCampaigns, setActiveCampaigns] = useState(initialActive);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const newCampaign = e.detail;
+      if (!newCampaign || newCampaign.status !== "active") return;
+      setActiveCampaigns((prev) => {
+        const exists = prev.some((c) => c.id === newCampaign.id);
+        if (exists)
+          return prev.map((c) =>
+            c.id === newCampaign.id ? { ...c, ...newCampaign } : c
+          );
+        return [
+          {
+            id: newCampaign.id,
+            name: newCampaign.name,
+            type: newCampaign.type || "Social Media",
+            startDate:
+              newCampaign.startDate || new Date().toISOString().slice(0, 10),
+            endDate: newCampaign.endDate || "",
+            budget: newCampaign.budget || 0,
+            spent: newCampaign.spent || 0,
+            remainingDays: newCampaign.remainingDays || 0,
+            reach: newCampaign.reach || 0,
+            engagement: newCampaign.engagement || 0,
+            conversion: newCampaign.conversion || 0,
+            ctr: newCampaign.ctr || 0,
+            cpc: newCampaign.cpc || 0,
+            roas: newCampaign.roas || 0,
+          },
+          ...prev,
+        ];
+      });
+    };
+
+    window.addEventListener("campaign:created", handler);
+
+    // fallback đọc từ localStorage nếu có
+    try {
+      const cached = localStorage.getItem("lastCreatedCampaign");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        handler({ detail: parsed });
+        localStorage.removeItem("lastCreatedCampaign");
+      }
+    } catch (_) {}
+
+    return () => window.removeEventListener("campaign:created", handler);
+  }, []);
+
+  // Lắng nghe yêu cầu refresh khi chuyển sang tab "Chủ đề"
+  useEffect(() => {
+    const onRefresh = () => {
+      try {
+        const cached = localStorage.getItem("lastCreatedCampaign");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.status === "active") {
+            // hợp nhất vào danh sách nếu chưa có
+            const exists = activeCampaigns.some((c) => c.id === parsed.id);
+            if (!exists) {
+              setActiveCampaigns((prev) => [parsed, ...prev]);
+            }
+          }
+        }
+      } catch (_) {}
+      // TODO: nếu có API thực, gọi fetchActiveCampaigns() ở đây
+    };
+    window.addEventListener("campaign:refresh-active", onRefresh);
+    return () =>
+      window.removeEventListener("campaign:refresh-active", onRefresh);
+  }, [activeCampaigns]);
 
   const totalBudget = activeCampaigns.reduce((sum, c) => sum + c.budget, 0);
   const totalSpent = activeCampaigns.reduce((sum, c) => sum + c.spent, 0);
