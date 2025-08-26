@@ -62,11 +62,11 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `http://localhost:8080/api/auth/google`;
+    window.location.href = `https://auto-marketing-production.up.railway.app/api/auth/google`;
   };
 
   const handleFacebookLogin = () => {
-    window.location.href = `http://localhost:8080/api/auth/facebook`;
+    window.location.href = `https://auto-marketing-production.up.railway.app/api/auth/facebook`;
   };
 
   return (
