@@ -13,7 +13,7 @@ public interface IPlanService {
     Plan findByName(String name);
 
     List<Plan> getAll();
-    List<Plan> findAll();
+    List<Plan> getAllPlans();
 
     Optional<Plan> findById(Long id);
 

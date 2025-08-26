@@ -25,4 +25,5 @@ public class Plan {
     private Integer maxWorkspace;
     private Integer maxSocialAccount;
     private Integer planLevel;
+    private Boolean deleted = false;
 }
