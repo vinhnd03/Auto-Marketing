@@ -37,7 +37,7 @@ const EditPost = ({ post, onSave, onCancel }) => {
 
     const validFiles = files.filter((file) => {
       const isImage = file.type.startsWith("image/"); // chỉ chấp nhận file ảnh
-      const isLt10Mb = file.size <= 1 * 1024 * 1024; // <= 10MB
+      const isLt10Mb = file.size <= 10 * 1024 * 1024; // <= 10MB
 
       if (!isImage) {
         toast.error(`${file.name} không phải là file ảnh`);
