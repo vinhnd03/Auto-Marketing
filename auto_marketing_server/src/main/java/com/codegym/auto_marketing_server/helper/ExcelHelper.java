@@ -32,6 +32,8 @@ public class ExcelHelper {
             List<CampaignDTO> campaigns = new ArrayList<>();
             List<String> errors = new ArrayList<>();
 
+            validateHeader(sheet.getRow(0));
+
             for (Row row : sheet) {
                 if (row.getRowNum() == 0) continue; // skip header
 
@@ -51,10 +53,40 @@ public class ExcelHelper {
             return campaigns;
         }
     }
+    private static void validateHeader(Row headerRow) {
+        if (headerRow == null) {
+            throw new ExcelValidationException("Không tìm thấy hàng tiêu đề (header) trong file Excel");
+        }
+
+        int expectedColumns = CampaignColumn.values().length;
+        int actualColumns = headerRow.getLastCellNum();
+
+        if (actualColumns > expectedColumns) {
+            throw new ExcelValidationException("File chứa nhiều cột hơn quy định, chỉ được phép có " + expectedColumns + " cột");
+        }
+
+        for (CampaignColumn column : CampaignColumn.values()) {
+            Cell cell = headerRow.getCell(column.getIndex());
+            if (cell == null || cell.getCellType() == CellType.BLANK) {
+                throw new ExcelValidationException("Cột tiêu đề '" + column.getHeader() + "' không được để trống");
+            }
+            String headerValue = cell.getStringCellValue().trim();
+            if (!headerValue.equalsIgnoreCase(column.getHeader())) {
+                throw new ExcelValidationException("Cột số " + (column.getIndex() + 1) + " phải là '"
+                        + column.getHeader() + "', nhưng hiện tại là '" + headerValue + "'");
+            }
+        }
+    }
 
     private static void validateAndParseRow(Row row, CampaignDTO dto) throws ExcelValidationException {
         List<String> rowErrors = new ArrayList<>();
-
+        int allowedColumns = CampaignColumn.values().length;
+        for (int i = allowedColumns; i < row.getLastCellNum(); i++) {
+            Cell extraCell = row.getCell(i);
+            if (extraCell != null && extraCell.getCellType() != CellType.BLANK) {
+                rowErrors.add("Không được nhập dữ liệu ở cột số " + (i + 1) + " (ngoài phạm vi cho phép)");
+            }
+        }
         for (CampaignColumn column : CampaignColumn.values()) {
             Cell cell = row.getCell(column.getIndex());
             try {
@@ -70,7 +102,6 @@ public class ExcelHelper {
                         }
                     }
                     default -> {
-                        // ignore other types
                     }
                 }
             } catch (ExcelValidationException e) {
@@ -78,10 +109,8 @@ public class ExcelHelper {
             }
         }
 
-        // Set default status
         dto.setStatus(CampaignStatus.DRAFT);
 
-        // Validate logic startDate <= endDate
         if (dto.getStartDate() != null && dto.getEndDate() != null) {
             if (dto.getEndDate().isBefore(dto.getStartDate())) {
                 rowErrors.add("Ngày kết thúc nên đặt bằng hoặc sau ngày bắt đầu");
@@ -89,7 +118,7 @@ public class ExcelHelper {
         }
 
         if (!rowErrors.isEmpty()) {
-            throw new ExcelValidationException(String.join("; ", rowErrors));
+            throw new ExcelValidationException(String.join("\n", rowErrors));
         }
     }
 
@@ -106,11 +135,20 @@ public class ExcelHelper {
     }
 
     private static LocalDate getDateValue(Cell cell, String fieldName) throws ExcelValidationException {
-        if (cell == null) throw new ExcelValidationException(fieldName + " không được để trống");
-        if (!DateUtil.isCellDateFormatted(cell)) {
-            throw new ExcelValidationException(fieldName + " phải là ngày hợp lệ");
+        if (cell == null || cell.getCellType() == CellType.BLANK) {
+            throw new ExcelValidationException(fieldName + " không được để trống");
         }
-        return cell.getLocalDateTimeCellValue().toLocalDate();
+
+        // Chỉ chấp nhận cell dạng DATE
+        if (cell.getCellType() != CellType.NUMERIC || !DateUtil.isCellDateFormatted(cell)) {
+            throw new ExcelValidationException(fieldName + " phải là ngày/tháng/năm hợp lệ (dd/MM/yyyy)");
+        }
+
+        try {
+            return cell.getLocalDateTimeCellValue().toLocalDate();
+        } catch (Exception e) {
+            throw new ExcelValidationException(fieldName + " không đúng định dạng ngày (dd/MM/yyyy)");
+        }
     }
 
     public enum CampaignColumn {
