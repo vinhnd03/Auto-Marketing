@@ -64,15 +64,17 @@ const AdminSidebar = ({collapsed}) => {
         {
             name: "Quản lý gói dịch vụ",
             icon: Package,
-            children: [{name: "Thống kê gói", href: "/admin/packages"}, {name: "Tất cả gói", href: "/admin/plans"}]
+            children: [{name: "Thống kê gói", href: "/admin/packages"},
+                        {name: "Tất cả gói", href: "/admin/plans"},]
         },
         {
             name: "Quản lý chiến dịch",
             icon: Target,
-            children: [{name: "Tất cả chiến dịch", href: "/admin/campaigns"}, {
-                name: "Chiến dịch đang chạy",
-                href: "/admin/campaigns/active"
-            }, {name: "Hiệu suất chiến dịch", href: "/admin/campaigns/performance"}]
+            children: [
+                {name: "Tất cả chiến dịch", href: "/admin/campaigns"},
+                {name: "Chiến dịch đang chạy", href: "/admin/campaigns/active"},
+                {name: "Hiệu suất chiến dịch", href: "/admin/campaigns/performance"},
+            ],
         },
         {
             name: "Thanh toán & Giao dịch",

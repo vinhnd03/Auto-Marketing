@@ -24,12 +24,15 @@ import ConfirmLogoutModal from "../modal/ConfirmLogoutModal";
 
 const AdminHeader = ({ collapsed, onToggleSidebar }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [showAllNotifications, setShowAllNotifications] = useState(false);
-  const [userCount, setUserCount] = useState(0);
   const [dash, setDash] = useState(null);
+
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [userCount, setUserCount] = useState(0);
+  const unreadCount = notifications.filter(n => n.unread).length;
+  const boxRef = useRef(null);
 
   const { user } = useAuth();
   const dropdownRef = useRef(null);
@@ -59,16 +62,23 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
     return value.toString();
   }
 
+ // đếm số thay vì hiển chấm đỏ
   useEffect(() => {
     async function fetchData() {
       try {
         // Gọi song song 2 API
-        const [notifications, count] = await Promise.all([
+        const [notificationsData, count] = await Promise.all([
           getNotifications(),
           getUserCount(),
         ]);
 
-        setNotifications(notifications);
+        // Gắn thêm cờ unread = true cho thông báo mới
+        const mapped = notificationsData.map((n) => ({
+          ...n,
+          unread: true,
+        }));
+
+        setNotifications(mapped);
         setUserCount(count);
       } catch (e) {
         console.error("Lỗi khi fetch dữ liệu:", e);
@@ -77,6 +87,25 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
 
     fetchData().then();
   }, [showAllNotifications]);
+
+  useEffect(() => {
+    function handleClickOutsideTurnOffNotifications(event) {
+      if (boxRef.current && !boxRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    }
+
+    if (showNotifications) {
+      document.addEventListener("mousedown", handleClickOutsideTurnOffNotifications);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutsideTurnOffNotifications);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutsideTurnOffNotifications);
+    };
+  }, [showNotifications]);
+
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -107,6 +136,14 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
     //   onToggleSidebar(false); // chỉ thu gọn nếu đang mở rộng
     // }
     setShowUserMenu(false);
+  };
+  // Hàm đánh dấu 1 thông báo là đã đọc
+  const markAsRead = (id) => {
+    setNotifications((prev) =>
+        prev.map((n) =>
+            n.id === id ? { ...n, unread: false } : n
+        )
+    );
   };
 
   return (
@@ -169,60 +206,83 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
               {/*  Nút chuông */}
               <div className="relative">
                 <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="p-2 hover:bg-white/20 rounded-lg relative"
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className="p-2 hover:bg-white/20 rounded-lg relative"
                 >
                   <Bell size={20} />
-                  {notifications.some((n) => n.unread) && (
-                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                  {unreadCount > 0 && (
+                      <span className="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+      {unreadCount}
+    </span>
                   )}
                 </button>
 
-                {/*  Popup thông báo */}
+                {/* Popup */}
                 {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 text-gray-900">
-                    <div className="p-4 border-b border-gray-200 ">
-                      <h3 className="text-lg font-semibold ">
-                        Thông báo hệ thống
-                      </h3>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.length > 0 ? (
-                        notifications.slice(0, 7).map((notification, index) => (
-                          <div
-                            key={notification.id || notification.id || index}
-                            className={`p-4 border-b border-gray-100 hover:bg-gray-50 ${
-                              notification.unread ? "bg-purple-50" : ""
-                            }`}
-                          >
-                            <p className="text-sm">{notification.message}</p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {notification.time}
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 text-gray-900">
+                      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+                        <h3 className="text-lg font-semibold">Thông báo hệ thống</h3>
+                      </div>
+
+                      <div className="max-h-96 overflow-y-auto">
+                        {notifications.length > 0 ? (
+                            notifications.slice(0, 7).map((notification, index) => (
+                                <div
+                                    key={notification.id || index}
+                                    onMouseEnter={() => {
+                                      if (notification.unread) {
+                                        setNotifications((prev) =>
+                                            prev.map((n, i) =>
+                                                i === index ? { ...n, unread: false } : n
+                                            )
+                                        );
+                                      }
+                                    }}
+                                    className={`p-4 border-b border-gray-100 hover:bg-gray-50 ${
+                                        notification.unread ? "bg-purple-50" : ""
+                                    }`}
+                                >
+                                  <p className="text-sm">{notification.message}</p>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {notification.time}
+                                  </p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="p-4 text-sm text-gray-500">
+                              Không có thông báo nào
                             </p>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="p-4 text-sm text-gray-500">
-                          Không có thông báo nào
-                        </p>
-                      )}
+                        )}
+                      </div>
+
+                      <div className="p-4 flex justify-between items-center">
+                        <button
+                            onClick={() => {
+                              setShowNotifications(false);
+                              setShowAllNotifications(true);
+                            }}
+                            className="text-sm text-purple-600 hover:text-purple-800 "
+                        >
+                          Xem tất cả thông báo
+                        </button>
+                        {unreadCount > 0 && (
+                            <button
+                                onClick={() => {
+                                  setNotifications((prev) =>
+                                      prev.map((n) => ({ ...n, unread: false }))
+                                  );
+                                }}
+                                className="text-sm text-purple-600 hover:text-purple-800 "
+                            >
+                              Đánh dấu tất cả đã đọc
+                            </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <button
-                        onClick={() => {
-                          setShowNotifications(false);
-                          setShowAllNotifications(true);
-                        }}
-                        className="text-sm text-purple-600 hover:text-purple-800 font-medium"
-                      >
-                        Xem tất cả thông báo
-                      </button>
-                    </div>
-                  </div>
                 )}
               </div>
 
-              {/* 📌 Modal xem tất cả */}
+              {/*  Modal xem tất cả */}
               {showAllNotifications && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                   <div className="bg-white rounded-lg shadow-lg w-[600px] max-h-[80vh] flex flex-col">

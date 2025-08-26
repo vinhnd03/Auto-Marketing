@@ -59,14 +59,15 @@ function ListUsers() {
 
     const handleSearch = async () => {
         let result;
-        if (packageFilter) {
-            // Sử dụng filterUsersByPackage cho dropdown
-            result = await filterUsersByPackage(packageFilter, page, 5);
+
+        if (sortKey === "NO_PACKAGE" || sortKey === "EXPIRED" || sortKey === "ACTIVE") {
+            // Nếu chọn các trạng thái đặc biệt
+            result = await filterUsersByPackage(sortKey, page, 5);
         } else {
-            // Sử dụng searchAndPage cho các bộ lọc khác
+            // Nếu chọn gói cụ thể hoặc tất cả
             result = await searchAndPage(
                 keyword,
-                sortKey,
+                sortKey,   // truyền tên gói hoặc rỗng
                 page,
                 5,
                 null,
@@ -83,17 +84,19 @@ function ListUsers() {
         }
     };
 
+
     const handleClear = async () => {
         setKeyword("");
         setSortKey("");
         setShowLocked(null);
-        setPackageFilter(null);
         setPage(1);
 
-        const result = await filterUsersByPackage(null, 1, 5); // Gọi filterUsersByPackage khi clear
+        // Lấy tất cả bằng searchAndPage
+        const result = await searchAndPage("", "", 1, 5, null, null, null);
         setList(result.data);
         setTotalPages(result.totalPages);
     };
+
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -109,52 +112,7 @@ function ListUsers() {
                     </h1>
                     <p className="text-gray-600">Tổng quan hệ thống AutoMarketing</p>
                 </div>
-                <button
-                    onClick={() => setShowPackageFilter(!showPackageFilter)}
-                    className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-300"
-                >
-                    Lọc gói dịch vụ
-                </button>
             </div>
-
-            {/* Dropdown lọc gói dịch vụ */}
-            {showPackageFilter && (
-                <div ref={dropdownRef} className="absolute right-4 z-10 bg-white border rounded-lg shadow-lg w-48">
-                    <button
-                        onClick={async () => {
-                            setPackageFilter(null);
-                            setShowPackageFilter(false);
-                            setPage(1);
-                            await handleSearch();
-                        }}
-                        className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${packageFilter === null ? 'bg-gray-100' : ''}`}
-                    >
-                        Tất cả
-                    </button>
-                    <button
-                        onClick={async () => {
-                            setPackageFilter("NO_PACKAGE");
-                            setShowPackageFilter(false);
-                            setPage(1);
-                            await handleSearch();
-                        }}
-                        className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${packageFilter === "NO_PACKAGE" ? 'bg-gray-100' : ''}`}
-                    >
-                        Chưa mua gói nào
-                    </button>
-                    <button
-                        onClick={async () => {
-                            setPackageFilter("EXPIRED");
-                            setShowPackageFilter(false);
-                            setPage(1);
-                            await handleSearch();
-                        }}
-                        className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${packageFilter === "EXPIRED" ? 'bg-gray-100' : ''}`}
-                    >
-                        Hết hạn
-                    </button>
-                </div>
-            )}
 
             <div className="flex flex-col sm:flex-row gap-4 mb-4 bg-white p-4 rounded-lg shadow-md">
                 <div className="flex-1">
@@ -176,11 +134,14 @@ function ListUsers() {
                         className="w-full p-2 border rounded-lg"
                     >
                         <option value="">Tất cả</option>
+                        <option value="NO_PACKAGE">Chưa mua gói nào</option>
+                        <option value="EXPIRED">Hết hạn</option>
                         {packages.map(pkg => (
                             <option key={pkg.id} value={pkg.name}>{pkg.name}</option>
                         ))}
                     </select>
                 </div>
+
 
                 <div className="flex-1">
                     <label className="block text-sm font-medium mb-1">Trạng thái tài khoản</label>
