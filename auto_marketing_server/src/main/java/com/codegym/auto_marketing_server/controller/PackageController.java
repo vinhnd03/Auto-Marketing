@@ -17,7 +17,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/packages")
 @RequiredArgsConstructor
-@CrossOrigin("*")
 public class PackageController {
     private final ITransactionService transactionService;
 

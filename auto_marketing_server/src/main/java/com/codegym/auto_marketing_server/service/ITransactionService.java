@@ -1,5 +1,9 @@
 package com.codegym.auto_marketing_server.service;
 
+import com.codegym.auto_marketing_server.entity.Plan;
+import org.springframework.stereotype.Service;
+
+
 import com.codegym.auto_marketing_server.dto.PackageDTO;
 import com.codegym.auto_marketing_server.dto.PackageStatsResponseDTO;
 import com.codegym.auto_marketing_server.dto.RevenueDTO;
@@ -15,4 +19,6 @@ public interface ITransactionService {
     PackageStatsResponseDTO getPackageStats();
     List<PackageDTO> getPackageChart(LocalDateTime start, LocalDateTime end);
 
+
+    void handlePayment(String txnRef, long amount, String serviceName, Long userId, String status);
 }

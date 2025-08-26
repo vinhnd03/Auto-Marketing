@@ -31,6 +31,7 @@ export async function filterUsersByPackage(
 export async function getAll() {
     try {
         const response = await axios.get("http://localhost:8080/api/users", {
+            withCredentials: true,
             params: {
                 page: 0,
                 size: 1000, // đủ lớn để lấy tất cả
@@ -51,7 +52,7 @@ export async function getAll() {
 
 export async function updateUser(id, user) {
     try {
-        const response = await axios.patch("http://localhost:8080/api/users/" + id, user);
+        const response = await axios.patch("http://localhost:8080/api/users/" + id, user, {withCredentials: true});
         return response.data;
     } catch (e) {
         console.log(e)
@@ -61,7 +62,7 @@ export async function updateUser(id, user) {
 
 export async function findById(id) {
     try {
-        const response=await axios.get("http://localhost:8080/api/users/"+id);
+        const response=await axios.get("http://localhost:8080/api/users/"+id, {withCredentials: true});
         return response.data;
     }catch (e) {
         console.log(e)
@@ -80,6 +81,7 @@ export async function searchAndPage(
 ) {
     try {
         const { data: result } = await axios.get("http://localhost:8080/api/users", {
+            withCredentials: true,
             params: {
                 name: nameKeyword || undefined,
                 planName: servicePackageKey || undefined,
@@ -104,7 +106,7 @@ export async function searchAndPage(
 
 
 
-// export async function searchAndPage(
+// export async function search(
 //     nameKeyword,
 //     servicePackageKey,
 //     page = 1,

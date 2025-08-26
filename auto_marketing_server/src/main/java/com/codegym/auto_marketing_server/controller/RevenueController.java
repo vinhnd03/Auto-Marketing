@@ -16,7 +16,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/revenue")
 @RequiredArgsConstructor
-@CrossOrigin("*")
 public class RevenueController {
     private final ITransactionService transactionService;
 

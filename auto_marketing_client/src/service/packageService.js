@@ -5,7 +5,7 @@ const API_URL = "http://localhost:8080/api/admin/packages";
 
 export const getPackageStats = async () => {
     try {
-        const resp = await axios.get(`${API_URL}/stats`);
+        const resp = await axios.get(`${API_URL}/stats`, {withCredentials: true});
         return resp.data
     } catch (e) {
         console.error("Lỗi kết nối API", e);
@@ -16,6 +16,7 @@ export const getPackageStats = async () => {
 export const getPackageSalesChart = async (startDate, endDate) => {
     try {
         const resp = await axios.get(`${API_URL}/chart`, {
+            withCredentials: true,
             params: {start: startDate, end: endDate}
         });
         return resp.data

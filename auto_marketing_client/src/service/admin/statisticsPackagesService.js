@@ -2,7 +2,7 @@ import axios from "axios";
 
 export async function getAllPackages() {
     try {
-        const response = await axios.get("http://localhost:8080/api/plans");
+        const response = await axios.get("http://localhost:8080/api/plans", {withCredentials: true});
         const plans = response.data?.data || response.data;
         return Array.isArray(plans) ? plans : [];
     } catch (e) {
@@ -27,7 +27,7 @@ export async function getStatisticPackageByMonthYear(month, year) {
         if (month !== "all") params.month = Number(month);
 
         // Gọi endpoint mới statistics_packages
-        const { data } = await axios.get(`${BASE}/statistics_packages`, { params });
+        const { data } = await axios.get(`${BASE}/statistics_packages`, { params, withCredentials: true });
 
         // ---- MONTHLY ----
         const monthArr = new Array(12).fill(0);

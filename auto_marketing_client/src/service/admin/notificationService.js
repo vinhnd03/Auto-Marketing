@@ -5,7 +5,7 @@ const BASE_URL = "http://localhost:8080/api/users";
 //Hàm thông báo
 export async function getNotifications() {
     try {
-        const { data } = await axios.get(`${BASE_URL}/notifications`);
+        const { data } = await axios.get(`${BASE_URL}/notifications`, {withCredentials: true});
         // Đảm bảo luôn trả về array
         return Array.isArray(data) ? data : [];
     } catch (error) {
@@ -16,6 +16,6 @@ export async function getNotifications() {
 
 //hàm đếm số nguười dùng
 export async function getUserCount() {
-    const { data } = await axios.get(`${BASE_URL}/count`);
+    const { data } = await axios.get(`${BASE_URL}/count`, {withCredentials: true});
     return data;
 }

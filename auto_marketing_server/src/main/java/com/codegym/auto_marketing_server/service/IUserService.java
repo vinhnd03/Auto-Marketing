@@ -1,5 +1,13 @@
 package com.codegym.auto_marketing_server.service;
 
+import com.codegym.auto_marketing_server.entity.User;
+import org.springframework.data.repository.query.Param;
+
+import com.codegym.auto_marketing_server.entity.User;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Optional;
+
 import com.codegym.auto_marketing_server.dto.MonthStatisticDTO;
 import com.codegym.auto_marketing_server.dto.NotificationDTO;
 import com.codegym.auto_marketing_server.dto.QuarterStatisticDTO;
@@ -15,6 +23,21 @@ import java.util.Optional;
 
 public interface IUserService {
 
+    Long selectUserIdBySocialAccountId(@Param("id") Long id);
+    Optional<User> findByEmail(String username);
+
+    User save(User user);
+
+    String updateAvatar(Long userId, String newAvatar) throws Exception;
+
+    void changePassword(Long userId, String password);
+
+    Boolean existedByEmail(String email);
+
+    Optional<User> findById(Long id);
+
+    void updateUserProfile(User user);
+
     long count();
     public Page<User> filterUsersBySubscription(String filter, Pageable pageable);
 
@@ -29,9 +52,7 @@ public interface IUserService {
 
     List<User> findAll();
 
-    void save(User users);
-
-    Optional<User> findById(Long id);
+//    void save(User users);
 
     void remove(Long id);
 
@@ -48,4 +69,6 @@ public interface IUserService {
     List<NotificationDTO> getNotifications();
     int countByMonth(int year, int month);
 
+
+    User getCurrentUser();
 }

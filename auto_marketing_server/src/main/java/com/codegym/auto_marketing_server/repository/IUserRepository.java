@@ -5,16 +5,31 @@ import com.codegym.auto_marketing_server.dto.NotificationDTO;
 import com.codegym.auto_marketing_server.dto.QuarterStatisticDTO;
 import com.codegym.auto_marketing_server.dto.WeekStatisticDTO;
 import com.codegym.auto_marketing_server.entity.User;
+import jakarta.persistence.Id;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.time.LocalDate;
 import java.util.List;
 
+import java.util.Optional;
+
 public interface IUserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByEmail(String email);
+
+    Boolean existsByEmail(String email);
+
+    @Query(value = "SELECT u.id FROM users u join social_accounts sa on u.id=sa.user_id where sa.id=:id", nativeQuery = true)
+    Long selectUserIdBySocialAccountId(@Param("id") Long id);
+
+
     //đếm số lượng người dùng
     long count();
     // Chưa mua gói nào
@@ -34,6 +49,21 @@ public interface IUserRepository extends JpaRepository<User, Long> {
             "WHERE s.plan IS NOT NULL AND s.endDate >= :today AND s.status = 'ACTIVE'")
     Page<User> findUsersWithActiveSubscription(@Param("today") LocalDate today, Pageable pageable);
     // Lấy danh sách người dùng và gói đã mua
+//    @Query("""
+//            SELECT DISTINCT u
+//            FROM User u
+//            LEFT JOIN Subscription s ON s.user = u
+//            LEFT JOIN Plan p ON s.plan = p
+//            WHERE (:name IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%')))
+//              AND (:planName IS NULL OR (p IS NOT NULL AND LOWER(p.name) LIKE LOWER(CONCAT('%', :planName, '%'))))
+//              AND (:startDate IS NULL OR s.startDate >= :startDate)
+//              AND (:endDate IS NULL OR s.startDate <= :endDate)
+//    """)
+//    Page<User> searchAndPage(@Param("name") String name,
+//                              @Param("planName") String planName,
+//                              @Param("startDate") LocalDate startDate,
+//                              @Param("endDate") LocalDate endDate,
+//                              Pageable pageable);
     @Query(value = """
             SELECT DISTINCT u
             FROM User u

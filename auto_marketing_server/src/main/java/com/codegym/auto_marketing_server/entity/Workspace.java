@@ -3,10 +3,7 @@ package com.codegym.auto_marketing_server.entity;
 
 import com.codegym.auto_marketing_server.enums.WorkspaceStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -28,4 +25,12 @@ public class Workspace {
     @Enumerated(EnumType.STRING)
     @Column(name="status")
     private WorkspaceStatus status = WorkspaceStatus.ACTIVE;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.avatar == null || this.avatar.isBlank()) {
+            this.avatar = "https://haycafe.vn/wp-content/uploads/2022/10/Hinh-anh-anime-nu-buon.jpg";
+        }
+        this.createdAt = LocalDate.now();
+    }
 }

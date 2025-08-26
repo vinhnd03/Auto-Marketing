@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import sendEmail from "../../service/mailService";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -9,22 +10,28 @@ const ForgotPasswordPage = () => {
   const [emailSent, setEmailSent] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-
+    e.preventDefault(); // ngăn load lại trang
     if (!email) {
       toast.error("Vui lòng nhập email");
       return;
     }
 
     setLoading(true);
-
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setEmailSent(true);
-      toast.success("Email reset mật khẩu đã được gửi!");
-    } catch (error) {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+      const success = await sendEmail(email);
+      if (success) {
+        setEmailSent(true);
+        toast.dismiss();
+        toast.success("Đã gửi thành công, vui lòng kiểm tra Mail của bạn.", {
+          duration: 1500,
+        });
+      } else {
+        // Vẫn nên báo chung chung để tránh lộ thông tin email tồn tại hay không
+        toast.error("Email chưa được đăng ký.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Có lỗi xảy ra khi gửi email. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
