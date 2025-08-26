@@ -12,6 +12,8 @@ import org.thymeleaf.context.Context;
 
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -68,4 +70,28 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
+    public void sendPostPublishedEmail(String to, String name, String pageId,String pageName, String postTitle, LocalDateTime publishedDate)
+            throws MessagingException, UnsupportedEncodingException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String formattedDate = publishedDate.format(formatter);
+        Context context = new Context();
+        context.setVariable("name", name);
+        context.setVariable("postTitle", postTitle);
+        context.setVariable("publishedDate", formattedDate);
+        context.setVariable("dashboardUrl", "https://www.facebook.com/profile.php?id=" + pageId);
+        context.setVariable("pageName", pageName);
+        String htmlContent = templateEngine.process("post-published", context);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom(fromEmail, "Auto Marketing System");
+        helper.setTo(to);
+        helper.setSubject("Bài viết \"" + postTitle + "\" đã được đăng thành công");
+        helper.setText(htmlContent, true);
+
+        mailSender.send(message);
+    }
+
 }

@@ -3,8 +3,11 @@ import axios from "axios";
 const API_URL = "http://localhost:8080/api/schedules";
 
 // GET all published
-export const getSchedules = async () => {
-  const res = await axios.get(`${API_URL}/published`,{withCredentials:true});
+export const getSchedules = async (workspaceId) => {
+  const res = await axios.get(`${API_URL}/published`,{
+    withCredentials:true,
+    params: { workspaceId }
+  });
   return res.data;
 };
 

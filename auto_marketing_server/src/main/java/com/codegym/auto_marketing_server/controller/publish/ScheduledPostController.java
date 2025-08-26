@@ -41,19 +41,11 @@ public class ScheduledPostController {
 //        return ResponseEntity.ok(scheduledPostService.getPublishedPosts());
 //    }
     @GetMapping("/published")
-    public ResponseEntity<List<ScheduledPostDTO>> getPublishedPosts(Principal principal) {
-        Optional<User> optionalUser = userService.findByEmail(principal.getName());
-
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        User user = optionalUser.get();
-        List<ScheduledPostDTO> posts = scheduledPostService.getPublishedPostsByUser(user.getId());
-        return ResponseEntity.ok(posts);
+    public ResponseEntity<List<ScheduledPostDTO>> getPublishedSchedules(
+            @RequestParam Long workspaceId) {
+        return ResponseEntity.ok(scheduledPostService.getScheduledByWorkspace(workspaceId));
     }
-
-
+    
     // 3. Xem chi tiết một ScheduledPost
     @GetMapping("/{id}")
     public ResponseEntity<ScheduledPost> getScheduledPost(@PathVariable Long id) {
