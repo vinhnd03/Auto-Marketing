@@ -148,31 +148,54 @@ const AdminSidebar = ({ collapsed }) => {
     { name: "Bảo mật", href: "/admin/security", icon: Shield },
   ];
 
-  const isActive = (href, exact = false) =>
-    href
-      ? exact
-        ? location.pathname === href
-        : location.pathname === href || location.pathname.startsWith(href + "/")
-      : false;
+  const isActive = React.useCallback(
+    (href, exact = false) => {
+      if (!href) return false;
 
+      if (exact) {
+        return location.pathname === href;
+      }
+
+      // For exact matches
+      if (location.pathname === href) return true;
+
+      // For nested routes - use exact matching for now to avoid edge cases
+      return false;
+
+      return false;
+    },
+    [location.pathname]
+  );
+
+  // Auto-open parent menus when child routes are active
   useEffect(() => {
     const newOpen = {};
+
     menuItems.forEach((item) => {
       if (item.children) {
-        const activeChild = item.children.some((c) => isActive(c.href));
-        if (activeChild) newOpen[item.name] = true;
+        // Check if any child route is currently active
+        const hasActiveChild = item.children.some((child) => {
+          const childActive = location.pathname === child.href;
+          return childActive;
+        });
+
+        if (hasActiveChild) {
+          newOpen[item.name] = true;
+        }
       }
     });
+
     setOpenMenus((prev) => ({ ...prev, ...newOpen }));
   }, [location.pathname]);
 
   const renderMenuItem = (item) => {
     const Icon = item.icon;
     const hasChildren = !!item.children;
-    // chỉ set active cho cha khi collapsed = true
+    // Set active for parent when any child is active or when it's the exact match
     const active =
       isActive(item.href, item.exact) ||
-      (collapsed && hasChildren && item.children.some((c) => isActive(c.href)));
+      (hasChildren && item.children.some((c) => isActive(c.href)));
+
     const handleParentClick = () => {
       if (collapsed) {
         // thu gọn: click icon -> đi ngay
