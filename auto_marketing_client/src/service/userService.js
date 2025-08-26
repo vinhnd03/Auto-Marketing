@@ -39,6 +39,7 @@ const changePassword = async (value) => {
             success: false,
             error: error.response?.data?.error || "UNKNOWN_ERROR"
         };
+        // throw error;
     }
 }
 
