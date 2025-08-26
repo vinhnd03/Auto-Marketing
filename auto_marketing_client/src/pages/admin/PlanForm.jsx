@@ -30,100 +30,190 @@ const planSchema = Yup.object().shape({
 });
 
 const defaultInitial = {
-    id: null,
-    name: "",
-    price: "",
-    durationDate: "",
-    description: "",
-    maxWorkspace: "",
-    maxSocialAccount: "",
-    planLevel: "",
+  id: null,
+  name: "",
+  price: "",
+  durationDate: "",
+  description: "",
+  maxWorkspace: "",
+  maxSocialAccount: "",
+  planLevel: "",
 };
 
-export default function PlanForm({ initialValues, onSubmit, onCancel, submitLabel = "Lưu" }) {
-    return (
-        <Formik
-            initialValues={initialValues ?? defaultInitial}
-            enableReinitialize
-            validationSchema={planSchema}
-            onSubmit={async (values, { setSubmitting, setFieldError, resetForm }) => {
-                try {
-                    // onSubmit should return an object like:
-                    // { success: true } or { success: false, fieldErrors: { name: '...' } }
-                    const res = await onSubmit(values);
+export default function PlanForm({
+  initialValues,
+  onSubmit,
+  onCancel,
+  submitLabel = "Lưu",
+}) {
+  return (
+    <Formik
+      initialValues={initialValues ?? defaultInitial}
+      enableReinitialize
+      validationSchema={planSchema}
+      onSubmit={async (values, { setSubmitting, setFieldError, resetForm }) => {
+        try {
+          // onSubmit should return an object like:
+          // { success: true } or { success: false, fieldErrors: { name: '...' } }
+          const res = await onSubmit(values);
 
-                    if (res?.fieldErrors) {
-                        Object.entries(res.fieldErrors).forEach(([field, msg]) => {
-                            setFieldError(field, msg);
-                        });
-                    }
+          if (res?.fieldErrors) {
+            Object.entries(res.fieldErrors).forEach(([field, msg]) => {
+              setFieldError(field, msg);
+            });
+          }
 
-                    if (res?.success) {
-                        resetForm();
-                    }
-                } catch (err) {
-                    console.error("PlanForm onSubmit error:", err);
-                } finally {
-                    setSubmitting(false);
-                }
-            }}
-        >
-            {({ isSubmitting }) => (
-                <Form className="grid grid-cols-2 gap-4">
-                    <Field type="hidden" name="id" />
+          if (res?.success) {
+            resetForm();
+          }
+        } catch (err) {
+          console.error("PlanForm onSubmit error:", err);
+        } finally {
+          setSubmitting(false);
+        }
+      }}
+    >
+      {({ isSubmitting }) => (
+        <Form className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <Field type="hidden" name="id" />
 
-                    <div>
-                        <label className="block text-sm font-medium">Tên gói</label>
-                        <Field name="name" className="mt-1 p-2 border rounded w-full" />
-                        <ErrorMessage name="name" component="div" className="text-red-500 text-sm mt-1" />
-                    </div>
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tên gói
+            </label>
+            <Field
+              name="name"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              placeholder="Nhập tên gói..."
+            />
+            <ErrorMessage
+              name="name"
+              component="div"
+              className="text-red-500 text-xs mt-1"
+            />
+          </div>
 
-                    <div>
-                        <label className="block text-sm font-medium">Giá</label>
-                        <Field type="number" name="price" className="mt-1 p-2 border rounded w-full" />
-                        <ErrorMessage name="price" component="div" className="text-red-500 text-sm mt-1" />
-                    </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Giá (VNĐ)
+            </label>
+            <Field
+              type="number"
+              name="price"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              placeholder="0"
+            />
+            <ErrorMessage
+              name="price"
+              component="div"
+              className="text-red-500 text-xs mt-1"
+            />
+          </div>
 
-                    <div>
-                        <label className="block text-sm font-medium">Thời hạn (ngày)</label>
-                        <Field type="number" name="durationDate" className="mt-1 p-2 border rounded w-full" />
-                        <ErrorMessage name="durationDate" component="div" className="text-red-500 text-sm mt-1" />
-                    </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Thời hạn (ngày)
+            </label>
+            <Field
+              type="number"
+              name="durationDate"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              placeholder="30"
+            />
+            <ErrorMessage
+              name="durationDate"
+              component="div"
+              className="text-red-500 text-xs mt-1"
+            />
+          </div>
 
-                    <div>
-                        <label className="block text-sm font-medium">Cấp độ gói</label>
-                        <Field type="number" name="planLevel" className="mt-1 p-2 border rounded w-full" />
-                        <ErrorMessage name="planLevel" component="div" className="text-red-500 text-sm mt-1" />
-                    </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Cấp độ gói
+            </label>
+            <Field
+              type="number"
+              name="planLevel"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              placeholder="1"
+            />
+            <ErrorMessage
+              name="planLevel"
+              component="div"
+              className="text-red-500 text-xs mt-1"
+            />
+          </div>
 
-                    <div>
-                        <label className="block text-sm font-medium">Số Workspace tối đa</label>
-                        <Field type="number" name="maxWorkspace" className="mt-1 p-2 border rounded w-full" />
-                        <ErrorMessage name="maxWorkspace" component="div" className="text-red-500 text-sm mt-1" />
-                    </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Số Workspace tối đa
+            </label>
+            <Field
+              type="number"
+              name="maxWorkspace"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              placeholder="1"
+            />
+            <ErrorMessage
+              name="maxWorkspace"
+              component="div"
+              className="text-red-500 text-xs mt-1"
+            />
+          </div>
 
-                    <div>
-                        <label className="block text-sm font-medium">Số Social Account tối đa</label>
-                        <Field type="number" name="maxSocialAccount" className="mt-1 p-2 border rounded w-full" />
-                        <ErrorMessage name="maxSocialAccount" component="div" className="text-red-500 text-sm mt-1" />
-                    </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Số Social Account tối đa
+            </label>
+            <Field
+              type="number"
+              name="maxSocialAccount"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              placeholder="2"
+            />
+            <ErrorMessage
+              name="maxSocialAccount"
+              component="div"
+              className="text-red-500 text-xs mt-1"
+            />
+          </div>
 
-                    <div className="col-span-2">
-                        <label className="block text-sm font-medium">Mô tả</label>
-                        <Field as="textarea" name="description" className="mt-1 p-2 border rounded w-full h-24" />
-                        <ErrorMessage name="description" component="div" className="text-red-500 text-sm mt-1" />
-                    </div>
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mô tả
+            </label>
+            <Field
+              as="textarea"
+              name="description"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
+              rows="4"
+              placeholder="Mô tả chi tiết về gói dịch vụ..."
+            />
+            <ErrorMessage
+              name="description"
+              component="div"
+              className="text-red-500 text-xs mt-1"
+            />
+          </div>
 
-                    <div className="col-span-2 flex justify-end mt-4">
-                        <button type="button" onClick={onCancel} className="px-4 py-2 bg-gray-300 rounded mr-2 hover:bg-gray-400 transition">
-                            Hủy
-                        </button>
-                        <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">
-                            {submitLabel}
-                        </button>
-                    </div>
-                </Form>
-            )}
-        </Formik>
-    );
+          <div className="sm:col-span-2 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mt-4 sm:mt-6">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="w-full sm:w-auto px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors font-medium text-sm"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Đang xử lý..." : submitLabel}
+            </button>
+          </div>
+        </Form>
+      )}
+    </Formik>
+  );
 }

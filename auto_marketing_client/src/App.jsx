@@ -34,7 +34,7 @@ import FAQPage from "./pages/FAQPage";
 import GuidePage from "./pages/GuidePage";
 import SitemapPage from "./pages/SitemapPage";
 
-import {TermsPage, PrivacyPage} from "./pages/legal";
+import { TermsPage, PrivacyPage } from "./pages/legal";
 import ListComponent from "./components/pricing/DashBoardComponent";
 import PaymentResultComponent from "./components/pricing/PaymentResultComponent";
 import AdminLayout from "./components/layout/AdminLayout";
@@ -53,51 +53,72 @@ import DetailUserComponent from "./components/admin/DetailUser";
 import PackageStatsPage from "./pages/admin/PackageStatsPage";
 import PlanPage from "./pages/admin/PlanPage";
 import NewPackagePurchased from "./components/admin/NewPackagePurchased";
+import CampaignsPage from "./pages/admin/CampaignsPage";
+import ActiveCampaignsPage from "./pages/admin/ActiveCampaignsPage";
+import CampaignPerformancePage from "./pages/admin/CampaignPerformancePage";
+import TransactionsPage from "./pages/admin/TransactionsPage";
+import SecurityPage from "./pages/admin/SecurityPage";
+import TransactionSuccessPage from "./pages/admin/TransactionSuccessPage";
+import TransactionFailedPage from "./pages/admin/TransactionFailedPage";
+import TransactionRefundsPage from "./pages/admin/TransactionRefundsPage";
+import ContentPostsPage from "./pages/admin/ContentPostsPage";
+import ContentTemplatesPage from "./pages/admin/ContentTemplatesPage";
+import ContentReportsPage from "./pages/admin/ContentReportsPage";
+import SystemLogsPage from "./pages/admin/SystemLogsPage";
+import SystemAPIPage from "./pages/admin/SystemAPIPage";
+import SystemStatusPage from "./pages/admin/SystemStatusPage";
+import SystemBackupPage from "./pages/admin/SystemBackupPage";
+import MarketingEmailsPage from "./pages/admin/MarketingEmailsPage";
+import MarketingNewsletterPage from "./pages/admin/MarketingNewsletterPage";
+import MarketingNotificationsPage from "./pages/admin/MarketingNotificationsPage";
+import AnalyticsPage from "./pages/admin/AnalyticsPage";
+import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
 
 import GlobalScrollToTop from "./components/ui/GlobalScrollToTop";
 
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
-    const location = useLocation();
+  const location = useLocation();
 
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [location.pathname]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
-    return null;
+  return null;
 };
 
 // Component để xác định có hiển thị Navbar/Footer không
-const AppLayout = ({children}) => {
-    const location = useLocation();
-    const isAuthPage = [
-        "/login",
-        "/register",
-        "/reset-password",
-        "/forgot-password",
-    ].includes(location.pathname);
+const AppLayout = ({ children }) => {
+  const location = useLocation();
+  const isAuthPage = [
+    "/login",
+    "/register",
+    "/reset-password",
+    "/forgot-password",
+  ].includes(location.pathname);
 
-    const isAdminPage = location.pathname.startsWith("/admin");
-    const isLegalPage = ["/terms", "/privacy"].includes(location.pathname);
+  const isAdminPage = location.pathname.startsWith("/admin");
+  const isLegalPage = ["/terms", "/privacy"].includes(location.pathname);
 
   const isErrorPage = ["/not-found"].includes(location.pathname);
   // Hiển thị Navbar ở tất cả pages trừ auth pages, admin pages và legal pages
-  const shouldShowNavbar = !isAuthPage && !isAdminPage && !isLegalPage && !isErrorPage;
+  const shouldShowNavbar =
+    !isAuthPage && !isAdminPage && !isLegalPage && !isErrorPage;
 
   // Hiển thị Footer ở tất cả pages trừ auth pages và admin pages (bao gồm cả legal pages)
   const shouldShowFooter = !isAuthPage && !isAdminPage && !isErrorPage;
 
-    return (
-        <div className="min-h-screen flex flex-col">
-            {shouldShowNavbar && <Navbar/>}
-            <main className="flex-1">{children}</main>
-            {shouldShowFooter && <Footer/>}
-        </div>
-    );
+  return (
+    <div className="min-h-screen flex flex-col">
+      {shouldShowNavbar && <Navbar />}
+      <main className="flex-1">{children}</main>
+      {shouldShowFooter && <Footer />}
+    </div>
+  );
 };
 
 AppLayout.propTypes = {
-    children: PropTypes.node.isRequired,
+  children: PropTypes.node.isRequired,
 };
 
 function App() {
@@ -124,15 +145,74 @@ function App() {
             <AdminRoute>
               <AdminLayout>
                 <Routes>
-                    <Route index element={<AdminDashboard/>}/>
-                    <Route path="users/list" element={<ListUsers/>}/>
-                    <Route path="users/new" element={<ListUserByDate/>}/>
-                    <Route path={"users/detail/:id"} element={<DetailUserComponent/>}/>
-                    <Route path="customers/statistics_customer" element={<NewCustomerStatistic/>}/>
-                    <Route path="customers/statistics_packages" element={<NewPackagePurchased/>}/>
-                    <Route path="revenue" element={<RevenueStatsPage/>}/>
-                    <Route path="packages" element={<PackageStatsPage/>}/>
-                    <Route path="plans" element={<PlanPage/>}/>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="users/list" element={<ListUsers />} />
+                  <Route path="users/new" element={<ListUserByDate />} />
+                  <Route
+                    path={"users/detail/:id"}
+                    element={<DetailUserComponent />}
+                  />
+                  <Route
+                    path="customers/statistics_customer"
+                    element={<NewCustomerStatistic />}
+                  />
+                  <Route
+                    path="customers/statistics_packages"
+                    element={<NewPackagePurchased />}
+                  />
+                  <Route path="revenue" element={<RevenueStatsPage />} />
+                  <Route path="packages" element={<PackageStatsPage />} />
+                  <Route path="plans" element={<PlanPage />} />
+                  <Route path="campaigns" element={<CampaignsPage />} />
+                  <Route
+                    path="campaigns/active"
+                    element={<ActiveCampaignsPage />}
+                  />
+                  <Route
+                    path="campaigns/performance"
+                    element={<CampaignPerformancePage />}
+                  />
+                  <Route path="transactions" element={<TransactionsPage />} />
+                  <Route
+                    path="transactions/success"
+                    element={<TransactionSuccessPage />}
+                  />
+                  <Route
+                    path="transactions/failed"
+                    element={<TransactionFailedPage />}
+                  />
+                  <Route
+                    path="transactions/refunds"
+                    element={<TransactionRefundsPage />}
+                  />
+                  <Route path="content/posts" element={<ContentPostsPage />} />
+                  <Route
+                    path="content/templates"
+                    element={<ContentTemplatesPage />}
+                  />
+                  <Route
+                    path="content/reports"
+                    element={<ContentReportsPage />}
+                  />
+                  <Route path="system/logs" element={<SystemLogsPage />} />
+                  <Route path="system/api" element={<SystemAPIPage />} />
+                  <Route path="system/status" element={<SystemStatusPage />} />
+                  <Route path="system/backup" element={<SystemBackupPage />} />
+                  <Route
+                    path="marketing/emails"
+                    element={<MarketingEmailsPage />}
+                  />
+                  <Route
+                    path="marketing/newsletter"
+                    element={<MarketingNewsletterPage />}
+                  />
+                  <Route
+                    path="marketing/notifications"
+                    element={<MarketingNotificationsPage />}
+                  />
+                  <Route path="analytics" element={<AnalyticsPage />} />
+                  <Route path="settings" element={<SystemSettingsPage />} />
+                  <Route path="security" element={<SecurityPage />} />
                 </Routes>
               </AdminLayout>
             </AdminRoute>

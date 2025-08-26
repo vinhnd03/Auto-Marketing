@@ -9,8 +9,8 @@ import { createSchedule } from "../../service/publish/scheduleManagerService";
 import { useAuth } from "../../context/AuthContext";
 import { useParams } from "react-router-dom";
 import campaignService from "../../service/campaignService";
-import { getTopicsByCampaignId } from "../../service/topic_service";
-import { getPostsByFilter } from "../../service/post_service";
+import { getTopicsByCampaignId } from "../../service/topicService";
+import { getPostsByFilter } from "../../service/postService";
 dayjs.locale("vi");
 dayjs.extend(isoWeek);
 

@@ -51,7 +51,35 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
         status: initialData.status || "",
       }}
       validationSchema={validationSchema}
-      onSubmit={onSubmit}
+      onSubmit={async (values) => {
+        const result = await onSubmit(values);
+        // Nếu cập nhật status thành ACTIVE thì bắn event để tab liên quan update ngay
+        const newStatus = String(values.status || "").toUpperCase();
+        if (newStatus === "ACTIVE") {
+          try {
+            const payload = (result && (result.data || result)) || values;
+            const eventDetail = {
+              id: payload.id || initialData.id,
+              name: payload.name || values.name,
+              description: payload.description || values.description,
+              startDate: payload.startDate || values.startDate,
+              endDate: payload.endDate || values.endDate,
+              status: "active",
+              type: payload.type,
+              budget: payload.budget,
+              spent: payload.spent,
+            };
+            window.dispatchEvent(
+              new CustomEvent("campaign:created", { detail: eventDetail })
+            );
+            localStorage.setItem(
+              "lastCreatedCampaign",
+              JSON.stringify(eventDetail)
+            );
+          } catch (_) {}
+        }
+        return result;
+      }}
       enableReinitialize
     >
       {({ values, handleChange }) => (
