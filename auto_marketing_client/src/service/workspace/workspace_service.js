@@ -84,7 +84,7 @@ export const updateWorkspaceStatus = async (userId, ids, status) => {
 export const getWorkspaceDetail = async (workspaceId) => {
     try {
         const res = await axios.get(`${url}/${workspaceId}`,{withCredentials: true,});
-        return res.data; // trả về 1 workspace hoặc Array tùy backend
+        return res.data;
     } catch (err) {
         console.log(err);
         return null;

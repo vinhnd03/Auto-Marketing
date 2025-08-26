@@ -17,8 +17,8 @@ public class JwtService {
 //    @Value("${jwt.secret}")
     private String jwtSecret = "+giuxKoSEsvBX+OSt2ICd3aCsa4ZuKf+4lxkxBfO2UZjMDXV7ivlpoXzzOVtplLz36ojIOM+sIU9rjbtwPronQ==";
 //    @Value("${jwt.expiration}")
-    private Long jwtExpiration = 30 * 60 * 1000l;
-//    private Long jwtExpiration = 20 * 1000l;
+//    private Long jwtExpiration = 30 * 60 * 1000l;
+    private Long jwtExpiration = 10 * 1000l;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
@@ -50,7 +50,11 @@ public class JwtService {
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
+        }
+//        catch (ExpiredJwtException e) {
+//            throw e; // 👈 Ném ra ngoài để filter bắt được
+//        }
+        catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }

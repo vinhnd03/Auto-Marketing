@@ -32,6 +32,9 @@ import axios from "axios";
 
 import { useAuth } from "../../context/AuthContext";
 const WorkspaceDetailPage = () => {
+
+  const [expanded, setExpanded] = useState(false);
+  const maxLength = 100;
   // State cho tìm kiếm campaign
   const [campaignSearch, setCampaignSearch] = useState("");
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
@@ -52,7 +55,7 @@ const WorkspaceDetailPage = () => {
   const { workspaceId } = useParams();
   const [workspace, setWorkspace] = useState(null);
   const [loadingWorkspace, setLoadingWorkspace] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("campaigns");
   const [showTopicGenerator, setShowTopicGenerator] = useState(false);
   const [newlyCreatedTopics, setNewlyCreatedTopics] = useState([]);
   const [selectedTopicForContent, setSelectedTopicForContent] = useState(null);
@@ -760,8 +763,8 @@ const WorkspaceDetailPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link
-                to="/workspace"
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  to="/workspace"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <ArrowLeft size={20} className="text-gray-600" />
               </Link>
@@ -769,7 +772,22 @@ const WorkspaceDetailPage = () => {
                 <h1 className="text-2xl font-bold text-gray-900">
                   {workspace.name}
                 </h1>
-                <p className="text-gray-600">{workspace.description}</p>
+
+                <p className="text-gray-600">
+                  {expanded
+                      ? workspace.description
+                      : workspace.description?.length > maxLength
+                          ? workspace.description.substring(0, maxLength) + "..."
+                          : workspace.description}
+                  {workspace.description?.length > maxLength && (
+                      <button
+                          onClick={() => setExpanded(!expanded)}
+                          className="ml-2 text-blue-500 hover:underline"
+                      >
+                        {expanded ? "Thu gọn" : "Xem thêm"}
+                      </button>
+                  )}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -838,11 +856,11 @@ const WorkspaceDetailPage = () => {
             <div className="border-b border-gray-200">
               <nav className="flex space-x-8 px-6">
                 {[
-                  {
-                    id: "overview",
-                    label: "Tổng quan",
-                    icon: <BarChart3 size={16} />,
-                  },
+                  // {
+                  //   id: "overview",
+                  //   label: "Tổng quan",
+                  //   icon: <BarChart3 size={16} />,
+                  // },
                   {
                     id: "campaigns",
                     label: "Chiến dịch",
@@ -891,66 +909,66 @@ const WorkspaceDetailPage = () => {
             </div>
 
             <div className="p-6">
-              {activeTab === "overview" && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Thông tin workspace
-                      </h3>
-                      <div className="space-y-3">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Template:</span>
-                          <span className="font-medium">
-                            E-commerce Marketing
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Ngân sách:</span>
-                          <span className="font-medium">
-                            {formatCurrency(workspace.budget)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Thời gian:</span>
-                          <span className="font-medium">
-                            {workspace.duration}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Tạo ngày:</span>
-                          <span className="font-medium">
-                            {workspace.createdAt}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Mục tiêu
-                      </h3>
-                      <div className="space-y-2">
-                        {Array.isArray(workspace.goals) &&
-                        workspace.goals.length > 0 ? (
-                          workspace.goals.map((goal, goalIndex) => (
-                            <div
-                              key={`goal-${goalIndex}-${goal}`}
-                              className="flex items-center space-x-2"
-                            >
-                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              <span className="text-gray-700">{goal}</span>
-                            </div>
-                          ))
-                        ) : (
-                          <span className="text-gray-500">
-                            Chưa có mục tiêu nào
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/*{activeTab === "overview" && (*/}
+              {/*  <div className="space-y-6">*/}
+              {/*    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">*/}
+              {/*      /!*<div>*!/*/}
+              {/*      /!*  <h3 className="text-lg font-semibold text-gray-900 mb-4">*!/*/}
+              {/*      /!*    Thông tin workspace*!/*/}
+              {/*      /!*  </h3>*!/*/}
+              {/*      /!*  <div className="space-y-3">*!/*/}
+              {/*      /!*    <div className="flex justify-between">*!/*/}
+              {/*      /!*      <span className="text-gray-600">Template:</span>*!/*/}
+              {/*      /!*      <span className="font-medium">*!/*/}
+              {/*      /!*        E-commerce Marketing*!/*/}
+              {/*      /!*      </span>*!/*/}
+              {/*      /!*    </div>*!/*/}
+              {/*      /!*    <div className="flex justify-between">*!/*/}
+              {/*      /!*      <span className="text-gray-600">Ngân sách:</span>*!/*/}
+              {/*      /!*      <span className="font-medium">*!/*/}
+              {/*      /!*        {formatCurrency(workspace.budget)}*!/*/}
+              {/*      /!*      </span>*!/*/}
+              {/*      /!*    </div>*!/*/}
+              {/*      /!*    <div className="flex justify-between">*!/*/}
+              {/*      /!*      <span className="text-gray-600">Thời gian:</span>*!/*/}
+              {/*      /!*      <span className="font-medium">*!/*/}
+              {/*      /!*        {workspace.duration}*!/*/}
+              {/*      /!*      </span>*!/*/}
+              {/*      /!*    </div>*!/*/}
+              {/*      /!*    <div className="flex justify-between">*!/*/}
+              {/*      /!*      <span className="text-gray-600">Tạo ngày:</span>*!/*/}
+              {/*      /!*      <span className="font-medium">*!/*/}
+              {/*      /!*        {workspace.createdAt}*!/*/}
+              {/*      /!*      </span>*!/*/}
+              {/*      /!*    </div>*!/*/}
+              {/*      /!*  </div>*!/*/}
+              {/*      /!*</div>*!/*/}
+              {/*      /!*<div>*!/*/}
+              {/*      /!*  <h3 className="text-lg font-semibold text-gray-900 mb-4">*!/*/}
+              {/*      /!*    Mục tiêu*!/*/}
+              {/*      /!*  </h3>*!/*/}
+              {/*      /!*  <div className="space-y-2">*!/*/}
+              {/*      /!*    {Array.isArray(workspace.goals) &&*!/*/}
+              {/*      /!*    workspace.goals.length > 0 ? (*!/*/}
+              {/*      /!*      workspace.goals.map((goal, goalIndex) => (*!/*/}
+              {/*      /!*        <div*!/*/}
+              {/*      /!*          key={`goal-${goalIndex}-${goal}`}*!/*/}
+              {/*      /!*          className="flex items-center space-x-2"*!/*/}
+              {/*      /!*        >*!/*/}
+              {/*      /!*          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>*!/*/}
+              {/*      /!*          <span className="text-gray-700">{goal}</span>*!/*/}
+              {/*      /!*        </div>*!/*/}
+              {/*      /!*      ))*!/*/}
+              {/*      /!*    ) : (*!/*/}
+              {/*      /!*      <span className="text-gray-500">*!/*/}
+              {/*      /!*        Chưa có mục tiêu nào*!/*/}
+              {/*      /!*      </span>*!/*/}
+              {/*      /!*    )}*!/*/}
+              {/*      /!*  </div>*!/*/}
+              {/*      /!*</div>*!/*/}
+              {/*    </div>*/}
+              {/*  </div>*/}
+              {/*)}*/}
 
               {/* CAMPAIGN CUA ANH KHANH */}
               {activeTab === "campaigns" && (

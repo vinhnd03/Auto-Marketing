@@ -15,6 +15,4 @@ public class SocialAccountWorkspaceService implements ISocialAccountWorkplaceSer
     public void save(SocialAccountWorkspace socialAccountWorkspace) {
         socialAccountWorkspaceRepository.save(socialAccountWorkspace);
     }
-
-
 }
