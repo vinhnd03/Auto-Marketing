@@ -27,8 +27,8 @@ public class PlanService implements IPlanService {
     }
 
     @Override
-    public List<Plan> findAll() {
-        return planRepository.findAll();
+    public List<Plan> getAllPlans() {
+        return planRepository.findByDeletedFalse();  // chỉ lấy chưa xóa
     }
 
     @Override
@@ -38,6 +38,7 @@ public class PlanService implements IPlanService {
 
     @Override
     public Plan save(Plan plan) {
+        plan.setDeleted(false); // đảm bảo khi tạo mới không bị đánh dấu xóa
         return planRepository.save(plan);
     }
 
@@ -48,9 +49,9 @@ public class PlanService implements IPlanService {
 
     @Override
     public void deleteById(Long id) {
-        if (!planRepository.existsById(id)) {
-            throw new RuntimeException("Plan not found with id " + id);
-        }
-        planRepository.deleteById(id);
+        Plan plan = planRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Plan not found"));
+        plan.setDeleted(true);   // đánh dấu là đã xóa
+        planRepository.save(plan);
     }
 }
