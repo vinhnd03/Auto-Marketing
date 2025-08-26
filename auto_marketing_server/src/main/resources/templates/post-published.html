@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Reset mật khẩu</title>
+    <title>Bài viết đã được đăng</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,13 +11,11 @@
             margin: 0;
             padding: 0;
         }
-
         .email-wrapper {
             width: 100%;
             background-color: #f4f4f7;
             padding: 20px 0;
         }
-
         .email-content {
             max-width: 600px;
             background-color: white;
@@ -27,27 +24,22 @@
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
-
         .email-header {
             background: linear-gradient(to right, #2563eb, #9333ea);
             color: white;
             padding: 20px;
             text-align: center;
         }
-
         .email-header h1 {
             margin: 0;
             font-size: 20px;
         }
-
         .email-body {
             padding: 30px;
             color: #333;
         }
-
         .btn {
             display: inline-block;
-            /*background-color: #4f46e5;*/
             background-color: #9333ea;
             color: white !important;
             padding: 12px 20px;
@@ -55,54 +47,36 @@
             text-decoration: none;
             font-weight: bold;
         }
-
         .btn:hover {
             background-color: #4338ca;
         }
-
         .email-footer {
             text-align: center;
             font-size: 12px;
             color: #888;
             padding: 20px;
         }
-
     </style>
 </head>
 <body>
 <div class="email-wrapper">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 24px 0;">
-        <tr>
-            <td align="center">
-                <div style="
-        width:64px;
-        height:64px;
-        background: linear-gradient(to right, #2563eb, #9333ea);
-        border-radius:16px;
-        display:inline-block;
-        text-align:center;
-        line-height:64px;
-        font-size:20px;
-        font-weight:bold;
-        color:#ffffff;
-      ">
-                    AM
-                </div>
-            </td>
-        </tr>
-    </table>
     <div class="email-content">
         <div class="email-header">
-            <h1>Yêu cầu đặt lại mật khẩu</h1>
+            <h1>Bài viết đã được đăng thành công 🎉</h1>
         </div>
         <div class="email-body">
-            <p>Xin chào <strong th:text="${name}">Tên người dùng</strong>,</p>
-            <p>Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản của mình. Nhấn nút bên dưới để tiếp tục:</p>
-            <p style="text-align:center; margin: 30px 0;">
-                <a th:href="${resetLink}" class="btn">Đặt lại mật khẩu</a>
+            <p>Xin chào <strong th:text="${name}">Người dùng</strong>,</p>
+            <p>Bài viết của bạn với tiêu đề:</p>
+            <p style="font-size:16px; font-weight:bold; color:#4f46e5;" th:text="${postTitle}">Tiêu đề bài viết</p>
+            <p>Đã được đăng thành công vào ngày
+                <strong th:text="${publishedDate}">26-08-2025</strong>,
+                trên trang <strong style="color:#2563eb;" th:text="${pageName}">Tên trang</strong>.
+
             </p>
-            <p>Liên kết này sẽ hết hạn sau <strong>1 giờ</strong>. Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
-            <p>Trân trọng,<br/>Đội ngũ hỗ trợ</p>
+            <p style="text-align:center; margin: 30px 0;">
+                <a th:href="${dashboardUrl}" class="btn">Xem trên trang</a>
+            </p>
+            <p>Trân trọng,<br/>Đội ngũ AutoMarketing</p>
         </div>
         <div class="email-footer">
             © 2025 AutoMarketing. All rights reserved.

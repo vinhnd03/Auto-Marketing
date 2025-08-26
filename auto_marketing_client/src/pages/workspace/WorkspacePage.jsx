@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Plus, Folder, Settings} from "lucide-react";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import CreateWorkspaceModal from "../../components/workspace/CreateWorkspaceModal";
 import UpdateWorkspaceModal from "../../components/workspace/UpdateWorkspaceModal";
 import SelectPagesModal from "../../components/modal/SelectPagesModal";
@@ -31,6 +31,7 @@ const WorkspacePage = () => {
     const defaultAvatar = "https://i.pravatar.cc/100?img=4";
 
     const [workspaces, setWorkspaces] = useState([]);
+    const navigate = useNavigate();
 
     // const {user} = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,7 +47,9 @@ const WorkspacePage = () => {
         }
     };
     useEffect(() => {
-        if (!user || !user.id) return;
+        if (!user || !user.id) {
+            navigate("/login")
+        }
 
         const fetchData = async () => {
             try {

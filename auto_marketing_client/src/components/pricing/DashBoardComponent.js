@@ -183,7 +183,7 @@ const ListComponent = () => {
                                             <h3 className="text-2xl font-bold text-gray-900 mb-2">
                                                 {plan?.name}
                                             </h3>
-                                            {plan?.price > 0 && (
+                                            {plan?.price > 0 ? (
                                                 <div className="flex items-center justify-center gap-2 mb-4">
                                                     <span className="text-4xl font-bold text-gray-900">
                                                         {plan.price.toLocaleString("vi-VN")}
@@ -191,6 +191,12 @@ const ListComponent = () => {
                                                     <div className="text-left">
                                                         <div className="text-sm text-gray-600">VNĐ</div>
                                                     </div>
+                                                </div>
+                                            ): (
+                                                <div className="flex items-center justify-center gap-2 mb-4">
+                                                    <span className="text-4xl font-bold text-gray-900">
+                                                        Miễn phí
+                                                    </span>
                                                 </div>
                                             )}
                                             <div className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">

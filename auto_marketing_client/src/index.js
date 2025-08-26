@@ -6,10 +6,38 @@ import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.js";
 import ListUsers from "./components/admin/ListUsers";
+import { Toaster } from "react-hot-toast";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
+    <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2500,
+          style: {
+            background: "#363636",
+            color: "#fff",
+            zIndex: 999999,
+          },
+          success: {
+            duration: 2500,
+            style: {
+              background: "#10B981",
+              color: "#fff",
+              zIndex: 999999,
+            },
+          },
+          error: {
+            duration: 2500,
+            style: {
+              background: "#EF4444",
+              color: "#fff",
+              zIndex: 999999,
+            },
+          },
+        }}
+      />
     <BrowserRouter>
       <AuthProvider>
         <App />

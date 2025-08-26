@@ -5,50 +5,64 @@
   <title>Thông báo gói hết hạn</title>
   <style>
     body {
-      font-family: 'Helvetica', Arial, sans-serif;
-      background-color: #f0f2f5;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f7;
       margin: 0;
       padding: 0;
     }
-    .container {
+
+    .email-wrapper {
+      width: 100%;
+      background-color: #f4f4f7;
+      padding: 20px 0;
+    }
+
+    .email-content {
       max-width: 600px;
-      margin: 40px auto;
-      background-color: #ffffff;
-      padding: 40px 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      background-color: white;
+      margin: auto;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .email-header {
+      background: linear-gradient(to right, #2563eb, #9333ea);
+      color: white;
+      padding: 20px;
       text-align: center;
     }
-    h2 {
-      color: #333333;
-      font-size: 22px;
-      margin-bottom: 20px;
+
+    .email-header h1 {
+      margin: 0;
+      font-size: 20px;
     }
-    p {
-      color: #555555;
-      font-size: 16px;
-      line-height: 1.6;
-      margin-bottom: 20px;
+
+    .email-body {
+      padding: 30px;
+      color: #333;
     }
-    .button {
+
+    .btn {
       display: inline-block;
-      padding: 14px 28px;
-      background: linear-gradient(90deg, #007bff, #0056d2);
-      color: #ffffff !important;
-      text-decoration: none;
-      font-size: 16px;
-      font-weight: 600;
+      /*background-color: #4f46e5;*/
+      background-color: #9333ea;
+      color: white !important;
+      padding: 12px 20px;
       border-radius: 6px;
-      transition: all 0.3s ease;
+      text-decoration: none;
+      font-weight: bold;
     }
-    .button:hover {
-      background: linear-gradient(90deg, #0056d2, #003a9e);
+
+    .btn:hover {
+      background-color: #4338ca;
     }
-    .footer {
-      margin-top: 30px;
-      font-size: 12px;
-      color: #999999;
+
+    .email-footer {
       text-align: center;
+      font-size: 12px;
+      color: #888;
+      padding: 20px;
     }
     @media only screen and (max-width: 620px) {
       .container {
@@ -68,19 +82,67 @@
   </style>
 </head>
 <body>
-<div class="container">
-  <h2>Xin chào <span th:text="${name}">User</span>,</h2>
-  <p>
-    Gói <strong th:text="${planName}">Plan Name</strong> của bạn đã hết hạn sử dụng vào ngày
-    <strong th:text="${endDate}">End Date</strong>.
-  </p>
-  <p>
-    Để tiếp tục sử dụng các dịch vụ, vui lòng đăng nhập và mua gói mới.
-  </p>
-  <a href="https://your-website.com/plans" class="button">Mua gói mới</a>
-  <div class="footer">
-    &copy; 2025 Auto Marketing System. Mọi quyền được bảo lưu.
+<div class="email-wrapper">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 24px 0;">
+    <tr>
+      <td align="center">
+        <div style="
+        width:64px;
+        height:64px;
+        background: linear-gradient(to right, #2563eb, #9333ea);
+        border-radius:16px;
+        display:inline-block;
+        text-align:center;
+        line-height:64px;
+        font-size:20px;
+        font-weight:bold;
+        color:#ffffff;
+      ">
+          AM
+        </div>
+      </td>
+    </tr>
+  </table>
+  <div class="email-content">
+    <div class="email-header">
+      <h1>Thông báo hết hạn gói đăng ký</h1>
+    </div>
+    <div class="email-body">
+      <p>Xin chào <strong th:text="${name}">Tên người dùng</strong>,</p>
+      <p>
+        Gói <strong th:text="${planName}">Plan Name</strong> của bạn đã hết hạn sử dụng vào ngày
+        <strong th:text="${endDate}">End Date</strong>.
+      </p>
+      <p>
+        Để tiếp tục sử dụng các dịch vụ, vui lòng đăng nhập và mua gói mới.
+      </p>
+      <p style="text-align:center; margin: 30px 0;">
+        <a th:href="${planPage}" class="btn">Danh sách gói</a>
+      </p>
+      <p>Trân trọng,<br/>Đội ngũ hỗ trợ</p>
+    </div>
+    <div class="email-footer">
+      © 2025 AutoMarketing. All rights reserved.
+    </div>
   </div>
 </div>
+
+
+
+<!--<div class="container">-->
+<!--  <h2>Xin chào <span th:text="${name}">User</span>,</h2>-->
+<!--  <p>-->
+<!--    Gói <strong th:text="${planName}">Plan Name</strong> của bạn đã hết hạn sử dụng vào ngày-->
+<!--    <strong th:text="${endDate}">End Date</strong>.-->
+<!--  </p>-->
+<!--  <p>-->
+<!--    Để tiếp tục sử dụng các dịch vụ, vui lòng đăng nhập và mua gói mới.-->
+<!--  </p>-->
+<!--  <a href="https://your-website.com/plans" class="button">Mua gói mới</a>-->
+
+<!--  <div class="footer">-->
+<!--    &copy; 2025 Auto Marketing System. Mọi quyền được bảo lưu.-->
+<!--  </div>-->
+<!--</div>-->
 </body>
 </html>

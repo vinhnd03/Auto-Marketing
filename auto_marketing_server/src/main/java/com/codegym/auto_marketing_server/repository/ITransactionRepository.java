@@ -65,7 +65,9 @@ public interface ITransactionRepository extends JpaRepository<Transaction, Long>
     @Query(value = """
             SELECT COUNT(t.id)
             FROM transactions t
+            JOIN plans p ON p.id = t.plan_id
             WHERE t.payment_status = 'SUCCESS'
+            AND p.price > 0
             """, nativeQuery = true)
     long getTotalSoldAllTime();
 
@@ -76,6 +78,7 @@ public interface ITransactionRepository extends JpaRepository<Transaction, Long>
             FROM transactions t
             JOIN plans p ON p.id = t.plan_id
             WHERE t.payment_status = 'SUCCESS'
+            AND p.price > 0
             GROUP BY p.name
             ORDER BY COUNT(t.id) DESC
             LIMIT 1
@@ -88,6 +91,7 @@ public interface ITransactionRepository extends JpaRepository<Transaction, Long>
             FROM transactions t
             JOIN plans p ON p.id = t.plan_id
             WHERE t.payment_status = 'SUCCESS'
+            AND p.price > 0
             GROUP BY p.name
             ORDER BY COUNT(t.id) ASC
             LIMIT 1
@@ -98,9 +102,11 @@ public interface ITransactionRepository extends JpaRepository<Transaction, Long>
     @Query(value = """
                 SELECT COUNT(t.id)
                 FROM transactions t
+                JOIN plans p ON p.id = t.plan_id
                 WHERE t.payment_status = 'SUCCESS'
                   AND t.created_at >= :startDate
                   AND t.created_at <= :endDate
+                  AND p.price >0
             """, nativeQuery = true)
     long getTotalSoldInPeriod(@Param("startDate") LocalDateTime startDate,
                               @Param("endDate") LocalDateTime endDate);
@@ -139,6 +145,7 @@ public interface ITransactionRepository extends JpaRepository<Transaction, Long>
             "JOIN plans p ON t.plan_id = p.id " +
             "WHERE (:start IS NULL OR t.created_at >= :start) " +
             "AND (:end IS NULL OR t.created_at <= :end) " +
+            "AND (p.price >0)"+
             "GROUP BY p.name",
             nativeQuery = true)
     List<PackageDTO> getPackageSales(@Param("start") LocalDateTime start,

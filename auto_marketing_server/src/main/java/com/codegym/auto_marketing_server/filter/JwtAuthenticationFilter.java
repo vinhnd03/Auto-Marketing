@@ -84,13 +84,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     }
                 } else {
                     // Token invalid
+//                    SecurityContextHolder.clearContext();
                     clearJwtCookie(response);
-//                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//                    response.getWriter().write("Token invalid");
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalid");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Token invalid");
+//                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalid");
                     return;
                 }
             } catch (ExpiredJwtException ex) {
+//                SecurityContextHolder.clearContext();
                 clearJwtCookie(response);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Token expired");

@@ -106,4 +106,10 @@ public class SubscriptionManagementService {
         sub.setStatus(SubscriptionStatus.SUCCESS);
         subscriptionRepository.save(sub);
     }
+
+    @Transactional
+    public void register(User newUser) {
+        User user = userService.save(newUser);
+        activateTrialPlan(user.getId());
+    }
 }

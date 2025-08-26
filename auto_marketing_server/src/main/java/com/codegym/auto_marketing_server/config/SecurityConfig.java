@@ -54,7 +54,6 @@ public class SecurityConfig {
                                 "/api/v1/plans", "api/payment/vn-pay-callback").permitAll()
                         .requestMatchers("/api/user/**", "/api/schedules/**", "/api/v1/**").hasAnyAuthority("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-
                         .anyRequest().authenticated()
                 )
 //                .oauth2Login(oauth -> oauth

@@ -32,6 +32,7 @@ public class SubscriptionScheduler {
 
 //    @Scheduled(cron = "*/10 * * * * *")
     @Scheduled(cron = "0 0 0 * * *")
+//    @Scheduled(cron = "*/10 * * * * *") // For Test Purpose Only
     public void activateNextSubscription() {
         List<Subscription> activeSubs = subscriptionService.findByStatus(SubscriptionStatus.SUCCESS.name());
         for (Subscription active : activeSubs) {

@@ -244,7 +244,7 @@ const AdminSidebar = ({collapsed}) => {
                 {collapsed && hasChildren && hoverMenu === item.name && (
                     <div
                         className="absolute left-full top-0 ml-1 bg-white border border-blue-200 rounded-md shadow-lg
-                       py-2 min-w-[200px] z-[60]
+                       py-2 min-w-[200px] z-[50]
                         before:content-[''] before:absolute before:top-0 before:-left-4 before:w-4 before:h-full before:bg-transparent"
                         onMouseEnter={() => setHoverMenu(item.name)}  // giữ mở khi rê vào flyout
                         onMouseLeave={() => setHoverMenu(null)}
