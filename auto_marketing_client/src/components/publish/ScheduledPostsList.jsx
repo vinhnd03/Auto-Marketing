@@ -10,8 +10,9 @@ import {
   deleteSchedule,
 } from "../../service/publish/scheduleManagerService";
 import toast from "react-hot-toast";
+import { useParams } from "react-router-dom";
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 
 const ScheduledPostsList = () => {
   const [posts, setPosts] = useState([]);
@@ -20,10 +21,10 @@ const ScheduledPostsList = () => {
   const [viewingPost, setViewingPost] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-
+  const {workspaceId} = useParams();
   useEffect(() => {
-    fetchSchedules();
-  }, []);
+    fetchSchedules(workspaceId);
+  }, [workspaceId]);
 
   // Load danh sách khi mount
   // useEffect(() => {
@@ -31,7 +32,7 @@ const ScheduledPostsList = () => {
   // }, [editingPost]);
   const fetchSchedules = async () => {
     try {
-      const data = await getSchedules();
+      const data = await getSchedules(workspaceId);
       const mapped = data.map((item) => ({
         ...item,
         fanpageIds: item.fanpages ? item.fanpages.map((fp) => fp.id) : [],

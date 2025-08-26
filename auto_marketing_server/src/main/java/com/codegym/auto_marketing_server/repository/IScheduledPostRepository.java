@@ -29,4 +29,27 @@ public interface IScheduledPostRepository extends JpaRepository<ScheduledPost, L
     """)
     List<ScheduledPost> findByUserAndStatus(@Param("userId") Long userId,
                                             @Param("status") ScheduledPostStatus status);
+
+    @Query(value = """
+        SELECT u.email, u.name, f.page_id, f.page_name
+        FROM scheduled_posts sp
+        JOIN post_targets pt ON pt.schedule_post_id = sp.id
+        JOIN fanpages f ON f.id = pt.fanpage_id
+        JOIN social_accounts sa ON sa.id = f.social_account_id
+        JOIN users u ON u.id = sa.user_id
+        WHERE sp.id = :scheduledPostId
+        """, nativeQuery = true)
+    List<Object[]> findUserEmailsAndNamesByScheduledPostId(@Param("scheduledPostId") Long scheduledPostId);
+    @Query(value = """
+    SELECT sp.* FROM scheduled_posts sp
+    JOIN posts p ON p.id = sp.post_id
+    JOIN topics t ON t.id = p.topic_id
+    JOIN campaigns c ON c.id = t.campaign_id
+    JOIN workspaces w ON w.id = c.workspace_id
+    WHERE w.id = :workspaceId
+      AND sp.status = 'SCHEDULED'
+    """, nativeQuery = true)
+    List<ScheduledPost> findScheduledByWorkspace(@Param("workspaceId") Long workspaceId);
+
+
 }
