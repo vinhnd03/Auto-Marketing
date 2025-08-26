@@ -17,7 +17,7 @@ const AIContentGenerator = ({
 }) => {
   const [generating, setGenerating] = useState(false);
   const [contentSettings, setContentSettings] = useState({
-    postCount: 3,
+    postCount: 1,
     contentType: "mixed",
     tone: "professional",
     includeHashtags: true,
@@ -545,10 +545,9 @@ const AIContentGenerator = ({
                         generating ? "cursor-not-allowed opacity-50" : ""
                       }`}
                     >
+                      <option value={1}>1 bài viết</option>
                       <option value={2}>2 bài viết</option>
                       <option value={3}>3 bài viết</option>
-                      <option value={5}>5 bài viết</option>
-                      <option value={10}>10 bài viết</option>
                     </select>
                   </div>
 

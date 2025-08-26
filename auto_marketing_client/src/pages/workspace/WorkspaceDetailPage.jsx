@@ -54,7 +54,15 @@ const WorkspaceDetailPage = () => {
   const [loadingWorkspace, setLoadingWorkspace] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [showTopicGenerator, setShowTopicGenerator] = useState(false);
-  const [newlyCreatedTopics, setNewlyCreatedTopics] = useState([]);
+  // Persist AI generated topics so section remains after reload
+  const [newlyCreatedTopics, setNewlyCreatedTopics] = useState(() => {
+    try {
+      const saved = localStorage.getItem("newlyCreatedTopics");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [selectedTopicForContent, setSelectedTopicForContent] = useState(null);
   const [autoGeneratingTopics, setAutoGeneratingTopics] = useState(false);
   const [approvedTopics, setApprovedTopics] = useState(new Set());
@@ -310,7 +318,9 @@ const WorkspaceDetailPage = () => {
         }
         return updatedWorkspace;
       });
-      setNewlyCreatedTopics(newGeneratedTopics.map((topic) => topic.id));
+      const topicIds = newGeneratedTopics.map((topic) => topic.id);
+      setNewlyCreatedTopics(topicIds);
+      localStorage.setItem("newlyCreatedTopics", JSON.stringify(topicIds));
       setActiveTab("topics");
       toast.dismiss();
       toast.success(
@@ -586,6 +596,7 @@ const WorkspaceDetailPage = () => {
         duration: 4000,
       });
       setNewlyCreatedTopics([]);
+      localStorage.removeItem("newlyCreatedTopics");
       setApprovedTopics(new Set());
     } catch (error) {
       toast.dismiss(loadingToast);
@@ -1110,12 +1121,6 @@ const WorkspaceDetailPage = () => {
                               bạn. Hãy xem và chỉnh sửa nếu cần.
                             </p>
                           </div>
-                          <button
-                            onClick={handleHideAITopics}
-                            className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center space-x-2"
-                          >
-                            <span>✕ Ẩn section</span>
-                          </button>
                         </div>
                       </div>
 
@@ -1289,7 +1294,7 @@ const WorkspaceDetailPage = () => {
                                           return (
                                             <div className="mb-3">
                                               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                                {contentCount} content
+                                                {contentCount} bài viết
                                               </span>
                                             </div>
                                           );
@@ -1301,7 +1306,7 @@ const WorkspaceDetailPage = () => {
                                               setSelectedTopicForContent(topic);
                                             }}
                                           >
-                                            Xem Content
+                                            Xem các bài viết
                                           </button>
                                           <button
                                             className="ml-2 bg-purple-100 text-purple-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-purple-200 transition-colors flex items-center justify-center"
