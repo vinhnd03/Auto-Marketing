@@ -26,7 +26,7 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
       .max(100, "Tên chiến dịch không được vượt quá 100 ký tự"),
 
     description: Yup.string()
-        .required("Chi tiết không được để trống")
+        .required("Mô tả không được để trống")
         .max(500, "Mô tả không được vượt quá 500 ký tự"),
 
     startDate: Yup.date().required("Vui lòng chọn ngày bắt đầu"),
@@ -92,7 +92,7 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
           <div>
             <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
               <FileText size={16} className="mr-2 text-blue-500" />
-              Mô tả
+              Mô tả <span className="text-red-500">*</span>
             </label>
             <Field
               as="textarea"
@@ -113,7 +113,7 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
             <div>
               <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
                 <Calendar size={16} className="mr-2 text-blue-500" />
-                Ngày bắt đầu
+                Ngày bắt đầu <span className="text-red-500">*</span>
               </label>
               <Field
                 type="date"
@@ -129,7 +129,7 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
             <div>
               <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
                 <Calendar size={16} className="mr-2 text-blue-500" />
-                Ngày kết thúc
+                Ngày kết thúc <span className="text-red-500">*</span>
               </label>
               <Field
                 type="date"
@@ -148,7 +148,7 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
           <div>
             <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
               <Flag size={16} className="mr-2 text-blue-500" />
-              Trạng thái
+              Trạng thái <span className="text-red-500">*</span>
             </label>
             <Field
               as="select"
