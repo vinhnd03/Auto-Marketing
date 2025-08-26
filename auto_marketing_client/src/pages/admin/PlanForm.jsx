@@ -3,30 +3,30 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
 const planSchema = Yup.object().shape({
-    name: Yup.string().required("Tên gói không được để trống"),
-    price: Yup.number()
-        .typeError("Giá phải là số")
-        .min(0,"Giá phải >= 0")
-        .required("Bắt buộc nhập"),
-    durationDate: Yup.number()
-        .typeError("Thời hạn phải là số")
-        .min(1, "Ít nhất 1 ngày")
-        .required("Bắt buộc nhập"),
-    planLevel: Yup.number()
-        .typeError("Level phải là số")
-        .min(1, "Level phải >= 1")
-        .required("Bắt buộc nhập"),
-    maxWorkspace: Yup.number()
-        .typeError("Workspace phải là số")
-        .min(1, "Ít nhất 1 workspace")
-        .required("Bắt buộc nhập"),
-    maxSocialAccount: Yup.number()
-        .typeError("Social account phải là số")
-        .min(1, "Ít nhất 1 social account")
-        .required("Bắt buộc nhập"),
-    description: Yup.string()
-        .min(10, "Mô tả ít nhất 10 ký tự")
-        .required("Bắt buộc nhập"),
+  name: Yup.string().required("Tên gói không được để trống"),
+  price: Yup.number()
+    .typeError("Giá phải là số")
+    .positive("Giá phải > 0")
+    .required("Bắt buộc nhập"),
+  durationDate: Yup.number()
+    .typeError("Thời hạn phải là số")
+    .min(1, "Ít nhất 1 ngày")
+    .required("Bắt buộc nhập"),
+  planLevel: Yup.number()
+    .typeError("Level phải là số")
+    .min(1, "Level phải >= 1")
+    .required("Bắt buộc nhập"),
+  maxWorkspace: Yup.number()
+    .typeError("Workspace phải là số")
+    .min(1, "Ít nhất 1 workspace")
+    .required("Bắt buộc nhập"),
+  maxSocialAccount: Yup.number()
+    .typeError("Social account phải là số")
+    .min(1, "Ít nhất 1 social account")
+    .required("Bắt buộc nhập"),
+  description: Yup.string()
+    .min(10, "Mô tả ít nhất 10 ký tự")
+    .required("Bắt buộc nhập"),
 });
 
 const defaultInitial = {

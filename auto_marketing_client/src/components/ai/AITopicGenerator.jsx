@@ -257,8 +257,11 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
               </div>
             </div>
             <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              onClick={generating ? undefined : onClose}
+              disabled={generating}
+              className={`text-gray-400 hover:text-gray-600 ${
+                generating ? "cursor-not-allowed opacity-50" : ""
+              }`}
             >
               <X size={24} />
             </button>
@@ -517,8 +520,11 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
 
           <div className="flex justify-between items-center p-6 border-t bg-gray-50">
             <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              onClick={generating ? undefined : onClose}
+              disabled={generating}
+              className={`px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 ${
+                generating ? "cursor-not-allowed opacity-50" : ""
+              }`}
             >
               Hủy
             </button>

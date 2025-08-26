@@ -310,8 +310,11 @@ const AIContentGenerator = ({
               </div>
             </div>
             <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              onClick={generating ? undefined : onClose}
+              disabled={generating}
+              className={`text-gray-400 hover:text-gray-600 ${
+                generating ? "cursor-not-allowed opacity-50" : ""
+              }`}
             >
               <X size={24} />
             </button>
@@ -528,13 +531,19 @@ const AIContentGenerator = ({
                     </label>
                     <select
                       value={contentSettings.postCount}
-                      onChange={(e) =>
-                        setContentSettings({
-                          ...contentSettings,
-                          postCount: parseInt(e.target.value),
-                        })
+                      onChange={
+                        generating
+                          ? undefined
+                          : (e) =>
+                              setContentSettings({
+                                ...contentSettings,
+                                postCount: parseInt(e.target.value),
+                              })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm"
+                      disabled={generating}
+                      className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm ${
+                        generating ? "cursor-not-allowed opacity-50" : ""
+                      }`}
                     >
                       <option value={2}>2 bài viết</option>
                       <option value={3}>3 bài viết</option>
@@ -554,16 +563,23 @@ const AIContentGenerator = ({
                         return (
                           <div
                             key={type.value}
-                            onClick={() =>
-                              setContentSettings({
-                                ...contentSettings,
-                                contentType: type.value,
-                              })
+                            onClick={
+                              generating
+                                ? undefined
+                                : () =>
+                                    setContentSettings({
+                                      ...contentSettings,
+                                      contentType: type.value,
+                                    })
                             }
                             className={`p-2 border rounded-lg cursor-pointer transition-all text-center ${
                               contentSettings.contentType === type.value
                                 ? "border-green-500 bg-green-50"
                                 : "border-gray-300 hover:border-gray-400"
+                            } ${
+                              generating
+                                ? "cursor-not-allowed opacity-50 pointer-events-none"
+                                : ""
                             }`}
                           >
                             <Icon size={16} className="mx-auto mb-1" />
@@ -584,16 +600,23 @@ const AIContentGenerator = ({
                     {toneOptions.map((option) => (
                       <div
                         key={option.value}
-                        onClick={() =>
-                          setContentSettings({
-                            ...contentSettings,
-                            tone: option.value,
-                          })
+                        onClick={
+                          generating
+                            ? undefined
+                            : () =>
+                                setContentSettings({
+                                  ...contentSettings,
+                                  tone: option.value,
+                                })
                         }
                         className={`p-3 border rounded-lg cursor-pointer transition-all ${
                           contentSettings.tone === option.value
                             ? "border-green-500 bg-green-50"
                             : "border-gray-300 hover:border-gray-400"
+                        } ${
+                          generating
+                            ? "cursor-not-allowed opacity-50 pointer-events-none"
+                            : ""
                         }`}
                       >
                         <div className="font-medium text-sm">
@@ -621,13 +644,19 @@ const AIContentGenerator = ({
                     <input
                       type="checkbox"
                       checked={contentSettings.includeHashtags}
-                      onChange={(e) =>
-                        setContentSettings({
-                          ...contentSettings,
-                          includeHashtags: e.target.checked,
-                        })
+                      onChange={
+                        generating
+                          ? undefined
+                          : (e) =>
+                              setContentSettings({
+                                ...contentSettings,
+                                includeHashtags: e.target.checked,
+                              })
                       }
-                      className="h-4 w-4 text-green-600"
+                      disabled={generating}
+                      className={`h-4 w-4 text-green-600 ${
+                        generating ? "cursor-not-allowed opacity-50" : ""
+                      }`}
                     />
                   </div>
 
@@ -641,13 +670,19 @@ const AIContentGenerator = ({
                     <input
                       type="checkbox"
                       checked={contentSettings.includeCTA}
-                      onChange={(e) =>
-                        setContentSettings({
-                          ...contentSettings,
-                          includeCTA: e.target.checked,
-                        })
+                      onChange={
+                        generating
+                          ? undefined
+                          : (e) =>
+                              setContentSettings({
+                                ...contentSettings,
+                                includeCTA: e.target.checked,
+                              })
                       }
-                      className="h-4 w-4 text-green-600"
+                      disabled={generating}
+                      className={`h-4 w-4 text-green-600 ${
+                        generating ? "cursor-not-allowed opacity-50" : ""
+                      }`}
                     />
                   </div>
                 </div>
@@ -696,8 +731,11 @@ const AIContentGenerator = ({
           {!showResults && (
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center p-6 border-t bg-gray-50">
               <button
-                onClick={onClose}
-                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                onClick={generating ? undefined : onClose}
+                disabled={generating}
+                className={`w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 ${
+                  generating ? "cursor-not-allowed opacity-50" : ""
+                }`}
               >
                 Hủy
               </button>

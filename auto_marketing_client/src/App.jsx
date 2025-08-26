@@ -1,9 +1,9 @@
 import {
-    BrowserRouter as Router,
-    Routes,
-    Route,
-    useLocation,
-    Navigate,
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
 } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
@@ -13,18 +13,18 @@ import { Toaster } from "react-hot-toast";
 import { Navbar, Footer, Preloader } from "./components";
 
 import {
-    Home,
-    ContactPage,
-    FeaturesPage,
-    LoginPage,
-    RegisterPage,
-    ForgotPasswordPage,
-    ResetPasswordPage,
-    CampaignManager,
-    Profile,
-    Settings,
-    WorkspacePage,
-    WorkspaceDetailPage,
+  Home,
+  ContactPage,
+  FeaturesPage,
+  LoginPage,
+  RegisterPage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
+  CampaignManager,
+  Profile,
+  Settings,
+  WorkspacePage,
+  WorkspaceDetailPage,
 } from "./pages";
 
 import AboutPage from "./pages/AboutPage";
@@ -318,6 +318,33 @@ function App() {
         <Route path="/not-found" element={<NotFoundPage />} />
       </Routes>
       <GlobalScrollToTop />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2500,
+          style: {
+            background: "#363636",
+            color: "#fff",
+            zIndex: 999999,
+          },
+          success: {
+            duration: 2500,
+            style: {
+              background: "#10B981",
+              color: "#fff",
+              zIndex: 999999,
+            },
+          },
+          error: {
+            duration: 2500,
+            style: {
+              background: "#EF4444",
+              color: "#fff",
+              zIndex: 999999,
+            },
+          },
+        }}
+      />
     </>
   );
 }
