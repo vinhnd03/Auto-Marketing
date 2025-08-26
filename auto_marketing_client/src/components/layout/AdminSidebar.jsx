@@ -191,10 +191,8 @@ const AdminSidebar = ({ collapsed }) => {
   const renderMenuItem = (item) => {
     const Icon = item.icon;
     const hasChildren = !!item.children;
-    // Set active for parent when any child is active or when it's the exact match
-    const active =
-      isActive(item.href, item.exact) ||
-      (hasChildren && item.children.some((c) => isActive(c.href)));
+    // Set active for parent only when it's the exact match, not when children are active
+    const active = isActive(item.href, item.exact);
 
     const handleParentClick = () => {
       if (collapsed) {
@@ -208,7 +206,13 @@ const AdminSidebar = ({ collapsed }) => {
       if (item.href) {
         navigate(item.href);
       } else if (hasChildren && item.children[0]?.href) {
-        navigate(item.children[0].href);
+        // Nếu chỉ có 1 submenu, đi thẳng đến đó
+        if (item.children.length === 1) {
+          navigate(item.children[0].href);
+        } else {
+          // Nếu có nhiều submenu, toggle menu
+          toggleMenu(item.name);
+        }
       }
     };
 
@@ -254,8 +258,8 @@ const AdminSidebar = ({ collapsed }) => {
             </span>
           </div>
 
-          {/* nút mở/đóng submenu khi không thu gọn */}
-          {!collapsed && hasChildren && (
+          {/* nút mở/đóng submenu khi không thu gọn - chỉ hiển thị khi có nhiều hơn 1 submenu */}
+          {!collapsed && hasChildren && item.children.length > 1 && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -273,8 +277,44 @@ const AdminSidebar = ({ collapsed }) => {
           )}
         </div>
 
-        {/* Submenu khi expanded */}
-        {!collapsed && hasChildren && openMenus[item.name] && (
+        {/* Submenu khi expanded - chỉ cho những menu có nhiều hơn 1 submenu */}
+        {!collapsed &&
+          hasChildren &&
+          item.children.length > 1 &&
+          openMenus[item.name] && (
+            <div className="ml-6 border-l-2 border-blue-200">
+              {item.children.map((child) => {
+                const childActive = isActive(child.href);
+                const ChildIcon = child.icon;
+                return (
+                  <Link
+                    key={child.name}
+                    to={child.href}
+                    className={`group flex items-center px-4 py-2 text-sm whitespace-nowrap transition-colors duration-200 ${
+                      childActive
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md"
+                        : "text-gray-600 hover:bg-gradient-to-r hover:from-blue-100 hover:to-purple-100"
+                    }`}
+                  >
+                    {ChildIcon && (
+                      <ChildIcon
+                        size={14}
+                        className={`inline mr-2 transition-colors duration-200 ${
+                          childActive
+                            ? "text-white"
+                            : "text-gray-500 group-hover:text-blue-600"
+                        }`}
+                      />
+                    )}
+                    {child.name}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+        {/* Special handling for single child items - always show without expand/collapse */}
+        {!collapsed && hasChildren && item.children.length === 1 && (
           <div className="ml-6 border-l-2 border-blue-200">
             {item.children.map((child) => {
               const childActive = isActive(child.href);
