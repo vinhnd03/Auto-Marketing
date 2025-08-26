@@ -30,7 +30,7 @@ export async function generateContentWithAI(body) {
 }
 
 export async function approveAndCleanPosts(topicId, selectedPostIds) {
-  console.log("selected: ",selectedPostIds);
+  console.log("selected: ", selectedPostIds);
   return apiClient.post(
     `/posts/approve-and-clean?topicId=${topicId}`,
     selectedPostIds

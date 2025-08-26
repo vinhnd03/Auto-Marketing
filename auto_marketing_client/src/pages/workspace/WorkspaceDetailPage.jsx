@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { getPostsByTopic } from "../../service/postService";
 import AIGeneratedTopicCard from "../../components/ai/AIGeneratedTopicCard";
 import { useParams, Link } from "react-router-dom";
@@ -8,7 +8,6 @@ import { AITopicGenerator, CampaignTable } from "../../components";
 import {
   ArrowLeft,
   Target,
-  TrendingUp,
   Folder,
   Wand2,
   BarChart3,
@@ -25,7 +24,7 @@ import {
   deleteTopicsByCampaignAndStatus,
   getTopicsByCampaign,
 } from "../../service/topicService";
-import dayjs from "dayjs";
+// import dayjs from "dayjs";
 import { getWorkspaceDetail } from "../../service/workspace/workspace_service";
 import { ArrowUpCircle } from "lucide-react";
 import campaignService from "../../service/campaignService";
@@ -67,27 +66,11 @@ const WorkspaceDetailPage = () => {
   const [totalCampaign, setTotalCampaign] = useState(0);
   const [totalCampaignFirstLoading, setTotalCampaignFirstLoading] = useState(0);
   const [confirmedPosts, setConfirmedPosts] = useState([]);
-  const [firstLoad, setFirstLoad] = useState(true);
+  const firstLoad = true;
   const DEFAULT_TOPICS_PER_PAGE = 6;
   const { user } = useAuth();
   // Lọc danh sách bài viết đã xác nhận (mock)
-  const initialPosts = [
-    {
-      id: 1,
-      content: "Bài viết 1",
-      time: dayjs().add(1, "day").toISOString(),
-      platform: "Facebook",
-      status: "pending",
-    },
-    {
-      id: 2,
-      content: "Bài viết 2",
-      time: dayjs().add(2, "day").toISOString(),
-      platform: "Instagram",
-      status: "posted",
-    },
-  ];
-  const [posts, setPosts] = useState(initialPosts);
+  // const [posts, setPosts] = useState([]); // reserved for publish tab
   const fetchCountCampaignFirstLoading = async () => {
     try {
       const campaignNumber = await campaignService.countCampaign(user.id);
@@ -118,6 +101,7 @@ const WorkspaceDetailPage = () => {
 
     fetchCampaigns();
     fetchCountCampaignFirstLoading();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalCampaign, workspaceId]);
 
   // Reset phân trang khi workspace thay đổi
@@ -132,7 +116,7 @@ const WorkspaceDetailPage = () => {
   }, [workspace]);
 
   // Mock data - trong thực tế sẽ lấy từ API dựa trên workspaceId
-  const initialWorkspace = {
+  /* const initialWorkspace = {
     id: parseInt(workspaceId),
     name: "Summer Sale Campaign",
     description: "Chiến dịch khuyến mãi mùa hè 2024",
@@ -158,7 +142,7 @@ const WorkspaceDetailPage = () => {
       },
       // ...other campaigns
     ],
-  };
+  }; */
 
   const handleUpdateCampaigns = (updatedCampaigns) => {
     setApiCampaigns(updatedCampaigns);
@@ -654,11 +638,9 @@ const WorkspaceDetailPage = () => {
     setConfirmedPosts(posts);
   };
 
-  const handleDeletePost = (deletedPost) => {
-    setPosts((prev) => prev.filter((p) => p.id !== deletedPost.id));
-  };
+  // const handleDeletePost = () => {};
 
-  const fetchWorkspaceData = async () => {
+  const fetchWorkspaceData = useCallback(async () => {
     setLoadingWorkspace(true);
     try {
       // 1. Lấy workspace từ API
@@ -687,11 +669,11 @@ const WorkspaceDetailPage = () => {
     } finally {
       setLoadingWorkspace(false);
     }
-  };
+  }, [workspaceId]);
 
   useEffect(() => {
     fetchWorkspaceData();
-  }, [workspaceId]);
+  }, [fetchWorkspaceData]);
 
   // Fetch content counts for visible topics when tab = topics
   useEffect(() => {
