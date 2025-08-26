@@ -8,4 +8,6 @@ import java.util.List;
 public interface IPlanRepository extends JpaRepository<Plan, Long> {
     Plan findByName(String name);
     List<Plan> findByDeletedFalse();
+
+    List<Plan> findAllByDeletedFalse();
 }

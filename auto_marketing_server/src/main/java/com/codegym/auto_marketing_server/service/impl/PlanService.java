@@ -54,4 +54,9 @@ public class PlanService implements IPlanService {
         plan.setDeleted(true);   // đánh dấu là đã xóa
         planRepository.save(plan);
     }
+
+    @Override
+    public List<Plan> findAllAvailablePlan(){
+        return planRepository.findAllByDeletedFalse();
+    }
 }

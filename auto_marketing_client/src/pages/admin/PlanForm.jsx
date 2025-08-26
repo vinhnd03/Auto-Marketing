@@ -6,7 +6,7 @@ const planSchema = Yup.object().shape({
     name: Yup.string().required("Tên gói không được để trống"),
     price: Yup.number()
         .typeError("Giá phải là số")
-        .positive("Giá phải > 0")
+        .min(0,"Giá phải >= 0")
         .required("Bắt buộc nhập"),
     durationDate: Yup.number()
         .typeError("Thời hạn phải là số")

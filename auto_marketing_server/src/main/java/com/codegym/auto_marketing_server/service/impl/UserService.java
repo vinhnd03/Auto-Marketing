@@ -7,6 +7,7 @@ import com.codegym.auto_marketing_server.dto.QuarterStatisticDTO;
 import com.codegym.auto_marketing_server.dto.WeekStatisticDTO;
 import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.repository.IUserRepository;
+import com.codegym.auto_marketing_server.service.ISubscriptionService;
 import com.codegym.auto_marketing_server.service.IUserService;
 import com.codegym.auto_marketing_server.util.CloudinaryService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -210,4 +212,6 @@ public class UserService implements IUserService {
 
         return null;
     }
+
+
 }

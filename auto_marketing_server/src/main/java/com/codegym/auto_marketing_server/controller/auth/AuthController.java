@@ -14,6 +14,7 @@ import com.codegym.auto_marketing_server.security.jwt.service.JwtService;
 import com.codegym.auto_marketing_server.service.IRoleService;
 import com.codegym.auto_marketing_server.service.IUserService;
 import com.codegym.auto_marketing_server.service.IUserTokenService;
+import com.codegym.auto_marketing_server.service.impl.SubscriptionManagementService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
     private final IUserTokenService userTokenService;
+    private final SubscriptionManagementService subscriptionManagementService;
     @Value("${app.frontend.url}")
     private String frontendUrl;
 
@@ -126,7 +128,8 @@ public class AuthController {
         user.setPhone(req.getPhone());
         user.setStatus(true);
         user.setRole(userRole);
-        userService.save(user);
+        subscriptionManagementService.register(user);
+
         return ResponseEntity.ok(Map.of("message", "Đăng ký thành công"));
     }
 

@@ -66,7 +66,5 @@ public interface IUserService {
     List<WeekStatisticDTO> getStatisticPackagesByWeek(int year, int month);
     List<NotificationDTO> getNotifications();
     int countByMonth(int year, int month);
-
-
     User getCurrentUser();
 }

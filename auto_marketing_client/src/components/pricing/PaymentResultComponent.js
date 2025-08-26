@@ -60,7 +60,7 @@ const PaymentResultModal = ({ result, onClose }) => {
                             )}
                             {result.duration && (
                                 <div className="flex justify-between">
-                                    <b>Thời gian:</b> <span>{result.duration} tháng</span>
+                                    <b>Thời gian:</b> <span>{result.duration} ngày</span>
                                 </div>
                             )}
                             {result.amount && (

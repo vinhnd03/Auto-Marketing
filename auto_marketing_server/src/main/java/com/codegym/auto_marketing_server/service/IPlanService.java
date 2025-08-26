@@ -22,4 +22,6 @@ public interface IPlanService {
     Plan update(Plan plan);
 
     void deleteById(Long id);
+
+    List<Plan> findAllAvailablePlan();
 }
