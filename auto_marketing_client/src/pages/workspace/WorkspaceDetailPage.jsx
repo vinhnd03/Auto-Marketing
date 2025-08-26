@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { getPostsByTopic } from "../../service/postService";
 import AIGeneratedTopicCard from "../../components/ai/AIGeneratedTopicCard";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -62,6 +63,7 @@ const WorkspaceDetailPage = () => {
   const [apiCampaigns, setApiCampaigns] = useState([]);
   const topicsTopRef = useRef(null);
   const [topicsPageByCampaign, setTopicsPageByCampaign] = useState({});
+  const [topicContentCounts, setTopicContentCounts] = useState({});
   const [totalCampaign, setTotalCampaign] = useState(0);
   const [totalCampaignFirstLoading, setTotalCampaignFirstLoading] = useState(0);
   const [confirmedPosts, setConfirmedPosts] = useState([]);
@@ -237,13 +239,31 @@ const WorkspaceDetailPage = () => {
   };
 
   const getStatusBadge = (status) => {
+    if (!status) return null;
+    // Ẩn toàn bộ badge "Nháp" và các trạng thái không xác định
+    const normalized = String(status).toLowerCase();
+    if (normalized === "draft" || normalized === "nháp") return null;
+
     const statusConfig = {
-      draft: { color: "bg-yellow-100 text-yellow-800", text: "Nháp" },
       completed: { color: "bg-gray-100 text-gray-800", text: "Hoàn thành" },
       paused: { color: "bg-red-100 text-red-800", text: "Tạm dừng" },
+      active: { color: "bg-green-100 text-green-700", text: "Đang hoạt động" },
+      "đang hoạt động": {
+        color: "bg-green-100 text-green-700",
+        text: "Đang hoạt động",
+      },
+      "đã kết thúc": {
+        color: "bg-gray-100 text-gray-800",
+        text: "Đã kết thúc",
+      },
+      "sắp bắt đầu": {
+        color: "bg-blue-100 text-blue-700",
+        text: "Sắp bắt đầu",
+      },
     };
 
-    const config = statusConfig[status] || statusConfig.draft;
+    const config = statusConfig[normalized] || statusConfig[status] || null;
+    if (!config) return null;
     return (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}
@@ -673,6 +693,39 @@ const WorkspaceDetailPage = () => {
     fetchWorkspaceData();
   }, [workspaceId]);
 
+  // Fetch content counts for visible topics when tab = topics
+  useEffect(() => {
+    const fetchCounts = async () => {
+      if (activeTab !== "topics" || !workspace?.campaigns) return;
+      const topics = workspace.campaigns.flatMap((c) => c.topicsList || []);
+      const approved = topics.filter((t) =>
+        ["APPROVED", "ACTIVE", "active"].includes(
+          String(t.status).toUpperCase()
+        )
+      );
+      const toFetch = approved.filter((t) => topicContentCounts[t.id] == null);
+      if (toFetch.length === 0) return;
+      const entries = await Promise.all(
+        toFetch.map(async (t) => {
+          try {
+            const posts = await getPostsByTopic(t.id);
+            const count = Array.isArray(posts)
+              ? posts.length
+              : posts?.totalElements ?? posts?.length ?? 0;
+            return [t.id, count];
+          } catch (_) {
+            return [t.id, 0];
+          }
+        })
+      );
+      setTopicContentCounts((prev) => ({
+        ...prev,
+        ...Object.fromEntries(entries),
+      }));
+    };
+    fetchCounts();
+  }, [activeTab, workspace, topicContentCounts]);
+
   // Khi người dùng chuyển tab sang "Chủ đề", tự động refetch workspace/campaigns
   useEffect(() => {
     if (activeTab === "topics") {
@@ -719,6 +772,64 @@ const WorkspaceDetailPage = () => {
     return <div>Không có dữ liệu workspace</div>;
   }
 
+  const totalTopicsCount = Array.isArray(workspace?.campaigns)
+    ? workspace.campaigns.reduce((sum, c) => {
+        if (Array.isArray(c.topicsList)) return sum + c.topicsList.length;
+        return sum + (c.topics || 0);
+      }, 0)
+    : 0;
+
+  const totalContentCount = Array.isArray(workspace?.campaigns)
+    ? workspace.campaigns.reduce((sum, c) => {
+        if (Array.isArray(c.topicsList)) {
+          const approved = c.topicsList.filter((t) =>
+            ["APPROVED", "ACTIVE", "active"].includes(
+              String(t.status).toUpperCase()
+            )
+          ).length;
+          return sum + approved;
+        }
+        return sum + (c.content || 0);
+      }, 0)
+    : 0;
+
+  // Helper: try to infer number of contents/posts for a topic coming from various shapes
+  const getTopicContentCount = (topic) => {
+    if (!topic || typeof topic !== "object") return 0;
+    if (
+      topicContentCounts &&
+      topic.id &&
+      topicContentCounts[topic.id] != null
+    ) {
+      return topicContentCounts[topic.id];
+    }
+    // explicit counters first
+    if (typeof topic.contentCount === "number") return topic.contentCount;
+    if (typeof topic.postsCount === "number") return topic.postsCount;
+    if (typeof topic.postCount === "number") return topic.postCount;
+    if (typeof topic.contentsCount === "number") return topic.contentsCount;
+    if (typeof topic.totalContents === "number") return topic.totalContents;
+    // arrays next
+    const arrayKeys = [
+      "contents",
+      "content",
+      "posts",
+      "postList",
+      "postsList",
+      "topicContents",
+      "topicContentList",
+      "contentList",
+      "items",
+    ];
+    for (const key of arrayKeys) {
+      const val = topic[key];
+      if (Array.isArray(val)) return val.length;
+    }
+    return 0;
+  };
+
+  // removed duplicate hook (moved above)
+
   const stats = [
     {
       label: "Tổng chiến dịch",
@@ -728,18 +839,13 @@ const WorkspaceDetailPage = () => {
     },
     {
       label: "Tổng chủ đề",
-      value: Array.isArray(transformedCampaigns)
-        ? transformedCampaigns.reduce((sum, c) => sum + (c.topics || 0), 0)
-        : 0,
+      value: totalTopicsCount,
       color: "purple",
       icon: <Folder size={24} />,
     },
     {
       label: "Tổng content",
-      value:
-        workspace && Array.isArray(workspace.campaigns)
-          ? workspace.campaigns.reduce((sum, c) => sum + (c.content || 0), 0)
-          : 0,
+      value: totalContentCount,
       color: "orange",
       icon: <BarChart3 size={24} />,
     },
@@ -1194,6 +1300,18 @@ const WorkspaceDetailPage = () => {
                                         <p className="text-sm mb-3 text-gray-600">
                                           {topic.description}
                                         </p>
+                                        {/* Content count badge */}
+                                        {(() => {
+                                          const contentCount =
+                                            getTopicContentCount(topic);
+                                          return (
+                                            <div className="mb-3">
+                                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                                {contentCount} content
+                                              </span>
+                                            </div>
+                                          );
+                                        })()}
                                         <div className="flex items-center justify-between mt-auto">
                                           <button
                                             className="w-full bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center justify-center"
@@ -1206,7 +1324,11 @@ const WorkspaceDetailPage = () => {
                                           <button
                                             className="ml-2 bg-purple-100 text-purple-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-purple-200 transition-colors flex items-center justify-center"
                                             title="Chỉnh sửa topic"
-                                            disabled
+                                            onClick={() =>
+                                              toast.success(
+                                                "Chức năng đang phát triển"
+                                              )
+                                            }
                                           >
                                             <Settings size={16} />
                                           </button>
@@ -1300,11 +1422,7 @@ const WorkspaceDetailPage = () => {
                                       }
                                       className="bg-purple-600 text-white px-3 py-2 rounded-lg text-xs md:text-sm font-medium hover:bg-purple-700 transition-colors"
                                     >
-                                      <Wand2
-                                        size={12}
-                                        className="mr-2 inline"
-                                      />
-                                      🎯 Generate Topics
+                                      Generate Topics
                                     </button>
                                   )}
                                 </div>
