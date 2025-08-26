@@ -30,7 +30,7 @@ public class SubscriptionScheduler {
         subscriptionService.saveAll(pendingSubs);
     }
 
-
+//    @Scheduled(cron = "*/10 * * * * *")
     @Scheduled(cron = "0 0 0 * * *")
     public void activateNextSubscription() {
         List<Subscription> activeSubs = subscriptionService.findByStatus(SubscriptionStatus.SUCCESS.name());

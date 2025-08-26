@@ -14,7 +14,7 @@ public interface ISubscriptionRepository extends JpaRepository<Subscription, Lon
     @Query(value = "SELECT s.* FROM subscriptions s join users u on s.user_id=u.id where s.status=\"SUCCESS\" and u.id=:userId limit 1", nativeQuery = true)
     Optional<Subscription> findActiveByUserId(@Param("userId") Long userId);
 
-    @Query(value = "SELECT * FROM subscriptions s " +
+    @Query(value = "SELECT s.* FROM subscriptions s " +
             "JOIN plans p ON s.plan_id = p.id " +
             "WHERE s.user_id = :userId AND s.status = 'PENDING' " +
             "ORDER BY p.plan_level DESC, s.start_date ASC", nativeQuery = true)
