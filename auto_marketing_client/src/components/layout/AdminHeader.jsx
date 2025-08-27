@@ -204,17 +204,17 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
 
             <div className="relative flex items-center gap-4">
               {/*  Nút chuông */}
-              <div className="relative">
+              <div className="relative" ref={boxRef}>
                 <button
                     onClick={() => setShowNotifications(!showNotifications)}
                     className="p-2 hover:bg-white/20 rounded-lg relative"
                 >
                   <Bell size={20} />
-                  {unreadCount > 0 && (
-                      <span className="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
-      {unreadCount}
-    </span>
-                  )}
+                  {/*{unreadCount > 0 && (*/}
+                  {/*    <span className="absolute -top-2 -right-2 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">*/}
+                  {/*        {unreadCount}*/}
+                  {/*     </span>*/}
+                  {/*)}*/}
                 </button>
 
                 {/* Popup */}
@@ -244,7 +244,7 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
                                 >
                                   <p className="text-sm">{notification.message}</p>
                                   <p className="text-xs text-gray-500 mt-1">
-                                    {notification.time}
+                                    {notification.createdAt}
                                   </p>
                                 </div>
                             ))
