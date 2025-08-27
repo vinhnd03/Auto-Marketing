@@ -31,7 +31,7 @@ public class ScheduledPostController {
     // 1. Tạo mới ScheduledPost (kèm Post + Media)
     @PostMapping
     public ResponseEntity<ScheduledPost> create(@Valid @RequestBody ScheduleRequestDTO req) {
-        ScheduledPost created = scheduledPostService.createSchedule(req);
+        ScheduledPost created = scheduledPostService.createSchedule(req);   
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -45,7 +45,7 @@ public class ScheduledPostController {
             @RequestParam Long workspaceId) {
         return ResponseEntity.ok(scheduledPostService.getScheduledByWorkspace(workspaceId));
     }
-    
+
     // 3. Xem chi tiết một ScheduledPost
     @GetMapping("/{id}")
     public ResponseEntity<ScheduledPost> getScheduledPost(@PathVariable Long id) {

@@ -4,19 +4,20 @@ import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import isoWeek from "dayjs/plugin/isoWeek";
 import { Dialog } from "@headlessui/react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { createSchedule } from "../../service/publish/scheduleManagerService";
 import { useAuth } from "../../context/AuthContext";
 import { useParams } from "react-router-dom";
 import campaignService from "../../service/campaignService";
 import { getTopicsByCampaignId } from "../../service/topic_service";
 import { getPostsByFilter } from "../../service/post_service";
+
 dayjs.locale("vi");
 dayjs.extend(isoWeek);
 
 const hours = Array.from({ length: 24 }, (_, i) => i);
 
-export default function SchedulePostCalendar({ onSubmit }) {
+export default function SchedulePostCalendar() {
   const { user } = useAuth();
   const { workspaceId } = useParams();
 
@@ -38,6 +39,7 @@ export default function SchedulePostCalendar({ onSubmit }) {
   const daysOfWeek = Array.from({ length: 7 }, (_, i) =>
     weekStart.add(i, "day")
   );
+
   const now = dayjs();
 
   // --- Load Campaigns theo workspace ---
@@ -79,6 +81,7 @@ export default function SchedulePostCalendar({ onSubmit }) {
       .catch((err) => toast.error("Lỗi tải bài viết: " + err.message));
   }, [workspaceId, selectedCampaign, selectedTopic]);
 
+  // --- Load Fanpages ---
   useEffect(() => {
     if (!user) return;
     axios
@@ -92,23 +95,32 @@ export default function SchedulePostCalendar({ onSubmit }) {
       .catch((err) => toast.error("Lỗi tải fanpage: " + err.message));
   }, [user]);
 
-  const isPastTime = (day, hour) => {
-    const cellTime = day.hour(hour).minute(0);
-    return cellTime.isBefore(now.subtract(5, "minute"));
+  // ✅ Hàm check giờ còn phút hợp lệ không
+  const isHourAvailable = (day, hour) => {
+    const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
+    return minutes.some((m) =>
+      day.hour(hour).minute(m).isAfter(now.add(5, "minute"))
+    );
   };
 
   const openScheduleModal = (day, hour) => {
-    if (isPastTime(day, hour)) {
-      toast.error(
-        "Không thể đặt lịch vào quá khứ hoặc trễ hơn 5 phút hiện tại"
-      );
+    if (!isHourAvailable(day, hour)) {
+      toast.error("Giờ này không còn phút hợp lệ để đặt lịch");
       return;
     }
-    setSelectedTime(day.hour(hour));
+    setSelectedTime(day.hour(hour).minute(0).second(0));
     setMinute("00");
     setSelectedContentId("");
     setSelectedFanpageIds([]);
     setIsModalOpen(true);
+  };
+
+  // ✅ Lọc phút hợp lệ
+  const getAvailableMinutes = (time) => {
+    if (!time) return [];
+    return Array.from({ length: 12 }, (_, i) => i * 5)
+      .filter((m) => time.minute(m).isAfter(now.add(5, "minute")))
+      .map((m) => m.toString().padStart(2, "0"));
   };
 
   const savePost = async () => {
@@ -130,6 +142,10 @@ export default function SchedulePostCalendar({ onSubmit }) {
     }
 
     const time = selectedTime.minute(parseInt(minute, 10));
+    if (time.isBefore(now.add(5, "minute"))) {
+      toast.error("Không thể đặt lịch trong quá khứ hoặc sớm hơn 5 phút hiện tại");
+      return;
+    }
 
     const payload = {
       workspaceId,
@@ -147,7 +163,6 @@ export default function SchedulePostCalendar({ onSubmit }) {
 
     try {
       await createSchedule(payload);
-      // 🔹 gọi lại fetchSchedules để đảm bảo reload đúng dữ liệu workspace
       await fetchSchedules(workspaceId);
 
       setIsModalOpen(false);
@@ -160,7 +175,6 @@ export default function SchedulePostCalendar({ onSubmit }) {
     }
   };
 
-  // 🔹 sửa fetchSchedules để nhận workspaceId
   const fetchSchedules = async (wid) => {
     if (!wid) return;
     try {
@@ -185,7 +199,6 @@ export default function SchedulePostCalendar({ onSubmit }) {
     }
   };
 
-  // 🔹 useEffect load schedules khi workspace thay đổi
   useEffect(() => {
     if (workspaceId) {
       fetchSchedules(workspaceId);
@@ -233,7 +246,7 @@ export default function SchedulePostCalendar({ onSubmit }) {
         </button>
       </div>
 
-      {/* Bảng lịch có scroll ngang */}
+      {/* Bảng lịch */}
       <div className="overflow-x-auto">
         <div
           className="grid min-w-[700px]"
@@ -260,9 +273,9 @@ export default function SchedulePostCalendar({ onSubmit }) {
                 <div
                   key={idx}
                   className={`p-1 border-t border-l border-gray-200 cursor-pointer hover:bg-gray-50 relative flex flex-col max-h-32 overflow-y-auto ${
-                    isPastTime(day, hour)
-                      ? "bg-gray-100 cursor-not-allowed"
-                      : "bg-white"
+                    isHourAvailable(day, hour)
+                      ? "bg-white"
+                      : "bg-gray-100 cursor-not-allowed"
                   }`}
                   onClick={() => openScheduleModal(day, hour)}
                 >
@@ -289,9 +302,7 @@ export default function SchedulePostCalendar({ onSubmit }) {
 
             {/* Chọn Campaign */}
             <div className="mb-2">
-              <label className="block text-sm font-medium mb-1">
-                Chọn Campaign
-              </label>
+              <label className="block text-sm font-medium mb-1">Chọn Campaign</label>
               <select
                 value={selectedCampaign}
                 onChange={(e) => setSelectedCampaign(e.target.value)}
@@ -308,19 +319,17 @@ export default function SchedulePostCalendar({ onSubmit }) {
 
             {/* Chọn Topic */}
             <div className="mb-2">
-              <label className="block text-sm font-medium mb-1">
-                Chọn Topic
-              </label>
+              <label className="block text-sm font-medium mb-1">Chọn Topic</label>
               <select
                 value={selectedTopic}
                 onChange={(e) => setSelectedTopic(e.target.value)}
                 className={`border rounded px-2 py-1 text-sm w-full ${
                   !selectedCampaign ? "bg-gray-100 cursor-not-allowed" : ""
                 }`}
-                disabled={!selectedCampaign} // disabled nếu chưa chọn campaign
+                disabled={!selectedCampaign}
               >
                 <option value="">-- Chọn topic --</option>
-                {(Array.isArray(topics) ? topics : []).map((t) => (
+                {topics.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name}
                   </option>
@@ -330,16 +339,14 @@ export default function SchedulePostCalendar({ onSubmit }) {
 
             {/* Chọn Post */}
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">
-                Chọn bài viết
-              </label>
+              <label className="block text-sm font-medium mb-1">Chọn bài viết</label>
               <select
                 value={selectedContentId}
                 onChange={(e) => setSelectedContentId(e.target.value)}
                 className={`border rounded px-2 py-1 text-sm w-full ${
                   !selectedTopic ? "bg-gray-100 cursor-not-allowed" : ""
                 }`}
-                disabled={!selectedTopic} // disabled nếu chưa chọn topic
+                disabled={!selectedTopic}
               >
                 <option value="">-- Chọn bài viết --</option>
                 {availableContents.map((c) => (
@@ -352,16 +359,12 @@ export default function SchedulePostCalendar({ onSubmit }) {
 
             {/* Thời gian */}
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">
-                Thời gian
-              </label>
+              <label className="block text-sm font-medium mb-1">Thời gian</label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   readOnly
-                  value={
-                    selectedTime ? selectedTime.format("dddd DD/MM HH") : ""
-                  }
+                  value={selectedTime ? selectedTime.format("dddd DD/MM HH") : ""}
                   className="border rounded px-2 py-1 text-sm w-full"
                 />
                 <select
@@ -369,7 +372,7 @@ export default function SchedulePostCalendar({ onSubmit }) {
                   onChange={(e) => setMinute(e.target.value)}
                   className="border rounded px-2 py-1 text-sm"
                 >
-                  {["00", "15", "30", "45"].map((m) => (
+                  {getAvailableMinutes(selectedTime).map((m) => (
                     <option key={m} value={m}>
                       {m}
                     </option>
@@ -380,9 +383,7 @@ export default function SchedulePostCalendar({ onSubmit }) {
 
             {/* Chọn fanpage */}
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">
-                Chọn fanpage
-              </label>
+              <label className="block text-sm font-medium mb-1">Chọn fanpage</label>
               <div className="flex flex-col max-h-40 overflow-y-auto border rounded px-2 py-1">
                 {userPages.map((fp) => (
                   <label key={fp.id} className="flex items-center gap-2 mb-1">
