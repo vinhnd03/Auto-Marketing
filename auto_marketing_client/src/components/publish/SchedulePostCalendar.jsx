@@ -82,7 +82,7 @@ export default function SchedulePostCalendar({ onSubmit }) {
   useEffect(() => {
     if (!user) return;
     axios
-      .get(`http://localhost:8080/api/fanpages?userId=${user.id}`, {
+      .get(`${process.env.REACT_APP_BACKEND_URL}/api/fanpages?userId=${user.id}`, {
         withCredentials: true,
       })
       .then((res) => {
@@ -165,7 +165,7 @@ export default function SchedulePostCalendar({ onSubmit }) {
     if (!wid) return;
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/schedules/published?workspaceId=${wid}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/schedules/published?workspaceId=${wid}`,
         { withCredentials: true }
       );
       const dataArray = Array.isArray(res.data) ? res.data : [];

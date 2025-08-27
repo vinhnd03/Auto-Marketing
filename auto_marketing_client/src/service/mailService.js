@@ -3,7 +3,7 @@ import axios from "axios";
 const sendEmail = async (email) => {
   try {
     const resp = await axios.post(
-      "http://localhost:8080/api/auth/forgot-password",
+      `${process.env.REACT_APP_BACKEND_URL}/api/auth/forgot-password`,
       { email },
       { withCredentials: true }
     );

@@ -3,7 +3,7 @@ import axios from "axios";
 
 export async function getAll() {
     try {
-        const response = await axios.get("http://localhost:8080/api/users", {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/users`, {
             withCredentials: true,
             params: {
                 page: 0,
@@ -25,7 +25,7 @@ export async function getAll() {
 
 export async function updateUser(id, user) {
     try {
-        const response = await axios.patch("http://localhost:8080/api/users/" + id, user, {withCredentials: true});
+        const response = await axios.patch(`${process.env.REACT_APP_BACKEND_URL}/api/users/`+ id, user, {withCredentials: true});
         return response.data;
     } catch (e) {
         console.log(e)
@@ -35,7 +35,7 @@ export async function updateUser(id, user) {
 
 export async function findById(id) {
     try {
-        const response=await axios.get("http://localhost:8080/api/users/"+id, {withCredentials: true});
+        const response=await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/users/`+id, {withCredentials: true});
         return response.data;
     }catch (e) {
         console.log(e)
@@ -53,7 +53,7 @@ export async function search(
     showLocked = null // thêm tham số để lọc status ngay trong API call
 ) {
     try {
-        const { data: result } = await axios.get("http://localhost:8080/api/users", {
+        const { data: result } = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/users`, {
             withCredentials: true,
             params: {
                 name: nameKeyword || undefined,

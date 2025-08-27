@@ -619,7 +619,7 @@ const WorkspaceDetailPage = () => {
   // Lấy danh sách bài viết từ DB
   useEffect(() => {
     axios
-      .get("http://localhost:8080/api/v1/posts/all", { withCredentials: true })
+      .get(`${process.env.REACT_APP_BACKEND_URL}/api/v1/posts/all`, { withCredentials: true })
       .then((res) => {
         const dataArray = Array.isArray(res.data) ? res.data : [];
         const formattedData = dataArray.map((p) => ({

@@ -25,7 +25,7 @@ const ListComponent = () => {
     useEffect(() => {
         const fetchPlans = async () => {
             try {
-                const response = await axios.get("http://localhost:8080/api/v1/plans", {
+                const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/v1/plans`, {
                     withCredentials: true,
                 });
                 setPlans(Array.isArray(response.data) ? response.data : []);
@@ -80,7 +80,7 @@ const ListComponent = () => {
             if (plan.id === 1) {
                 // Gói FREE
                 const response = await axios.post(
-                    `http://localhost:8080/api/v1/workspaces/subscriptions/trial?userId=${user.id}`,
+                    `${process.env.REACT_APP_BACKEND_URL}/api/v1/workspaces/subscriptions/trial?userId=${user.id}`,
                     {},
                     { withCredentials: true }
                 );
@@ -88,7 +88,7 @@ const ListComponent = () => {
             } else {
                 // Các gói khác: gọi VNPAY
                 const response = await axios.post(
-                    "http://localhost:8080/api/payment",
+                    `${process.env.REACT_APP_BACKEND_URL}/api/payment`,
                     {
                         serviceName: plan.name,
                         amount: plan.price,

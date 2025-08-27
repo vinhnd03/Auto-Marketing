@@ -62,11 +62,12 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `http://localhost:8080/api/auth/google`;
+    window.location.href = `${process.env.REACT_APP_BACKEND_URL}/api/auth/google`;
   };
 
   const handleFacebookLogin = () => {
-    window.location.href = `http://localhost:8080/api/auth/facebook`;
+    // window.location.href = `${process.env.REACT_APP_BACKEND_URL}/api/auth/facebook`;
+    window.location.href = `${process.env.REACT_APP_BACKEND_URL}/api/auth/facebook`;
   };
 
   return (
