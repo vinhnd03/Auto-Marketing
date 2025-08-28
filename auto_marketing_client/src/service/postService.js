@@ -56,12 +56,25 @@ export const getPostsByFilter = async (workspaceId, campaignId, topicId) => {
 // Đếm tổng số bài viết của một topic
 export async function countPostsByTopic(topicId) {
   try {
-    const response = await apiClient.get(`/posts/topic/count/${topicId}`);
+    const response = await apiClient.get(
+      `/posts/topic/${topicId}/count/approved`
+    );
     return response.data;
   } catch (error) {
     throw error;
   }
 }
+
+// Lấy các post có status APPROVED cho một topic
+export async function getApprovedPostsByTopic(topicId) {
+  try {
+    const response = await apiClient.get(`/posts/topic/${topicId}/approved`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
 // Hàm mock API lấy bài viết AI đã tạo
 export async function getAIGeneratedPosts() {
   // TODO: Thay bằng gọi API thực tế

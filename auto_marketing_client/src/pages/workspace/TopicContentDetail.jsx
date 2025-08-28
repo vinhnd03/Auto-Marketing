@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AIContentGenerator from "../../components/ai/AIContentGenerator";
 import { Wand2 } from "lucide-react";
-import { getPostsByTopic } from "../../service/postService";
+import { getApprovedPostsByTopic } from "../../service/postService";
 import dayjs from "dayjs";
 
 const TopicContentDetail = ({ topic, onBack }) => {
@@ -31,7 +31,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
       setLoading(true);
       setError(null);
       try {
-        const data = await getPostsByTopic(topic.id);
+        const data = await getApprovedPostsByTopic(topic.id);
         setContents(Array.isArray(data) ? data : []);
       } catch (err) {
         setError("Không thể tải content cho topic này.");
