@@ -73,8 +73,10 @@ import MarketingNewsletterPage from "./pages/admin/MarketingNewsletterPage";
 import MarketingNotificationsPage from "./pages/admin/MarketingNotificationsPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
+import AIGeneratedPostsPage from "./pages/ai/AIGeneratedPostsPage";
 
 import GlobalScrollToTop from "./components/ui/GlobalScrollToTop";
+import AIGeneratedPostDetailPage from "./pages/ai/AIGeneratedPostDetailPage";
 
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
@@ -303,6 +305,22 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <WorkspaceDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ai-generated-posts"
+                  element={
+                    <ProtectedRoute>
+                      <AIGeneratedPostsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ai-generated-posts/:id"
+                  element={
+                    <ProtectedRoute>
+                      <AIGeneratedPostDetailPage />
                     </ProtectedRoute>
                   }
                 />

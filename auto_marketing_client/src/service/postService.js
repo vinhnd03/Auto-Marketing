@@ -62,3 +62,21 @@ export async function countPostsByTopic(topicId) {
     throw error;
   }
 }
+// Hàm mock API lấy bài viết AI đã tạo
+export async function getAIGeneratedPosts() {
+  // TODO: Thay bằng gọi API thực tế
+  return [
+    {
+      id: 1,
+      title: "AI Marketing Post 1",
+      content: "Đây là nội dung bài viết AI số 1.",
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 2,
+      title: "AI Marketing Post 2",
+      content: "Đây là nội dung bài viết AI số 2.",
+      createdAt: new Date().toISOString(),
+    },
+  ];
+}
