@@ -50,6 +50,18 @@ public class RestUserController {
         return new ResponseEntity<>(usersPage, HttpStatus.OK);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<User>> searchUsers(
+            @RequestParam(required = false) String subscriptionFilter, // NO_PACKAGE | EXPIRED | ACTIVE
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> users=userService.filterUsersBySubscription(subscriptionFilter,pageable);
+        return ResponseEntity.ok(users);
+    }
+
+
     @GetMapping("/{id}")
     public ResponseEntity<Optional<User>> findUserById(@PathVariable Long id) {
         Optional<User> usersOptional = userService.findById(id);

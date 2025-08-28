@@ -2,7 +2,7 @@ import axios from "axios";
 import { data } from 'react-router-dom';
 
 // Base URL for topic API
-const BASE_URL = "http://localhost:8080/api/v1";
+const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}/api/v1`;
 
 export const getTopicsByCampaignId = async (campaignId) => {
   try {

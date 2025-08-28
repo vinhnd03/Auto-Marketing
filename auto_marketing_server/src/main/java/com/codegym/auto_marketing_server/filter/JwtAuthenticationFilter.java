@@ -52,23 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //                    new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
 //            SecurityContextHolder.getContext().setAuthentication(auth);
 //
-//            // Kiểm tra thời gian còn lại
-//            Claims claims = jwtService.extractAllClaims(token);
-//            long expTime = claims.getExpiration().getTime();
-//            long now = System.currentTimeMillis();
-//            long remainingTime = expTime - now;
 //
-////             Nếu còn < 10 phút thì refresh
-////            if (remainingTime < 10 * 60 * 1000) {
-////                String newToken = jwtService.refreshToken(token, 30 * 60 * 1000); // 30 phút
-////                ResponseCookie cookie = ResponseCookie.from("jwt", newToken)
-////                        .httpOnly(true)
-////                        .sameSite("Lax")
-////                        .path("/")
-////                        .maxAge(30 * 60)
-////                        .build();
-////                response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-////            }
 //        }
 
         if (token != null) { // Chỉ kiểm tra nếu token có
@@ -81,6 +65,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(auth);
+
+                        Claims claims = jwtService.extractAllClaims(token);
+                        long expTime = claims.getExpiration().getTime();
+                        long now = System.currentTimeMillis();
+                        long remainingTime = expTime - now;
+
+//                         Nếu còn < 10 phút thì refresh
+                        if (remainingTime < 10 * 60 * 1000) {
+                            String newToken = jwtService.refreshToken(token, 30 * 60 * 1000); // 30 phút
+                            ResponseCookie cookie = ResponseCookie.from("jwt", newToken)
+                                    .httpOnly(true)
+                                    .sameSite("Lax")
+                                    .path("/")
+                                    .maxAge(30 * 60)
+                                    .build();
+                            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+                        }
                     }
                 } else {
                     // Token invalid
@@ -100,6 +101,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
+        // Kiểm tra thời gian còn lại
 
 
         filterChain.doFilter(request, response);

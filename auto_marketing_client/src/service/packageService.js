@@ -1,7 +1,7 @@
 // src/service/packageService.js
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/admin/packages";
+const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api/admin/packages`;
 
 export const getPackageStats = async () => {
     try {

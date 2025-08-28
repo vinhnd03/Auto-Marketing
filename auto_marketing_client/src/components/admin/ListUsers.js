@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { findById, search } from "../../service/admin/usersService";
+import React, { useEffect, useState,useRef } from "react";
+import { findById, search,filterUsersByPackage,updateUser } from "../../service/admin/usersService";
 import { getAllPackages } from "../../service/admin/statisticsPackagesService";
 import { Eye, Lock, Unlock } from "lucide-react";
 import UpdateUserModal from "./UpdateUser";
@@ -15,16 +15,29 @@ function ListUsers() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [modalUser, setModalUser] = useState(null);
+  const [packageFilter, setPackageFilter] = useState(null);
+  const [showPackageFilter, setShowPackageFilter] = useState(false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const fetchPackages = async () => {
-      const pkgs = await getAllPackages();
-      setPackages(pkgs);
-      //  console.log(packages)
-    };
-    fetchPackages().then();
-    handleSearch().then();
-  }, [page]);
+        const fetchPackages = async () => {
+            const pkgs = await getAllPackages();
+            setPackages(pkgs);
+        };
+        fetchPackages().then();
+        handleSearch().then();
+    }, [page, packageFilter]);
+
+    // Xử lý click outside để đóng dropdown
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowPackageFilter(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
   const handleViewDetail = async (id) => {
     let u = await findById(id);
@@ -46,36 +59,44 @@ function ListUsers() {
     );
   };
 
-  const handleSearch = async () => {
-    const { data, totalPages } = await search(
-      keyword,
-      sortKey,
-      page,
-      5,
-      null,
-      null,
-      showLocked // truyền thẳng cho backend
-    );
+    const handleSearch = async () => {
+        let result;
 
-    setList(data);
-    setTotalPages(totalPages);
+        if (sortKey === "NO_PACKAGE" || sortKey === "EXPIRED" || sortKey === "ACTIVE") {
+            // Nếu chọn các trạng thái đặc biệt
+            result = await filterUsersByPackage(sortKey, page, 5);
+        } else {
+            // Nếu chọn gói cụ thể hoặc tất cả
+            result = await search(
+                keyword,
+                sortKey,   // truyền tên gói hoặc rỗng
+                page,
+                5,
+                null,
+                null,
+                showLocked
+            );
+        }
 
-    if (page > totalPages) {
-      setPage(1);
-    }
-  };
+        setList(result.data);
+        setTotalPages(result.totalPages);
+
+        if (page > result.totalPages) {
+            setPage(1);
+        }
+    };
 
   const handleClear = async () => {
-    // reset filter state
-    setKeyword("");
-    setSortKey("");
-    setShowLocked(null);
-    setPage(1);
+        setKeyword("");
+        setSortKey("");
+        setShowLocked(null);
+        setPage(1);
 
-    const result = await search("", "", 1, 5, null, null, null);
-    setList(result.data);
-    setTotalPages(result.totalPages);
-  };
+        // Lấy tất cả bằng searchAndPage
+        const result = await search("", "", 1, 5, null, null, null);
+        setList(result.data);
+        setTotalPages(result.totalPages);
+    };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -123,6 +144,8 @@ function ListUsers() {
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             >
               <option value="">Tất cả</option>
+              <option value="NO_PACKAGE">Chưa mua gói nào</option>
+              <option value="EXPIRED">Hết hạn</option>
               {packages.map((pkg) => (
                 <option key={pkg.id} value={pkg.name}>
                   {pkg.name}

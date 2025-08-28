@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/schedules";
+const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api/schedules`;
 
 // GET all published
 export const getSchedules = async (workspaceId) => {

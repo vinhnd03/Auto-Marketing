@@ -32,22 +32,23 @@ public interface IUserRepository extends JpaRepository<User, Long> {
 
     long count();
 
-    // Lấy danh sách người dùng và gói đã mua
-//    @Query("""
-//            SELECT DISTINCT u
-//            FROM User u
-//            LEFT JOIN Subscription s ON s.user = u
-//            LEFT JOIN Plan p ON s.plan = p
-//            WHERE (:name IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :name, '%')))
-//              AND (:planName IS NULL OR (p IS NOT NULL AND LOWER(p.name) LIKE LOWER(CONCAT('%', :planName, '%'))))
-//              AND (:startDate IS NULL OR s.startDate >= :startDate)
-//              AND (:endDate IS NULL OR s.startDate <= :endDate)
-//    """)
-//    Page<User> searchAndPage(@Param("name") String name,
-//                              @Param("planName") String planName,
-//                              @Param("startDate") LocalDate startDate,
-//                              @Param("endDate") LocalDate endDate,
-//                              Pageable pageable);
+    // Chưa mua gói nào
+    @Query("SELECT u FROM User u WHERE u.subscriptions IS EMPTY " +
+            "OR NOT EXISTS (SELECT s FROM Subscription s WHERE s.user = u AND s.plan IS NOT NULL)")
+    Page<User> findUsersWithoutSubscription(Pageable pageable);
+
+    // Đã mua nhưng hết hạn
+    @Query("SELECT DISTINCT u FROM User u " +
+            "JOIN u.subscriptions s " +
+            "WHERE s.plan IS NOT NULL AND s.endDate < :today " +
+            "AND NOT EXISTS (SELECT s2 FROM Subscription s2 WHERE s2.user = u AND s2.plan IS NOT NULL AND s2.endDate >= :today AND s2.status = 'ACTIVE')")
+    Page<User> findUsersWithExpiredSubscription(@Param("today") LocalDate today, Pageable pageable);
+
+    // Đang sử dụng
+    @Query("SELECT DISTINCT u FROM User u JOIN u.subscriptions s " +
+            "WHERE s.plan IS NOT NULL AND s.endDate >= :today AND s.status = 'ACTIVE'")
+    Page<User> findUsersWithActiveSubscription(@Param("today") LocalDate today, Pageable pageable);
+
     @Query(value = """
             SELECT DISTINCT u
             FROM User u
@@ -58,6 +59,7 @@ public interface IUserRepository extends JpaRepository<User, Long> {
               AND (:startDate IS NULL OR u.createdAt >= :startDate)
               AND (:endDate IS NULL OR u.createdAt <= :endDate)
               AND (:status IS NULL OR u.status = :status)
+              AND u.role.id<>2
             """,
             countQuery = """
                     SELECT COUNT(DISTINCT u.id)
@@ -69,6 +71,7 @@ public interface IUserRepository extends JpaRepository<User, Long> {
                       AND (:startDate IS NULL OR u.createdAt >= :startDate)
                       AND (:endDate IS NULL OR u.createdAt <= :endDate)
                       AND (:status IS NULL OR u.status = :status)
+                      AND u.role.id<>2
                     """)
     Page<User> searchAndPage(
             @Param("name") String name,

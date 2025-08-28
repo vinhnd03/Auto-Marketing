@@ -9,18 +9,14 @@ import { createSchedule } from "../../service/publish/scheduleManagerService";
 import { useAuth } from "../../context/AuthContext";
 import { useParams } from "react-router-dom";
 import campaignService from "../../service/campaignService";
-
 import { getTopicsByCampaignId } from "../../service/topicService";
 import { getPostsByFilter } from "../../service/postService";
 dayjs.locale("vi");
 dayjs.extend(isoWeek);
-
 const hours = Array.from({ length: 24 }, (_, i) => i);
-
 export default function SchedulePostCalendar() {
   const { user } = useAuth();
   const { workspaceId } = useParams();
-
   const [campaigns, setCampaigns] = useState([]);
   const [topics, setTopics] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState("");
@@ -29,19 +25,15 @@ export default function SchedulePostCalendar() {
   const [userPages, setUserPages] = useState([]);
   const [posts, setPosts] = useState([]);
   const [weekStart, setWeekStart] = useState(dayjs().startOf("isoWeek"));
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState(null);
   const [minute, setMinute] = useState("00");
   const [selectedContentId, setSelectedContentId] = useState("");
   const [selectedFanpageIds, setSelectedFanpageIds] = useState([]);
-
   const daysOfWeek = Array.from({ length: 7 }, (_, i) =>
     weekStart.add(i, "day")
   );
-
   const now = dayjs();
-
   // --- Load Campaigns theo workspace ---
   useEffect(() => {
     if (workspaceId) {
@@ -51,7 +43,6 @@ export default function SchedulePostCalendar() {
         .catch((err) => toast.error("Lỗi tải campaigns: " + err.message));
     }
   }, [workspaceId]);
-
   // --- Load Topics khi chọn campaign ---
   useEffect(() => {
     if (selectedCampaign) {
@@ -65,14 +56,12 @@ export default function SchedulePostCalendar() {
       setSelectedTopic("");
     }
   }, [selectedCampaign]);
-
   // --- Load Posts khi chọn campaign/topic ---
   useEffect(() => {
     if (!workspaceId || !selectedCampaign || !selectedTopic) {
       setAvailableContents([]);
       return;
     }
-
     getPostsByFilter(workspaceId, selectedCampaign, selectedTopic)
       .then((data) => {
         const array = Array.isArray(data) ? data : [];
@@ -80,7 +69,6 @@ export default function SchedulePostCalendar() {
       })
       .catch((err) => toast.error("Lỗi tải bài viết: " + err.message));
   }, [workspaceId, selectedCampaign, selectedTopic]);
-
   // --- Load Fanpages ---
   useEffect(() => {
     if (!user) return;
@@ -94,7 +82,6 @@ export default function SchedulePostCalendar() {
       })
       .catch((err) => toast.error("Lỗi tải fanpage: " + err.message));
   }, [user]);
-
   // ✅ Hàm check giờ còn phút hợp lệ không
   const isHourAvailable = (day, hour) => {
   const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
@@ -102,25 +89,19 @@ export default function SchedulePostCalendar() {
     day.clone().hour(hour).minute(m).isAfter(now.add(5, "minute"))
   );
 };
-
-
   const openScheduleModal = (day, hour) => {
   if (!isHourAvailable(day, hour)) {
     toast.error("Giờ này không còn phút hợp lệ để đặt lịch");
     return;
   }
-
   const newTime = day.hour(hour).minute(0).second(0);
   const available = getAvailableMinutes(newTime);
-
   setSelectedTime(newTime);
   setMinute(available.length > 0 ? available[0] : ""); // ✅ lấy phút hợp lệ đầu tiên
   setSelectedContentId("");
   setSelectedFanpageIds([]);
   setIsModalOpen(true);
 };
-
-
   // ✅ Lọc phút hợp lệ
   const getAvailableMinutes = (time) => {
   if (!time) return [];
@@ -128,8 +109,6 @@ export default function SchedulePostCalendar() {
     .filter((m) => time.clone().minute(m).isAfter(now.add(5, "minute")))
     .map((m) => m.toString().padStart(2, "0"));
 };
-
-
   const savePost = async () => {
     if (!selectedContentId) {
       toast.error("Vui lòng chọn nội dung bài viết");
@@ -139,7 +118,6 @@ export default function SchedulePostCalendar() {
       toast.error("Vui lòng chọn ít nhất 1 fanpage để đăng");
       return;
     }
-
     const chosenContent = availableContents.find(
       (c) => c.id.toString() === selectedContentId
     );
@@ -147,15 +125,11 @@ export default function SchedulePostCalendar() {
       toast.error("Bài viết chưa hợp lệ hoặc đã bị xóa");
       return;
     }
-
 const time = selectedTime.clone().minute(parseInt(minute, 10));
-
 if (time.isBefore(now.add(5, "minute"))) {
   toast.error("Không thể đặt lịch trong quá khứ hoặc sớm hơn 5 phút hiện tại");
   return;
 }
-
-
     const payload = {
       workspaceId,
       postId: chosenContent.id,
@@ -169,11 +143,9 @@ if (time.isBefore(now.add(5, "minute"))) {
       fanpageIds: selectedFanpageIds.map((id) => parseInt(id)),
       scheduledTime: time.format("YYYY-MM-DDTHH:mm:ss"),
     };
-
     try {
       await createSchedule(payload);
       await fetchSchedules(workspaceId);
-
       setIsModalOpen(false);
       toast.success("Đặt lịch thành công!");
     } catch (err) {
@@ -183,7 +155,6 @@ if (time.isBefore(now.add(5, "minute"))) {
       );
     }
   };
-
   const fetchSchedules = async (wid) => {
     if (!wid) return;
     try {
@@ -207,13 +178,11 @@ if (time.isBefore(now.add(5, "minute"))) {
       toast.error("Lỗi tải lịch: " + err.message);
     }
   };
-
   useEffect(() => {
     if (workspaceId) {
       fetchSchedules(workspaceId);
     }
   }, [workspaceId]);
-
   const renderPosts = (day, hour) => {
     const postsAtTime = posts.filter(
       (p) =>
@@ -222,7 +191,6 @@ if (time.isBefore(now.add(5, "minute"))) {
         p.time.hour() === hour &&
         p.time.isSame(day, "day")
     );
-
     return postsAtTime.map((post, idx) => (
       <div
         key={idx}
@@ -233,7 +201,6 @@ if (time.isBefore(now.add(5, "minute"))) {
       </div>
     ));
   };
-
   return (
     <div className="p-4">
       {/* Thanh điều hướng tuần */}
@@ -254,7 +221,6 @@ if (time.isBefore(now.add(5, "minute"))) {
           →
         </button>
       </div>
-
       {/* Bảng lịch */}
       <div className="overflow-x-auto">
         <div
@@ -272,7 +238,6 @@ if (time.isBefore(now.add(5, "minute"))) {
               {day.format("dddd DD/MM")}
             </div>
           ))}
-
           {hours.map((hour) => (
             <React.Fragment key={hour}>
               <div className="text-sm text-right pr-2 py-2 border-t border-gray-200">
@@ -295,7 +260,6 @@ if (time.isBefore(now.add(5, "minute"))) {
           ))}
         </div>
       </div>
-
       {/* Modal chọn nội dung */}
       <Dialog
         open={isModalOpen}
@@ -308,7 +272,6 @@ if (time.isBefore(now.add(5, "minute"))) {
             <Dialog.Title className="text-lg font-semibold mb-4">
               Chọn nội dung để đăng
             </Dialog.Title>
-
             {/* Chọn Campaign */}
             <div className="mb-2">
               <label className="block text-sm font-medium mb-1">Chọn Campaign</label>
@@ -325,7 +288,6 @@ if (time.isBefore(now.add(5, "minute"))) {
                 ))}
               </select>
             </div>
-
             {/* Chọn Topic */}
             <div className="mb-2">
               <label className="block text-sm font-medium mb-1">Chọn Topic</label>
@@ -345,7 +307,6 @@ if (time.isBefore(now.add(5, "minute"))) {
                 ))}
               </select>
             </div>
-
             {/* Chọn Post */}
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Chọn bài viết</label>
@@ -365,7 +326,6 @@ if (time.isBefore(now.add(5, "minute"))) {
                 ))}
               </select>
             </div>
-
             {/* Thời gian */}
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Thời gian</label>
@@ -387,10 +347,8 @@ if (time.isBefore(now.add(5, "minute"))) {
     </option>
   ))}
 </select>
-
               </div>
             </div>
-
             {/* Chọn fanpage */}
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">Chọn fanpage</label>
@@ -415,7 +373,6 @@ if (time.isBefore(now.add(5, "minute"))) {
                 ))}
               </div>
             </div>
-
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setIsModalOpen(false)}

@@ -32,7 +32,6 @@ public class FanpageController {
 //            pages = fanpageService.syncUserPages(userId); // đồng bộ từ FB nếu chưa có
 //        }
 //        return ResponseEntity.ok(pages);
-        // luôn sync trước khi trả về
         fanpageService.syncUserPages(userId);
         return ResponseEntity.ok(fanpageService.listByUser(userId));
     }

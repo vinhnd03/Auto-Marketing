@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/fanpages";
+const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api/fanpages`;
 
 /**
  * Lấy danh sách fanpage hoặc tự đồng bộ nếu chưa có

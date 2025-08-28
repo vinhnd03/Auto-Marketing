@@ -1,8 +1,6 @@
 import axios from "axios"
 import api from "../context/api";
 
-// const URL = "http://localhost:8080"
-
 const getUserProfile = async (id) => {
     try {
         const resp = await api.get(`/user/${id}`, { withCredentials: true });

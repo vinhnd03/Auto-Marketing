@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080/api/admin/revenue";
+const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}/api/admin/revenue`;
 
 const getRevenue = async (type, start, end) => {
     try {
