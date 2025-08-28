@@ -31,7 +31,7 @@ public class ScheduledPostController {
     // 1. Tạo mới ScheduledPost (kèm Post + Media)
     @PostMapping
     public ResponseEntity<ScheduledPost> create(@Valid @RequestBody ScheduleRequestDTO req) {
-        ScheduledPost created = scheduledPostService.createSchedule(req);   
+        ScheduledPost created = scheduledPostService.createSchedule(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

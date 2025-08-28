@@ -38,6 +38,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthEntryPoint jwtAuthEntryPoint;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -56,6 +57,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint(jwtAuthEntryPoint))
 //                .oauth2Login(oauth -> oauth
 ////                        .loginPage("/api/auth/google")
 ////                                .authorizationEndpoint(auth -> auth.baseUri("/api/auth"))

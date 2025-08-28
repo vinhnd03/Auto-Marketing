@@ -9,9 +9,9 @@ import { createSchedule } from "../../service/publish/scheduleManagerService";
 import { useAuth } from "../../context/AuthContext";
 import { useParams } from "react-router-dom";
 import campaignService from "../../service/campaignService";
-import { getTopicsByCampaignId } from "../../service/topic_service";
-import { getPostsByFilter } from "../../service/post_service";
 
+import { getTopicsByCampaignId } from "../../service/topicService";
+import { getPostsByFilter } from "../../service/postService";
 dayjs.locale("vi");
 dayjs.extend(isoWeek);
 
@@ -97,31 +97,38 @@ export default function SchedulePostCalendar() {
 
   // ✅ Hàm check giờ còn phút hợp lệ không
   const isHourAvailable = (day, hour) => {
-    const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
-    return minutes.some((m) =>
-      day.hour(hour).minute(m).isAfter(now.add(5, "minute"))
-    );
-  };
+  const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
+  return minutes.some((m) =>
+    day.clone().hour(hour).minute(m).isAfter(now.add(5, "minute"))
+  );
+};
+
 
   const openScheduleModal = (day, hour) => {
-    if (!isHourAvailable(day, hour)) {
-      toast.error("Giờ này không còn phút hợp lệ để đặt lịch");
-      return;
-    }
-    setSelectedTime(day.hour(hour).minute(0).second(0));
-    setMinute("00");
-    setSelectedContentId("");
-    setSelectedFanpageIds([]);
-    setIsModalOpen(true);
-  };
+  if (!isHourAvailable(day, hour)) {
+    toast.error("Giờ này không còn phút hợp lệ để đặt lịch");
+    return;
+  }
+
+  const newTime = day.hour(hour).minute(0).second(0);
+  const available = getAvailableMinutes(newTime);
+
+  setSelectedTime(newTime);
+  setMinute(available.length > 0 ? available[0] : ""); // ✅ lấy phút hợp lệ đầu tiên
+  setSelectedContentId("");
+  setSelectedFanpageIds([]);
+  setIsModalOpen(true);
+};
+
 
   // ✅ Lọc phút hợp lệ
   const getAvailableMinutes = (time) => {
-    if (!time) return [];
-    return Array.from({ length: 12 }, (_, i) => i * 5)
-      .filter((m) => time.minute(m).isAfter(now.add(5, "minute")))
-      .map((m) => m.toString().padStart(2, "0"));
-  };
+  if (!time) return [];
+  return Array.from({ length: 12 }, (_, i) => i * 5)
+    .filter((m) => time.clone().minute(m).isAfter(now.add(5, "minute")))
+    .map((m) => m.toString().padStart(2, "0"));
+};
+
 
   const savePost = async () => {
     if (!selectedContentId) {
@@ -141,11 +148,13 @@ export default function SchedulePostCalendar() {
       return;
     }
 
-    const time = selectedTime.minute(parseInt(minute, 10));
-    if (time.isBefore(now.add(5, "minute"))) {
-      toast.error("Không thể đặt lịch trong quá khứ hoặc sớm hơn 5 phút hiện tại");
-      return;
-    }
+const time = selectedTime.clone().minute(parseInt(minute, 10));
+
+if (time.isBefore(now.add(5, "minute"))) {
+  toast.error("Không thể đặt lịch trong quá khứ hoặc sớm hơn 5 phút hiện tại");
+  return;
+}
+
 
     const payload = {
       workspaceId,
@@ -368,16 +377,17 @@ export default function SchedulePostCalendar() {
                   className="border rounded px-2 py-1 text-sm w-full"
                 />
                 <select
-                  value={minute}
-                  onChange={(e) => setMinute(e.target.value)}
-                  className="border rounded px-2 py-1 text-sm"
-                >
-                  {getAvailableMinutes(selectedTime).map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
+  value={minute}
+  onChange={(e) => setMinute(e.target.value)}
+  className="border rounded px-2 py-1 text-sm"
+>
+  {getAvailableMinutes(selectedTime).map((m) => (
+    <option key={m} value={m}>
+      {m}
+    </option>
+  ))}
+</select>
+
               </div>
             </div>
 
