@@ -63,4 +63,9 @@ public class SubscriptionService implements ISubscriptionService {
     public Integer findMaxWorkspaceByCurrenSubscription(Long id) {
         return subscriptionRepository.findMaxWorkspaceByCurrenSubscription(id);
     }
+
+    @Override
+    public int countSubscriptionByPlantName(String planName,Long userId) {
+        return subscriptionRepository.countSubscriptionByPlantName(planName,userId);
+    }
 }

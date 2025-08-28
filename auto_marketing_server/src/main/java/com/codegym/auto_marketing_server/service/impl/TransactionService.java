@@ -140,7 +140,7 @@ public class TransactionService implements ITransactionService {
 
     @Override
     public List<PackageDTO> getPackageChart(LocalDateTime start, LocalDateTime end) {
-        return transactionRepository.getPackageSales(start,end);
+        return transactionRepository.getPackageSales(start, end);
     }
 
 
@@ -165,6 +165,7 @@ public class TransactionService implements ITransactionService {
     private BigDecimal nz(BigDecimal v) {
         return v == null ? BigDecimal.ZERO : v;
     }
+
     private final IUserService userService;
     private final IPlanService planService;
     private final ISubscriptionService subscriptionService;
@@ -213,5 +214,10 @@ public class TransactionService implements ITransactionService {
             subscription.setActivatedAt(LocalDate.now());
             subscriptionManagementService.purchasePlan(userId, plan);
         }
+    }
+
+    @Override
+    public String getMostPopularPackage() {
+        return transactionRepository.getMostPopularPackage();
     }
 }

@@ -21,4 +21,6 @@ public interface ITransactionService {
 
 
     void handlePayment(String txnRef, long amount, String serviceName, Long userId, String status);
+
+    String getMostPopularPackage();
 }
