@@ -31,6 +31,7 @@ const ListComponent = () => {
                 setPlans(Array.isArray(response.data) ? response.data : []);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách gói:", error);
+                toast.error("Không thể tải bảng giá. Vui lòng thử lại sau!")
             }
         };
         fetchPlans();
@@ -182,7 +183,7 @@ const ListComponent = () => {
                                             <h3 className="text-2xl font-bold text-gray-900 mb-2">
                                                 {plan?.name}
                                             </h3>
-                                            {plan?.price > 0 && (
+                                            {plan?.price > 0 ? (
                                                 <div className="flex items-center justify-center gap-2 mb-4">
                                                     <span className="text-4xl font-bold text-gray-900">
                                                         {plan.price.toLocaleString("vi-VN")}
@@ -191,11 +192,17 @@ const ListComponent = () => {
                                                         <div className="text-sm text-gray-600">VNĐ</div>
                                                     </div>
                                                 </div>
+                                            ): (
+                                                <div className="flex items-center justify-center gap-2 mb-4">
+                                                    <span className="text-4xl font-bold text-gray-900">
+                                                        Miễn phí
+                                                    </span>
+                                                </div>
                                             )}
                                             <div className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                                                <span>:moneybag:</span>
+                                                <span role="img" aria-label="moneybag">💰</span>
                                                 Tiết kiệm{" "}
-                                                {plan?.planLevel === 0
+                                                {plan?.planLevel === 1
                                                     ? 100
                                                     : Math.round(
                                                         (1 - (plan?.price ?? 0) / ((plan?.price ?? 0) * 1.5)) * 100

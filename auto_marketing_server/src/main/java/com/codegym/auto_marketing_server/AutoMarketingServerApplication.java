@@ -23,5 +23,4 @@ public class AutoMarketingServerApplication {
         // Run Spring Application
         SpringApplication.run(AutoMarketingServerApplication.class, args);
     }
-
 }

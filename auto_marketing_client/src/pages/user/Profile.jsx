@@ -17,6 +17,7 @@ import * as Yup from "yup";
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
+  const [sub, setSub] = useState(null);
   const { user, setUser } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
@@ -36,6 +37,7 @@ export default function Profile() {
       try {
         if (user) {
           const data = await userService.getUserProfile(user.id);
+          setSub(await userService.getCurrentPlan(user.id));
           console.log(data);
           if (data) {
             setFormData(data);
@@ -68,7 +70,7 @@ export default function Profile() {
         return;
       }
 
-      // Kiểm tra dung lượng file (ví dụ: max 2MB)
+      // Kiểm tra dung lượng file
       const maxSizeInMB = 5;
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
       if (file.size > maxSizeInBytes) {
@@ -120,7 +122,7 @@ export default function Profile() {
       .email("Email không hợp lệ"),
 
     phone: Yup.string()
-      .required("Số điện thoại không được để trống")
+      // .required("Số điện thoại không được để trống")
       .matches(/^0\d{9,10}$/, "Số điện thoại không hợp lệ"),
   });
 
@@ -371,8 +373,31 @@ export default function Profile() {
                 </div>
               </div>
 
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center mb-6 mt-6">
+                <div className="text-xl font-bold text-gray-600 mb-2">
+                  Gói đang sử dụng
+                </div>
+                <div className="text-3xl font-bold text-purple-600 mb-2">
+                  {sub ? sub.plan?.name : "Không có"}
+                </div>
+                <div className="text-gray-600">
+                  {sub ? (
+                    <>
+                      Sử dụng đến hết ngày{" "}
+                      {new Date(sub.endDate).toLocaleDateString("vi-VN", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
+                    </>
+                  ) : (
+                    "Vui lòng mua gói để được trải nghiệm dịch vụ"
+                  )}
+                </div>
+              </div>
+
               {/* Statistics Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
                   <div className="text-3xl font-bold text-blue-600 mb-2">
                     15

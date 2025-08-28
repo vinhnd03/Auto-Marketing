@@ -245,7 +245,7 @@ const ResetPasswordPage = () => {
             Đường dẫn của bạn đã hết hạn hoặc không hợp lệ.
             <br /> Vui lòng yêu cầu đặt lại mật khẩu mới.
           </p>
-          <button
+          {/* <button
             onClick={() => {
               // setEmailSent(false);
               // setEmail("");
@@ -253,7 +253,7 @@ const ResetPasswordPage = () => {
             className="text-blue-600 hover:text-blue-700 text-sm font-medium"
           >
             Gửi lại email
-          </button>
+          </button> */}
         </div>
       </div>
     </div>

@@ -1,6 +1,19 @@
 import axios from "axios";
 const URL = "http://localhost:8080/api/campaign";
 
+const findCampaignByWorkspaceId = async (workspaceId) => {
+  try {
+    const resp = await axios.get(`${URL}/workspaceId`,{
+      params: {workspaceId},
+      withCredentials:true
+    })
+    console.log(resp.data);
+    return resp.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
 const findAllCampaign = async (
   page = 0,
   size = 10,
@@ -49,7 +62,7 @@ const getStatuses = async () => {
 // Lấy campaign theo id
 const findById = async (id) => {
   try {
-    const res = await axios.get(`${URL}/${id}`, { withCredentials: true });
+    const res = await axios.get(`${URL}/${id}`, {withCredentials: true});
     return { data: res.data, errors: null };
   } catch (error) {
     if (error.response && error.response.status === 404) {
@@ -62,7 +75,7 @@ const findById = async (id) => {
 // Cập nhật campaign theo id
 const update = async (id, dto) => {
   try {
-    const res = await axios.put(`${URL}/${id}`, dto, { withCredentials: true });
+    const res = await axios.put(`${URL}/${id}`, dto, {withCredentials: true});
     return { data: res.data, errors: null };
   } catch (error) {
     if (error.response && error.response.status === 400) {
@@ -132,4 +145,5 @@ export default {
   softDelete,
   uploadExcel,
   countCampaign,
+  findCampaignByWorkspaceId
 };

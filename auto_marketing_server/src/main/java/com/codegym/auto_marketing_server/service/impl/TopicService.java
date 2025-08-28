@@ -249,4 +249,9 @@ public class TopicService implements ITopicService {
         List<Topic> topics = topicRepository.findByCampaignIdAndStatus(campaignId, status);
         topics.forEach(topic -> topicRepository.deleteById(topic.getId()));
     }
+
+    @Override
+    public List<Topic> getTopicsByCampaignId(Long campaignId) {
+        return topicRepository.findByCampaignId(campaignId);
+    }
 }

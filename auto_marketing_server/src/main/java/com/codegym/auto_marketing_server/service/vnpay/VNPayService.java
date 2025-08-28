@@ -64,23 +64,4 @@ public class VNPayService {
         return vnPayConfig;
     }
 
-    public Map<String, Object> handleSuccessPayment(String txnRef, String orderInfo, long amount) {
-        System.out.println("🔔 [VNPay] Thanh toán thành công:");
-        System.out.println("  - Mã giao dịch: " + txnRef);
-        System.out.println("  - Số tiền: " + amount + " VND");
-        System.out.println("  - Dịch vụ: " + orderInfo);
-
-        // 👉 Parse lại tên gói dịch vụ từ chuỗi orderInfo
-        String serviceName = orderInfo.replace("Thanh toan dich vu ", "");
-
-        // ✅ Tạm thời trả về JSON để client dùng render giao diện
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        result.put("message", "Thanh toán thành công!");
-        result.put("txnRef", txnRef);
-        result.put("amount", amount / 100); // Chia lại cho 100 vì khi gửi đi đã * 100
-        result.put("service", serviceName);
-
-        return result;
-    }
 }

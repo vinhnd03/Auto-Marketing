@@ -23,7 +23,7 @@ public class RestPlanController {
 
     @GetMapping("")
     public ResponseEntity<List<Plan>> findAllBlog(){
-        List<Plan> plansList=planService.findAll();
+        List<Plan> plansList=planService.getAll();
         if (plansList.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT); //204 thành công nhưng không có kết quả
         }

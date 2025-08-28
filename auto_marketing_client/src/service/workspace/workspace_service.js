@@ -1,9 +1,12 @@
 import axios from "axios";
+import api from "../../context/api";
 
 const url = "http://localhost:8080/api/v1/workspaces"
+// const url = "/v1/workspaces"
 export const getAllWorkspaceByUserId = async (id) => {
     try {
         const res = await axios.get(`${url}/user/${id}`, {withCredentials: true,})
+        // const res = await api.get(`${url}/user/${id}`, {withCredentials: true,})
         return res.data;
     } catch (e) {
         console.log("loi ket noi db")
@@ -53,6 +56,7 @@ export const getMaxWorkspace = async (id) => {
 
     try {
         const res = await axios.get(`${url}/${id}/workspace-limit`, {withCredentials: true,});
+        // const res = await axios.get(`${url}/${id}/workspace-limit`, {withCredentials: true,});
         return res.data;
     } catch (error) {
         if (error.response && error.response.data) {
@@ -80,7 +84,7 @@ export const updateWorkspaceStatus = async (userId, ids, status) => {
 export const getWorkspaceDetail = async (workspaceId) => {
     try {
         const res = await axios.get(`${url}/${workspaceId}`,{withCredentials: true,});
-        return res.data; // trả về 1 workspace hoặc Array tùy backend
+        return res.data;
     } catch (err) {
         console.log(err);
         return null;

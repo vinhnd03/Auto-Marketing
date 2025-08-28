@@ -12,6 +12,8 @@ import org.thymeleaf.context.Context;
 
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +23,9 @@ public class EmailService {
 
     @Value("${spring.mail.username}")
     private String fromEmail;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     public void sendResetPasswordEmail(String to, String name, String resetLink)
             throws MessagingException { // chỉ giữ MessagingException
@@ -51,6 +56,7 @@ public class EmailService {
         context.setVariable("name", name);
         context.setVariable("planName", planName);
         context.setVariable("endDate", endDate);
+        context.setVariable("planPage", frontendUrl + "/pricing");
 
         String htmlContent = templateEngine.process("subscription-expiry", context);
 
@@ -60,6 +66,29 @@ public class EmailService {
         helper.setFrom(fromEmail, "Auto Marketing System");
         helper.setTo(to);
         helper.setSubject("Gói " + planName + " của bạn đã hết hạn");
+        helper.setText(htmlContent, true);
+
+        mailSender.send(message);
+    }
+
+    public void sendPostPublishedEmail(String to, String name, String pageId,String pageName, String postTitle, LocalDateTime publishedDate)
+            throws MessagingException, UnsupportedEncodingException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String formattedDate = publishedDate.format(formatter);
+        Context context = new Context();
+        context.setVariable("name", name);
+        context.setVariable("postTitle", postTitle);
+        context.setVariable("publishedDate", formattedDate);
+        context.setVariable("dashboardUrl", "https://www.facebook.com/profile.php?id=" + pageId);
+        context.setVariable("pageName", pageName);
+        String htmlContent = templateEngine.process("post-published", context);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom(fromEmail, "Auto Marketing System");
+        helper.setTo(to);
+        helper.setSubject("Bài viết \"" + postTitle + "\" đã được đăng thành công");
         helper.setText(htmlContent, true);
 
         mailSender.send(message);

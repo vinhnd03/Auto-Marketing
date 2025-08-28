@@ -30,9 +30,27 @@ export async function generateContentWithAI(body) {
 }
 
 export async function approveAndCleanPosts(topicId, selectedPostIds) {
-  console.log("selected: ",selectedPostIds);
+  console.log("selected: ", selectedPostIds);
   return apiClient.post(
     `/posts/approve-and-clean?topicId=${topicId}`,
     selectedPostIds
   );
+}
+
+export const getPostsByFilter = async (workspaceId,campaignId,topicId) => {
+  try {
+    const resp = await axios.get(`${BASE_URL}/posts/filter`, {
+      params: {
+        workspaceId,
+        campaignId: campaignId || null,
+        topicId: topicId || null
+      },
+      withCredentials: true
+    })
+    console.log(resp.data);
+
+    return resp.data
+  } catch (error) {
+
+  }
 }

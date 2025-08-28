@@ -114,4 +114,8 @@ public class PaymentController {
             Map.entry("79", "Nhập sai mật khẩu OTP"),
             Map.entry("99", "Lỗi không xác định")
     );
+
+    public String computeExpectedHash(String secret, Map<String, String> params) {
+        return VNPayUtil.hmacSHA512(secret, "dữ liệu hash từ params");
+    }
 }

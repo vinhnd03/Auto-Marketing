@@ -1,8 +1,23 @@
 import axios from "axios";
+import { data } from 'react-router-dom';
 
 // Base URL for topic API
 const BASE_URL = "http://localhost:8080/api/v1";
 
+export const getTopicsByCampaignId = async (campaignId) => {
+  try {
+    const resp = await axios.get(`${BASE_URL}/topics/campaignId`, {
+      params: {campaignId},
+      withCredentials:true
+    })
+    console.log(resp.data);
+    
+    return resp.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
 // Configure axios with default timeout
 const apiClient = axios.create({
   withCredentials: true,

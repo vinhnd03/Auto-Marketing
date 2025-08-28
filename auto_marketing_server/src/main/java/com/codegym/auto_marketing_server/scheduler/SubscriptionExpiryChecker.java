@@ -1,4 +1,4 @@
-package com.codegym.auto_marketing_server.service.impl;
+package com.codegym.auto_marketing_server.scheduler;
 
 import com.codegym.auto_marketing_server.entity.Subscription;
 import com.codegym.auto_marketing_server.enums.SubscriptionStatus;
@@ -29,7 +29,7 @@ public class SubscriptionExpiryChecker {
 
         for (Subscription sub : expiredSubs) {
             // Cập nhật trạng thái
-            sub.setStatus(SubscriptionStatus.EXPIRED);
+            sub.setStatus(SubscriptionStatus.FAIL);
             subscriptionRepository.save(sub);
 
             // Gửi email thông báo

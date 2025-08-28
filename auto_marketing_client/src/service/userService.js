@@ -28,7 +28,6 @@ const updateUserProfile = async (userProfile) => {
 
 const changePassword = async (value) => {
     try {
-        console.log(value);
         const resp = await api.put(`/user/changePassword`, value);
         return {
             success: resp.data.success,
@@ -40,7 +39,19 @@ const changePassword = async (value) => {
             success: false,
             error: error.response?.data?.error || "UNKNOWN_ERROR"
         };
+        // throw error;
     }
 }
 
-export default { getUserProfile, updateUserProfile, changePassword }
+const getCurrentPlan = async (id) => {
+    try {
+        const resp = await api.get("/v1/plans/currentPlan/" + id);
+        console.log(resp.data);
+        return resp.data;
+    } catch (error) {
+        console.log(error);
+        return {}
+    }
+}
+
+export default { getUserProfile, updateUserProfile, changePassword, getCurrentPlan }

@@ -19,7 +19,7 @@ public class AdminPlanController {
 
     @GetMapping
     public ResponseEntity<List<Plan>> getAllPlans() {
-        return ResponseEntity.ok(planService.findAll());
+        return ResponseEntity.ok(planService.getAllPlans());
     }
 
     @GetMapping("/{id}")
@@ -48,9 +48,9 @@ public class AdminPlanController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePlan(@PathVariable Long id) {
+    public ResponseEntity<?> deletePlan(@PathVariable Long id) {
         planService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Plan deleted (soft delete)");
     }
 
 }

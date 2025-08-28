@@ -11,6 +11,7 @@ export const useAxiosInterceptor = () => {
   // ✅ Dùng useCallback để giữ 1 reference duy nhất
   const errorHandler = useCallback(
     (error) => {
+
       if (error.response?.status === 401) {
         setUser(null);
 

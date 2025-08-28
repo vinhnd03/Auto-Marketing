@@ -1,29 +1,42 @@
 package com.codegym.auto_marketing_server.controller.plan;
 
 import com.codegym.auto_marketing_server.entity.Plan;
+import com.codegym.auto_marketing_server.entity.Subscription;
 import com.codegym.auto_marketing_server.service.IPlanService;
+import com.codegym.auto_marketing_server.service.ISubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/plans")
 @RequiredArgsConstructor
 public class PlanController {
     private final IPlanService planService;
+    private final ISubscriptionService subscriptionService;
 
     @GetMapping("")
     public ResponseEntity<?> getAllPlans() {
-        List<Plan> planList = planService.getAll();
+        List<Plan> planList = planService.findAllAvailablePlan();
         if (planList.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(planList, HttpStatus.OK);
+    }
+
+    @GetMapping("/currentPlan/{id}")
+    public ResponseEntity<?> getCurrentPlan(@PathVariable("id") Long userId){
+        if(userId != null){
+            Optional<Subscription> subscription = subscriptionService.findActiveByUserId(userId);
+            if(subscription.isEmpty()){
+                return new ResponseEntity<>(null, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(subscription, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }

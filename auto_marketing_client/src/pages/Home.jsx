@@ -13,22 +13,26 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="bg-[#e6f0ff] pt-0 pb-12 md:pb-16" data-aos="fade-up">
+      <section
+        className="bg-[#e6f0ff] pt-8 pb-12 md:pt-12 md:pb-20"
+        data-aos="fade-up"
+      >
         <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 items-center gap-10 md:gap-16">
-          <div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-6 text-gray-900">
+          {/* Left side (text content) */}
+          <div className="text-center md:text-left order-2 md:order-1">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-6 text-gray-900">
               Giải pháp{" "}
               <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                 AutoMarketing
               </span>{" "}
               cho doanh nghiệp hiện đại
             </h1>
-            <p className="text-lg text-gray-700 mb-8">
+            <p className="text-base sm:text-lg text-gray-700 mb-8 max-w-xl mx-auto md:mx-0">
               Tự động hóa quy trình tiếp thị, tăng trưởng doanh thu và cá nhân
               hóa trải nghiệm khách hàng – tất cả chỉ trong một nền tảng duy
               nhất.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap justify-center md:justify-start gap-4">
               <a
                 href="/contact"
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow-md hover:bg-blue-700 transition"
@@ -43,7 +47,11 @@ export default function Home() {
               </a>
             </div>
           </div>
-          <HeroAnimation />
+
+          {/* Right side (animation / image) */}
+          <div className="order-1 md:order-2 flex justify-center overflow-hidden">
+            <HeroAnimation className="w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl h-auto" />
+          </div>
         </div>
       </section>
 

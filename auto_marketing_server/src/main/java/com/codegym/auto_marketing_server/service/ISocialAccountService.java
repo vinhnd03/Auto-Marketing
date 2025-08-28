@@ -1,9 +1,12 @@
 package com.codegym.auto_marketing_server.service;
 
+import com.codegym.auto_marketing_server.dto.SocialAccountDTO;
 import com.codegym.auto_marketing_server.entity.SocialAccount;
 import com.codegym.auto_marketing_server.entity.User;
 
 import java.util.Optional;
+
+import java.util.List;
 
 public interface ISocialAccountService {
     boolean isLinked(Long userId);
@@ -15,4 +18,6 @@ public interface ISocialAccountService {
     Boolean checkExistingSocialAccounts(Long userId);
 
     SocialAccount saveFacebookAccount(User user, String shortLivedToken, String accountName, String providerId);
+
+    List<SocialAccountDTO> getSocialAccountsByUserId(Long userId);
 }

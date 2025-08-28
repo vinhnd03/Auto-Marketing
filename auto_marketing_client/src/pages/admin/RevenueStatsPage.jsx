@@ -14,6 +14,7 @@ export default function RevenueStatsPage() {
         endDate: "",
         type: "month",
         chartType: "bar",
+        isDefault: true,
     });
     const [dash, setDash] = useState(null);
     const [chartData, setChartData] = useState([]);

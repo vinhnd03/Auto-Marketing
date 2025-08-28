@@ -4,9 +4,6 @@ import com.codegym.auto_marketing_server.filter.JwtAuthenticationFilter;
 import com.codegym.auto_marketing_server.security.jwt.service.CustomUserDetailsService;
 import com.codegym.auto_marketing_server.security.jwt.service.JwtService;
 import com.codegym.auto_marketing_server.security.oauth2.CustomOAuth2SuccessHandler;
-import com.codegym.auto_marketing_server.service.IRoleService;
-import com.codegym.auto_marketing_server.service.IUserService;
-import com.codegym.auto_marketing_server.util.CloudinaryService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +38,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthEntryPoint jwtAuthEntryPoint;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -57,9 +55,10 @@ public class SecurityConfig {
                                 "/api/v1/plans", "api/payment/vn-pay-callback").permitAll()
                         .requestMatchers("/api/user/**", "/api/schedules/**", "/api/v1/**").hasAnyAuthority("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint(jwtAuthEntryPoint))
 //                .oauth2Login(oauth -> oauth
 ////                        .loginPage("/api/auth/google")
 ////                                .authorizationEndpoint(auth -> auth.baseUri("/api/auth"))
