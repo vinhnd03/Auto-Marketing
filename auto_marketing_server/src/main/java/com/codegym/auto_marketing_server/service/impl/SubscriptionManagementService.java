@@ -81,7 +81,7 @@ public class SubscriptionManagementService {
 
             // Nếu currentPlan level > trialPlan level (đang dùng gói cao hơn)
             if (currentPlan.getPlanLevel() > trialPlan.getPlanLevel()) {
-                throw new RuntimeException("Bạn đang dùng gói cao hơn nên không thể dùng gói FREE.");
+                throw new RuntimeException("Bạn đang dùng gói cao hơn nên không thể dùng gói Trial.");
             }
         }
 

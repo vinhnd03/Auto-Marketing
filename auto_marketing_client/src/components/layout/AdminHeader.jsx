@@ -10,6 +10,7 @@ import {
   Shield,
   Menu,
   X,
+  Home,
 } from "lucide-react";
 import PropTypes from "prop-types";
 import {
@@ -327,6 +328,15 @@ const AdminHeader = ({ collapsed, onToggleSidebar }) => {
                     >
                       <Settings size={16} />
                       <span>Cài đặt hệ thống</span>
+                    </Link>
+                  </div>
+                  <div className="border-t border-gray-200 py-2">
+                    <Link
+                      to="/"
+                      className="flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-100 w-full text-left"
+                    >
+                      <Home size={16} />
+                      <span>Trang chủ</span>
                     </Link>
                   </div>
                   <div className="border-t border-gray-200 py-2">

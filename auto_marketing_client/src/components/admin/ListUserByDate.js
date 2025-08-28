@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { findById, search } from "../../service/admin/usersService";
+import { findById,search } from "../../service/admin/usersService";
 import { Eye, Lock, Unlock, Search, Filter, X } from "lucide-react";
 import UpdateUserModal from "./UpdateUser";
 
@@ -16,19 +16,21 @@ function ListUserByDate() {
   const [showMobileFilter, setShowMobileFilter] = useState(false);
 
   useEffect(() => {
-    handleSearch().then();
-  }, [page]);
+        handleSearch().then();
+    }, [page]);
+    const clearFilter = async () => {
+        // reset state
+        setStartDate("");
+        setEndDate("");
+        setErrors({ startDate: "", endDate: "" });
+        setPage(1);
 
-  const clearFilter = async () => {
-    setStartDate("");
-    setEndDate("");
-    setErrors({ startDate: "", endDate: "" });
-    setPage(1);
+        // gọi lại API nhưng bỏ hết params lọc
+        const result = await search("", "", 1, 5, null, null, null);
+        setList(result.data);
 
-    const result = await search("", "", 1, 5, null, null, null);
-    setList(result.data);
-    setTotalPages(result.totalPages);
-  };
+        setTotalPages(result.totalPages);
+    };
 
   const handleSearch = async () => {
     const { data, totalPages } = await search(
@@ -46,6 +48,7 @@ function ListUserByDate() {
       }))
     );
     setTotalPages(totalPages);
+    
   };
 
   const handleValid = () => {

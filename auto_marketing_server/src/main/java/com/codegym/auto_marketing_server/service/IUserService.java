@@ -38,7 +38,7 @@ public interface IUserService {
     void updateUserProfile(User user);
 
     long count();
-
+    public Page<User> filterUsersBySubscription(String filter, Pageable pageable);
     Page<User> searchAndPage(String name,
                               String planName,
                               LocalDate startDate,
