@@ -52,3 +52,13 @@ export const getPostsByFilter = async (workspaceId, campaignId, topicId) => {
     return resp.data;
   } catch (error) {}
 };
+
+// Đếm tổng số bài viết của một topic
+export async function countPostsByTopic(topicId) {
+  try {
+    const response = await apiClient.get(`/posts/topic/count/${topicId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
