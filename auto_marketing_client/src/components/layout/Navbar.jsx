@@ -212,9 +212,9 @@ export default function Navbar() {
                     />
                   </svg>
                   {/* Badge nếu có thông báo mới */}
-                    {hasUnread && (
-                      <span className="absolute top-0 right-0 h-3 w-3 rounded-full bg-red-500 border-2 border-white"></span>
-                    )}
+                  {hasUnread && (
+                    <span className="absolute top-0 right-0 h-3 w-3 rounded-full bg-red-500 border-2 border-white"></span>
+                  )}
                   {/* Dropdown thông báo */}
                   {showBellDropdown && (
                     <div

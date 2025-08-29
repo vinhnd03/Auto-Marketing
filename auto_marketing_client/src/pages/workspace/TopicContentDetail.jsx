@@ -3,6 +3,7 @@ import AIContentGenerator from "../../components/ai/AIContentGenerator";
 import { Wand2 } from "lucide-react";
 import { getApprovedPostsByTopic } from "../../service/postService";
 import dayjs from "dayjs";
+import ImageGenModal from "../../components/modal/ImageGenModal";
 
 const TopicContentDetail = ({ topic, onBack }) => {
   // Khi quay lại danh sách content, nếu content vừa xem là mới thì bỏ badge 'Mới'
@@ -20,6 +21,24 @@ const TopicContentDetail = ({ topic, onBack }) => {
   const [error, setError] = useState(null);
   const [selectedContent, setSelectedContent] = useState(null);
   const [hasGeneratedResults, setHasGeneratedResults] = useState(false);
+
+  // Kiểm tra localStorage khi mount để xác định trạng thái nút
+  useEffect(() => {
+    if (topic?.id) {
+      const localKey = `ai_preview_content_${topic.id}`;
+      const saved = localStorage.getItem(localKey);
+      if (saved) {
+        try {
+          const arr = JSON.parse(saved);
+          if (Array.isArray(arr) && arr.length > 0) {
+            setHasGeneratedResults(true);
+          }
+        } catch (e) {}
+      }
+    }
+  }, [topic]);
+  const [showImageGenModal, setShowImageGenModal] = useState(false);
+  const [imageGenTarget, setImageGenTarget] = useState(null);
 
   // Thêm state cho phân trang content
   const DEFAULT_CONTENTS_PER_PAGE = 6;
@@ -44,6 +63,23 @@ const TopicContentDetail = ({ topic, onBack }) => {
       fetchContents();
     }
   }, [topic]);
+
+  const handleGenerateImage = (content) => {
+    setImageGenTarget(content);
+    setShowImageGenModal(true);
+  };
+
+  const handleImageGenSubmit = async (data) => {
+    const { prompt, style, numImages } = data;
+    // TODO: Gọi API AI tạo ảnh với prompt
+    const imageUrl =
+      "https://source.unsplash.com/800x400/?" + encodeURIComponent(prompt);
+    setContents((prev) =>
+      prev.map((c) => (c === imageGenTarget ? { ...c, imageUrl } : c))
+    );
+    setShowImageGenModal(false);
+    setImageGenTarget(null);
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-8 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto">
@@ -89,6 +125,16 @@ const TopicContentDetail = ({ topic, onBack }) => {
         }}
         onShowResultsChange={setHasGeneratedResults}
       />
+      {selectedContent && (
+        <ImageGenModal
+          isOpen={showImageGenModal}
+          onClose={() => {
+            setShowImageGenModal(false);
+            setImageGenTarget(null);
+          }}
+          onSubmit={handleImageGenSubmit}
+        />
+      )}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2 break-words">
           {topic.title || topic.name}
@@ -111,12 +157,20 @@ const TopicContentDetail = ({ topic, onBack }) => {
         ) : selectedContent ? (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
-              <button
-                className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200"
-                onClick={handleBackFromDetail}
-              >
-                ← Quay lại danh sách content
-              </button>
+              <div className="flex gap-2">
+                <button
+                  className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200"
+                  onClick={handleBackFromDetail}
+                >
+                  ← Quay lại danh sách content
+                </button>
+                <button
+                  className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold hover:bg-purple-200"
+                  onClick={() => handleGenerateImage(selectedContent)}
+                >
+                  Generate hình ảnh
+                </button>
+              </div>
               <span className="text-xs text-gray-500 sm:ml-4">
                 Ngày tạo:{" "}
                 {selectedContent.createdAt

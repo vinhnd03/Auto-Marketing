@@ -33,6 +33,36 @@ const AIContentGenerator = ({
   const [previewContent, setPreviewContent] = useState([]);
   const [showResults, setShowResults] = useState(false);
 
+  // Lưu và lấy lại content từ localStorage
+  const LOCAL_KEY = selectedTopic?.id ? `ai_preview_content_${selectedTopic.id}` : null;
+
+  // Khi gen xong thì lưu vào localStorage
+  useEffect(() => {
+    if (showResults && previewContent.length > 0 && LOCAL_KEY) {
+      try {
+        localStorage.setItem(LOCAL_KEY, JSON.stringify(previewContent));
+      } catch (e) {}
+    }
+  }, [showResults, previewContent, LOCAL_KEY]);
+
+  // Khi mở modal thì lấy lại nếu có
+  useEffect(() => {
+    if (isOpen && LOCAL_KEY) {
+      const saved = localStorage.getItem(LOCAL_KEY);
+      if (saved) {
+        try {
+          const arr = JSON.parse(saved);
+          if (Array.isArray(arr) && arr.length > 0) {
+            setPreviewContent(arr);
+            setShowResults(true);
+            setSelectedContentIds(arr.map((c) => c.id));
+          }
+        } catch (e) {}
+      }
+    }
+    // Khi đóng modal thì không xóa dữ liệu, chỉ xóa khi tạo lại hoặc quay lại settings
+  }, [isOpen, LOCAL_KEY]);
+
   // Notify parent when showResults changes
   useEffect(() => {
     if (typeof onShowResultsChange === "function") {
@@ -254,6 +284,8 @@ const AIContentGenerator = ({
     setEditingContent(null);
     setSelectedContentIds([]);
     setShowPublisher(false);
+    // Xóa dữ liệu local khi quay lại settings
+    if (LOCAL_KEY) localStorage.removeItem(LOCAL_KEY);
   };
 
   useEffect(() => {
