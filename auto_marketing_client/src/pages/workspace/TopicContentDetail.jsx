@@ -69,14 +69,15 @@ const TopicContentDetail = ({ topic, onBack }) => {
     setShowImageGenModal(true);
   };
 
-  const handleImageGenSubmit = async (data) => {
-    const { prompt, style, numImages } = data;
-    // TODO: Gọi API AI tạo ảnh với prompt
-    const imageUrl =
-      "https://source.unsplash.com/800x400/?" + encodeURIComponent(prompt);
-    setContents((prev) =>
-      prev.map((c) => (c === imageGenTarget ? { ...c, imageUrl } : c))
-    );
+  const handleImageGenSubmit = async (selectedImages) => {
+    // Lưu ảnh đầu tiên (hoặc tất cả) vào content
+    if (selectedImages && selectedImages.length > 0) {
+      setContents((prev) =>
+        prev.map((c) =>
+          c === imageGenTarget ? { ...c, imageUrl: selectedImages[0] } : c
+        )
+      );
+    }
     setShowImageGenModal(false);
     setImageGenTarget(null);
   };
@@ -135,6 +136,14 @@ const TopicContentDetail = ({ topic, onBack }) => {
             setImageGenTarget(null);
           }}
           onSubmit={handleImageGenSubmit}
+          postTitle={
+            selectedContent.title ||
+            selectedContent.text ||
+            selectedContent.body ||
+            selectedContent.content ||
+            ""
+          }
+          postId={selectedContent.id}
         />
       )}
       <div className="mb-6">
@@ -220,18 +229,21 @@ const TopicContentDetail = ({ topic, onBack }) => {
                 </div>
               )}
               {/* Ảnh ở dưới cùng */}
-              {selectedContent.imageUrl && (
-                <div className="mt-6 flex justify-center">
-                  <div className="relative group w-full max-w-md">
-                    <img
-                      src={selectedContent.imageUrl}
-                      alt="AI generated"
-                      className="rounded-xl border-4 border-blue-300 shadow-lg object-cover w-full max-h-72 transition-transform duration-300 group-hover:scale-105 bg-white"
-                      style={{ aspectRatio: "16/9", objectFit: "cover" }}
-                    />
+              {Array.isArray(selectedContent.imageUrls) &&
+                selectedContent.imageUrls.length > 0 && (
+                  <div className="mt-6 flex justify-center gap-4 flex-wrap">
+                    {selectedContent.imageUrls.map((url, idx) => (
+                      <div className="relative group w-full max-w-md" key={idx}>
+                        <img
+                          src={url}
+                          alt={`AI generated ${idx + 1}`}
+                          className="rounded-xl border-4 border-blue-300 shadow-lg object-cover w-full max-h-72 transition-transform duration-300 group-hover:scale-105 bg-white"
+                          style={{ aspectRatio: "16/9", objectFit: "cover" }}
+                        />
+                      </div>
+                    ))}
                   </div>
-                </div>
-              )}
+                )}
             </div>
           </div>
         ) : contents.length > 0 ? (

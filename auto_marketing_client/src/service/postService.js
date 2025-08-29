@@ -48,9 +48,10 @@ export const getPostsByFilter = async (workspaceId, campaignId, topicId) => {
       withCredentials: true,
     });
     console.log(resp.data);
-
     return resp.data;
-  } catch (error) {}
+  } catch (error) {
+    throw error;
+  }
 };
 
 // Đếm tổng số bài viết của một topic
@@ -92,4 +93,31 @@ export async function getAIGeneratedPosts() {
       createdAt: new Date().toISOString(),
     },
   ];
+}
+
+// Gọi API gen ảnh cho bài post
+export async function generateImagesForPost(
+  postId,
+  { prompt, style, numImages }
+) {
+  try {
+    const response = await apiClient.post(`/posts/${postId}/generate-images`, {
+      prompt,
+      style,
+      numImages,
+    });
+    return response.data; // List<String> imageUrls
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Gọi API lưu ảnh đã chọn cho bài post
+export async function saveImagesForPost(postId, selectedImageUrls) {
+  try {
+    await apiClient.post(`/posts/${postId}/save-images`, selectedImageUrls);
+    return true;
+  } catch (error) {
+    throw error;
+  }
 }

@@ -1,5 +1,10 @@
 import React, { useState } from "react";
 import * as yup from "yup";
+import {
+  generateImagesForPost,
+  saveImagesForPost,
+} from "../../service/postService";
+import { toast } from "react-hot-toast";
 
 const imageGenSchema = yup.object().shape({
   prompt: yup
@@ -16,20 +21,7 @@ const imageGenSchema = yup.object().shape({
     .max(20, "Tối đa 20 hình ảnh."),
 });
 
-// Giả lập API gen ảnh
-async function generateImages({ prompt, style, numImages }) {
-  // Thay bằng gọi API thực tế nếu có
-  await new Promise((r) => setTimeout(r, 1200));
-  return Array.from(
-    { length: numImages },
-    (_, i) =>
-      `https://picsum.photos/seed/${encodeURIComponent(
-        prompt + style + i
-      )}/200/200`
-  );
-}
-
-function ImageGenModal({ isOpen, onClose, onSubmit }) {
+function ImageGenModal({ isOpen, onClose, onSubmit, postTitle, postId }) {
   const [prompt, setPrompt] = useState("");
   const [style, setStyle] = useState("");
   const [numImages, setNumImages] = useState(1);
@@ -49,7 +41,11 @@ function ImageGenModal({ isOpen, onClose, onSubmit }) {
       );
       setErrors({});
       setLoading(true);
-      const imgs = await generateImages({ prompt, style, numImages });
+      const imgs = await generateImagesForPost(postId, {
+        prompt,
+        style,
+        numImages,
+      });
       setImages(imgs);
       setChecked(Array(imgs.length).fill(false));
       setLoading(false);
@@ -77,9 +73,14 @@ function ImageGenModal({ isOpen, onClose, onSubmit }) {
 
   const handleSave = async () => {
     setSaveLoading(true);
-    // Trả về mảng ảnh đã chọn
     const selectedImages = images.filter((_, i) => checked[i]);
-    if (onSubmit) onSubmit(selectedImages);
+    try {
+      await saveImagesForPost(postId, selectedImages);
+      toast.success("Lưu ảnh thành công!");
+      if (onSubmit) onSubmit(selectedImages);
+    } catch (err) {
+      toast.error("Lưu ảnh thất bại!");
+    }
     setSaveLoading(false);
     setImages([]);
     setChecked([]);
@@ -108,7 +109,13 @@ function ImageGenModal({ isOpen, onClose, onSubmit }) {
             />
           </svg>
         </button>
-        <h2 className="text-xl font-bold mb-6">Tạo hình ảnh cho bài viết</h2>
+        <h2 className="text-xl font-bold mb-2">Tạo hình ảnh cho bài viết</h2>
+        {postTitle && (
+          <div className="mb-6 text-base text-gray-700 font-medium">
+            <span className="text-gray-500">Tiêu đề bài viết: </span>
+            <span className="text-purple-700">{postTitle}</span>
+          </div>
+        )}
         {/* Form nhập prompt, style, số lượng */}
         {images.length === 0 && (
           <>
