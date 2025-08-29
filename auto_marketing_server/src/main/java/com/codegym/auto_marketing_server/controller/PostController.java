@@ -1,6 +1,7 @@
 package com.codegym.auto_marketing_server.controller;
 
 import com.codegym.auto_marketing_server.dto.ContentGenerationRequestDTO;
+import com.codegym.auto_marketing_server.dto.ImageGenerationRequestDTO;
 import com.codegym.auto_marketing_server.dto.PostFilterDTO;
 import com.codegym.auto_marketing_server.dto.PostResponseDTO;
 import com.codegym.auto_marketing_server.enums.PostStatus;
@@ -99,11 +100,16 @@ public class PostController {
         return ResponseEntity.ok(count);
     }
 
-    @PostMapping("/{postId}/generate-image")
-    @Operation(summary = "Generate image for a post", description = "Generate an AI image related to a post's content. Optionally, user can add their own instructions for the image prompt.")
-    public ResponseEntity<String> generateImageForPost(@PathVariable Long postId, @RequestParam(required = false) String imageInstructions) {
-        String aiImageUrl = postService.generateImageForPost(postId, imageInstructions);
-        return ResponseEntity.ok(aiImageUrl);
+    @PostMapping("/{postId}/generate-images")
+    public ResponseEntity<List<String>> generateImagesForPost(@PathVariable Long postId, @RequestBody ImageGenerationRequestDTO request) {
+        // Validate quyền sở hữu post nếu cần
+        List<String> imageUrls = postService.generateImagesForPost(postId, request.getPrompt(), request.getStyle(), request.getNumImages());
+        return ResponseEntity.ok(imageUrls);
     }
 
+    @PostMapping("/{postId}/save-images")
+    public ResponseEntity<Void> saveImagesForPost(@PathVariable Long postId, @RequestBody List<String> selectedImageUrls) {
+        postService.saveImagesForPost(postId, selectedImageUrls);
+        return ResponseEntity.ok().build();
+    }
 }

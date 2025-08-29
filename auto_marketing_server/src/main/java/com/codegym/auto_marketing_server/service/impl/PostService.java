@@ -54,6 +54,7 @@ public class PostService implements IPostService {
                     throw new RuntimeException("Topic must be approved before generating content.");
                 }
 
+                // Log instruction từ request
                 log.info("📝 User instruction for GPT: '{}'", request.getAdditionalInstructions());
 
                 int numberOfPosts = request.getNumberOfPosts();
@@ -65,18 +66,7 @@ public class PostService implements IPostService {
                         long postStart = System.currentTimeMillis();
                         log.info("⏳ [AI GEN] Bắt đầu gen bài số {} cho topic {}", postIndex, topic.getId());
 
-                        String promptUsed = gptService.buildLongFormContentPrompt(
-                                topic,
-                                request.getTone(),
-                                request.getContentType(),
-                                request.getTargetWordCount(),
-                                request.getIncludeBulletPoints(),
-                                request.getIncludeStatistics(),
-                                request.getIncludeCaseStudies(),
-                                request.getIncludeCallToAction(),
-                                request.getIncludeHashtag(),
-                                request.getAdditionalInstructions()
-                        );
+                        String promptUsed = gptService.buildLongFormContentPrompt(topic, request.getTone(), request.getContentType(), request.getTargetWordCount(), request.getIncludeBulletPoints(), request.getIncludeStatistics(), request.getIncludeCaseStudies(), request.getIncludeCallToAction(), request.getIncludeHashtag(), request.getAdditionalInstructions());
                         log.info("📢 Prompt sent to GPT (post {}): \n{}", postIndex, promptUsed);
 
                         String gptResponse;
@@ -92,7 +82,7 @@ public class PostService implements IPostService {
                         }
 
                         Post post = createPostFromGPTResponse(gptResponse, topic, request);
-                        post.setImageUrl(null);
+                        post.setImageUrl(null); // nếu cần sinh ảnh thì xử lý riêng
 
                         long postTime = System.currentTimeMillis() - postStart;
                         log.info("✅ [AI GEN] Hoàn thành bài số {} trong {} ms ({} giây)", postIndex, postTime, postTime / 1000.0);
@@ -101,11 +91,11 @@ public class PostService implements IPostService {
                     }));
                 }
 
+                // Đợi tất cả các bài gen xong
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-                List<Post> generatedPosts = futures.stream()
-                        .map(CompletableFuture::join)
-                        .toList();
+                // Collect kết quả
+                List<Post> generatedPosts = futures.stream().map(CompletableFuture::join).toList();
 
                 List<Post> savedPosts = postRepository.saveAll(generatedPosts);
 
@@ -229,6 +219,47 @@ public class PostService implements IPostService {
 
         // Return approved posts as DTO
         return selectedPosts.stream().map(this::mapToResponseDTO).toList();
+    }
+
+    @Override
+    public List<String> generateImagesForPost(Long postId, String prompt, String style, int numImages) {
+        List<String> imageUrls = new ArrayList<>();
+
+        for (int i = 0; i < numImages; i++) {
+            // Ghép thêm index vào prompt/style nếu muốn đa dạng
+            String finalPrompt = prompt + (style != null ? " (" + style + ")" : "") + " #" + (i + 1);
+
+            // Gọi OpenAI image API hoặc dịch vụ gen ảnh của bạn
+            String aiImageUrl = openAIImageService.generateImageUrlFromPrompt(finalPrompt);
+
+            String uploadedUrl = null;
+            File imageFile = null;
+            try {
+                imageFile = downloadImageToFile(aiImageUrl);
+                uploadedUrl = cloudinaryService.uploadImage(imageFile);
+            } catch (Exception e) {
+                log.error("Error generating/uploading image {}: {}", i + 1, e.getMessage(), e);
+                continue;
+            } finally {
+                // Clean temp file
+                if (imageFile != null && imageFile.exists()) {
+                    imageFile.delete();
+                }
+            }
+            imageUrls.add(uploadedUrl);
+        }
+        return imageUrls;
+    }
+
+    @Override
+    public void saveImagesForPost(Long postId, List<String> selectedImageUrls) {
+        Post post = findById(postId);
+        // Nếu chỉ lưu 1 ảnh, lấy ảnh đầu tiên
+        if (!selectedImageUrls.isEmpty()) {
+            post.setImageUrl(selectedImageUrls.get(0));
+        }
+        // Nếu muốn lưu nhiều ảnh, phải có thêm field List<String> imageUrls trong Post entity
+        postRepository.save(post);
     }
 
     private Post createPostFromGPTResponse(String gptResponse, Topic topic, ContentGenerationRequestDTO request) {

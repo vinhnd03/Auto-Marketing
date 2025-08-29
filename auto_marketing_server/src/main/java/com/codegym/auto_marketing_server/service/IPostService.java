@@ -35,4 +35,8 @@ public interface IPostService {
     String generateImagePromptForPost(Long postId, String userInstructions);
 
     String generateImageForPost(Long postId, String userInstructions);
+
+    List<String> generateImagesForPost(Long postId, String prompt, String style, int numImages);
+
+    void saveImagesForPost(Long postId, List<String> selectedImageUrls);
 }
