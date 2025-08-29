@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -72,4 +73,7 @@ public class PostResponseDTO {
     private TopicResponseDTO topic;
 
     private String imageUrl;
+
+    // Thêm trường này để trả về danh sách nhiều ảnh
+    private List<String> imageUrls;
 }

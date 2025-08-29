@@ -4,7 +4,9 @@ import com.codegym.auto_marketing_server.dto.ContentGenerationRequestDTO;
 import com.codegym.auto_marketing_server.dto.PostFilterDTO;
 import com.codegym.auto_marketing_server.dto.PostResponseDTO;
 import com.codegym.auto_marketing_server.entity.Post;
+import com.codegym.auto_marketing_server.entity.PostMedia;
 import com.codegym.auto_marketing_server.entity.Topic;
+import com.codegym.auto_marketing_server.enums.PostMediaType;
 import com.codegym.auto_marketing_server.enums.PostStatus;
 import com.codegym.auto_marketing_server.enums.TopicStatus;
 import com.codegym.auto_marketing_server.repository.IPostRepository;
@@ -254,11 +256,19 @@ public class PostService implements IPostService {
     @Override
     public void saveImagesForPost(Long postId, List<String> selectedImageUrls) {
         Post post = findById(postId);
-        // Nếu chỉ lưu 1 ảnh, lấy ảnh đầu tiên
-        if (!selectedImageUrls.isEmpty()) {
-            post.setImageUrl(selectedImageUrls.get(0));
+
+        // Lấy danh sách url ảnh cũ để tránh lưu trùng
+        List<String> oldUrls = post.getMedias().stream().map(PostMedia::getUrl).collect(Collectors.toList());
+
+        for (String url : selectedImageUrls) {
+            if (!oldUrls.contains(url)) {
+                PostMedia media = new PostMedia();
+                media.setUrl(url);
+                media.setType(PostMediaType.PIC);
+                media.setPost(post);
+                post.getMedias().add(media);
+            }
         }
-        // Nếu muốn lưu nhiều ảnh, phải có thêm field List<String> imageUrls trong Post entity
         postRepository.save(post);
     }
 
@@ -381,6 +391,12 @@ public class PostService implements IPostService {
         if (post.getTopic() != null) {
             dto.setTopicId(post.getTopic().getId());
         }
+
+        // Map single imageUrl nếu muốn (giữ lại cho tương thích cũ)
+        dto.setImageUrl(post.getImageUrl());
+
+        // Map danh sách imageUrls từ PostMedia
+        dto.setImageUrls(post.getMedias() == null ? List.of() : post.getMedias().stream().map(PostMedia::getUrl).collect(Collectors.toList()));
 
         return dto;
     }
