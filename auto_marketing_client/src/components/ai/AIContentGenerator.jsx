@@ -1,3 +1,5 @@
+import { playNotificationSound } from "../../utils/notificationSound";
+import { useNotification } from "../../context/NotificationContext";
 import React, { useState, useEffect } from "react";
 import { X, Wand2, FileText, Image, Sparkles, Eye, Edit } from "lucide-react";
 import SocialMediaPublisher from "./SocialMediaPublisher";
@@ -15,6 +17,7 @@ const AIContentGenerator = ({
   selectedTopic,
   onContentSaved,
 }) => {
+  const { addNotification } = useNotification();
   const [generating, setGenerating] = useState(false);
   const [contentSettings, setContentSettings] = useState({
     postCount: 1,
@@ -117,6 +120,19 @@ const AIContentGenerator = ({
       setSelectedContentIds(safeContent.map((c) => c.id));
       setShowResults(true);
       setGenerating(false);
+      // Thông báo thành công qua chuông
+      addNotification &&
+        addNotification({
+          type: "success",
+          message: `Đã tạo thành công ${
+            contentSettings.postCount
+          } bài viết cho chủ đề "${
+            selectedTopic?.title || selectedTopic?.name || ""
+          }"!`,
+          createdAt: new Date(),
+        });
+      // Phát âm thanh
+      playNotificationSound && playNotificationSound();
       // toast.success("Tạo nội dung thành công!", { style: TOAST_STYLE });
     } catch (err) {
       setError("Không thể tạo nội dung. Vui lòng thử lại.");
@@ -310,11 +326,8 @@ const AIContentGenerator = ({
               </div>
             </div>
             <button
-              onClick={generating ? undefined : onClose}
-              disabled={generating}
-              className={`text-gray-400 hover:text-gray-600 ${
-                generating ? "cursor-not-allowed opacity-50" : ""
-              }`}
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
             >
               <X size={24} />
             </button>

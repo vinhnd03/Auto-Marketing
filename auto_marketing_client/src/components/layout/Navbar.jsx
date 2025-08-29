@@ -1,3 +1,5 @@
+// Notification context/hook
+import { useNotification } from "../../context/NotificationContext";
 import { useState, useRef, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -15,11 +17,22 @@ import toast from "react-hot-toast";
 import ConfirmLogoutModal from "../modal/ConfirmLogoutModal";
 
 export default function Navbar() {
+  const bellButtonRef = useRef(null);
+  const bellDropdownRef = useRef(null);
+  const [hasUnread, setHasUnread] = useState(false);
+  const { notifications, clearNotifications } = useNotification();
+  const [showBellDropdown, setShowBellDropdown] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  // Khi có thông báo mới, set hasUnread=true
+  useEffect(() => {
+    if (notifications.length > 0) {
+      setHasUnread(true);
+    }
+  }, [notifications]);
   const { user } = useAuth();
   // console.log(user);
 
@@ -39,26 +52,43 @@ export default function Navbar() {
   //     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
   // };
 
-  // Đóng dropdown khi click bên ngoài
+  // Đóng dropdown thông báo khi click bên ngoài
   useEffect(() => {
-    function handleClickOutside(event) {
+    function handleClickOutsideBell(event) {
+      const bellBtn = bellButtonRef.current;
+      const bellDropdown = bellDropdownRef.current;
+      if (
+        bellDropdown &&
+        !bellDropdown.contains(event.target) &&
+        bellBtn &&
+        !bellBtn.contains(event.target)
+      ) {
+        setShowBellDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutsideBell);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutsideBell);
+    };
+  }, []);
+
+  // Đóng dropdown user khi click bên ngoài hoặc nhấn Escape
+  useEffect(() => {
+    function handleClickOutsideUser(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
     }
-
     function handleEscapeKey(event) {
       if (event.key === "Escape") {
         closeMenu();
         setDropdownOpen(false);
       }
     }
-
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutsideUser);
     document.addEventListener("keydown", handleEscapeKey);
-
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutsideUser);
       document.removeEventListener("keydown", handleEscapeKey);
     };
   }, []);
@@ -145,6 +175,12 @@ export default function Navbar() {
                 <button
                   className="relative focus:outline-none hover:bg-gray-100 rounded-full p-2"
                   title="Thông báo"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowBellDropdown((prev) => !prev);
+                    setHasUnread(false);
+                  }}
+                  ref={bellButtonRef}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -161,9 +197,47 @@ export default function Navbar() {
                     />
                   </svg>
                   {/* Badge nếu có thông báo mới */}
-                  <span className="absolute top-0 right-0 flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-white text-xs font-bold border-2 border-white">
-                    3
-                  </span>
+                  {notifications.length > 0 && hasUnread && (
+                    <span className="absolute top-0 right-0 flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-white text-xs font-bold border-2 border-white">
+                      {notifications.length}
+                    </span>
+                  )}
+                  {/* Dropdown thông báo */}
+                  {showBellDropdown && (
+                    <div
+                      ref={bellDropdownRef}
+                      className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                    >
+                      <div className="px-4 py-2 border-b border-gray-100 font-bold text-gray-800">
+                        Thông báo
+                      </div>
+                      {notifications.length === 0 ? (
+                        <div className="px-4 py-4 text-gray-500 text-sm">
+                          Không có thông báo nào.
+                        </div>
+                      ) : (
+                        <ul className="max-h-60 overflow-y-auto">
+                          {notifications.map((n, idx) => (
+                            <li
+                              key={idx}
+                              className="px-4 py-3 border-b last:border-b-0 text-gray-700 text-sm"
+                            >
+                              {n.message}
+                              <span className="block text-xs text-gray-400 mt-1">
+                                {new Date(n.createdAt).toLocaleString()}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <button
+                        onClick={clearNotifications}
+                        className="w-full px-4 py-2 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-b-lg"
+                      >
+                        Xóa tất cả thông báo
+                      </button>
+                    </div>
+                  )}
                 </button>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}

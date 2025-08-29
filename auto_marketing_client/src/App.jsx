@@ -1,3 +1,4 @@
+import { NotificationProvider } from "./context/NotificationContext";
 import {
   BrowserRouter as Router,
   Routes,
@@ -136,7 +137,7 @@ function App() {
   if (loading) return <Preloader />;
 
   return (
-    <>
+    <NotificationProvider>
       <AxiosInterceptor />
       <ScrollToTop />
       <Routes>
@@ -363,7 +364,7 @@ function App() {
           },
         }}
       />
-    </>
+    </NotificationProvider>
   );
 }
 
