@@ -28,5 +28,10 @@ public interface ITopicService {
     void deleteAll();
 
     void deleteByCampaignAndStatus(Long campaignId, TopicStatus status);
+
     List<Topic> getTopicsByCampaignId(Long campaignId);
+
+    long countTopicsByStatus(TopicStatus status);
+
+    long countTopicsByCampaignAndStatus(Long campaignId, TopicStatus status);
 }

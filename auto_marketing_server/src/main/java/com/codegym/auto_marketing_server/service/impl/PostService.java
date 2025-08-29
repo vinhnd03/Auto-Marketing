@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,7 +41,7 @@ public class PostService implements IPostService {
     private final ModelMapper modelMapper;
     private final ObjectMapper objectMapper;
     private final CloudinaryService cloudinaryService;
-    private final OpenAIImageService openAIImageService; // Thêm service này!
+    private final OpenAIImageService openAIImageService;
 
     @Override
     public CompletableFuture<List<PostResponseDTO>> generateContentWithAI(ContentGenerationRequestDTO request) {
@@ -52,61 +53,120 @@ public class PostService implements IPostService {
                 if (topic.getStatus() != TopicStatus.APPROVED) {
                     throw new RuntimeException("Topic must be approved before generating content.");
                 }
-                List<Post> generatedPosts = new ArrayList<>();
 
-                for (int i = 0; i < request.getNumberOfPosts(); i++) {
-                    long postStart = System.currentTimeMillis();
-                    log.info("⏳ [AI GEN] Bắt đầu gen bài số {} cho topic {}", i + 1, topic.getId());
+                log.info("📝 User instruction for GPT: '{}'", request.getAdditionalInstructions());
 
-                    // 1. Gen content
-                    String gptResponse = gptService.generateLongFormContent(topic, request).get();
+                int numberOfPosts = request.getNumberOfPosts();
+                List<CompletableFuture<Post>> futures = new ArrayList<>();
 
-                    Post post = createPostFromGPTResponse(gptResponse, topic, request);
+                for (int i = 0; i < numberOfPosts; i++) {
+                    final int postIndex = i + 1;
+                    futures.add(CompletableFuture.supplyAsync(() -> {
+                        long postStart = System.currentTimeMillis();
+                        log.info("⏳ [AI GEN] Bắt đầu gen bài số {} cho topic {}", postIndex, topic.getId());
 
-                    // 2. Nếu chọn kiểu "image" hoặc "mixed" thì mới gen image
-                    if ("image".equalsIgnoreCase(request.getContentType()) || "mixed".equalsIgnoreCase(request.getContentType())) {
-                        // Gen image prompt từ content
-                        String imagePrompt = gptService.generateImagePromptFromContent(gptResponse).get();
+                        String promptUsed = gptService.buildLongFormContentPrompt(
+                                topic,
+                                request.getTone(),
+                                request.getContentType(),
+                                request.getTargetWordCount(),
+                                request.getIncludeBulletPoints(),
+                                request.getIncludeStatistics(),
+                                request.getIncludeCaseStudies(),
+                                request.getIncludeCallToAction(),
+                                request.getIncludeHashtag(),
+                                request.getAdditionalInstructions()
+                        );
+                        log.info("📢 Prompt sent to GPT (post {}): \n{}", postIndex, promptUsed);
 
-                        // Gọi OpenAI API để lấy url ảnh thật
-                        String aiImageUrl = openAIImageService.generateImageUrlFromPrompt(imagePrompt);
+                        String gptResponse;
+                        try {
+                            gptResponse = gptService.generateLongFormContent(topic, request).get();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            log.error("Thread interrupted when generating post {}", postIndex, e);
+                            throw new RuntimeException("Thread interrupted", e);
+                        } catch (ExecutionException e) {
+                            log.error("Execution error when generating post {}", postIndex, e);
+                            throw new RuntimeException("Error in GPT generation", e);
+                        }
 
-                        // Download ảnh về file tạm
-                        File imageFile = downloadImageToFile(aiImageUrl);
-
-                        // Upload lên Cloudinary
-                        String imageUrl = cloudinaryService.uploadImage(imageFile);
-
-                        // Xoá file tạm
-                        imageFile.delete();
-
-                        // Lưu imageUrl vào post
-                        post.setImageUrl(imageUrl);
-                    } else {
-                        // Nếu chỉ văn bản thì imageUrl để null hoặc rỗng
+                        Post post = createPostFromGPTResponse(gptResponse, topic, request);
                         post.setImageUrl(null);
-                    }
 
-                    generatedPosts.add(post);
+                        long postTime = System.currentTimeMillis() - postStart;
+                        log.info("✅ [AI GEN] Hoàn thành bài số {} trong {} ms ({} giây)", postIndex, postTime, postTime / 1000.0);
 
-                    long postTime = System.currentTimeMillis() - postStart;
-                    log.info("✅ [AI GEN] Hoàn thành bài số {} trong {} ms ({} giây)", i + 1, postTime, postTime / 1000.0);
+                        return post;
+                    }));
                 }
+
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+                List<Post> generatedPosts = futures.stream()
+                        .map(CompletableFuture::join)
+                        .toList();
 
                 List<Post> savedPosts = postRepository.saveAll(generatedPosts);
 
                 long duration = System.currentTimeMillis() - start;
-                log.info("🎉 [AI GEN] Tổng thời gian gen {} bài: {} ms ({} giây)", request.getNumberOfPosts(), duration, duration / 1000.0);
+                log.info("🎉 [AI GEN] Tổng thời gian gen {} bài: {} ms ({} giây)", numberOfPosts, duration, duration / 1000.0);
 
-                return savedPosts.stream()
-                        .map(this::mapToResponseDTO)
-                        .toList();
+                return savedPosts.stream().map(this::mapToResponseDTO).toList();
 
             } catch (Exception e) {
                 log.error("Error generating AI content: {}", e.getMessage(), e);
                 throw new RuntimeException("Failed to generate AI content: " + e.getMessage(), e);
             }
         });
+    }
+
+    @Override
+    public String generateImagePromptForPost(Long postId, String userInstructions) {
+        Post post = findById(postId);
+        String prompt = post.getContent();
+        if (userInstructions != null && !userInstructions.isBlank()) {
+            prompt += "\n\n" + userInstructions;
+        }
+        try {
+            return gptService.generateImagePromptFromContent(prompt).get();
+        } catch (Exception e) {
+            log.error("Error generating image prompt: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate image prompt: " + e.getMessage(), e);
+        }
+    }
+
+    // Thêm hàm sinh ảnh (call OpenAI + lưu imageUrl)
+    @Override
+    public String generateImageForPost(Long postId, String userInstructions) {
+        String imagePrompt = generateImagePromptForPost(postId, userInstructions);
+        String aiImageUrl = openAIImageService.generateImageUrlFromPrompt(imagePrompt);
+
+        String imageUrl = null;
+        File imageFile = null;
+        try {
+            // Download ảnh về file tạm
+            imageFile = downloadImageToFile(aiImageUrl);
+
+            // Upload lên Cloudinary
+            imageUrl = cloudinaryService.uploadImage(imageFile);
+
+        } catch (Exception e) {
+            log.error("Error when downloading or uploading image: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate or upload image: " + e.getMessage(), e);
+        } finally {
+            // Xóa file tạm nếu đã tạo
+            if (imageFile != null && imageFile.exists()) {
+                imageFile.delete();
+            }
+        }
+
+        // Lưu imageUrl vào post
+        Post post = findById(postId);
+        post.setImageUrl(imageUrl);
+        postRepository.save(post);
+
+        return imageUrl;
     }
 
     // Download ảnh từ url về file tạm
@@ -121,16 +181,12 @@ public class PostService implements IPostService {
 
     @Override
     public List<PostResponseDTO> getPostsByTopic(Long topicId) {
-        return postRepository.findByTopicId(topicId).stream()
-                .map(this::mapToResponseDTO)
-                .toList();
+        return postRepository.findByTopicId(topicId).stream().map(this::mapToResponseDTO).toList();
     }
 
     @Override
     public List<PostResponseDTO> getPostsByTopicAndStatus(Long topicId, PostStatus status) {
-        return postRepository.findByTopicIdAndStatus(topicId, status).stream()
-                .map(this::mapToResponseDTO)
-                .toList();
+        return postRepository.findByTopicIdAndStatus(topicId, status).stream().map(this::mapToResponseDTO).toList();
     }
 
     @Override
@@ -147,8 +203,7 @@ public class PostService implements IPostService {
 
     @Override
     public Post findById(Long postId) {
-        return postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found: " + postId));
+        return postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found: " + postId));
     }
 
     @Override
@@ -169,9 +224,7 @@ public class PostService implements IPostService {
 
         // Delete unselected DRAFT posts for this topic
         List<Post> draftPosts = postRepository.findByTopicIdAndStatus(topicId, PostStatus.DRAFT);
-        List<Post> toDelete = draftPosts.stream()
-                .filter(post -> !selectedPostIds.contains(post.getId()))
-                .toList();
+        List<Post> toDelete = draftPosts.stream().filter(post -> !selectedPostIds.contains(post.getId())).toList();
         postRepository.deleteAll(toDelete);
 
         // Return approved posts as DTO
@@ -204,8 +257,7 @@ public class PostService implements IPostService {
         post.setTargetAudience(mapTargetAudienceToInteger(request.getTargetAudience()));
 
         // Set token usage (simplified)
-        post.setTokenUsage(String.format("Generated with %s words, estimated %d tokens",
-                countWords(content), estimateTokens(content)));
+        post.setTokenUsage(String.format("Generated with %s words, estimated %d tokens", countWords(content), estimateTokens(content)));
 
         // Set status and dates
         post.setStatus(PostStatus.DRAFT);
@@ -262,16 +314,11 @@ public class PostService implements IPostService {
         if (content == null) return "";
 
         // Preserve Vietnamese characters in hashtags
-        return content.lines()
-                .filter(line -> line.contains("#"))
-                .map(line -> line.replaceAll("[^#\\p{L}\\p{N} ]", ""))
-                .collect(Collectors.joining(" "))
-                .trim();
+        return content.lines().filter(line -> line.contains("#")).map(line -> line.replaceAll("[^#\\p{L}\\p{N} ]", "")).collect(Collectors.joining(" ")).trim();
     }
 
     private String buildPromptSummary(ContentGenerationRequestDTO request) {
-        return String.format("Generate %s content with %s tone for %s platform, targeting %s audience",
-                request.getContentType(), request.getTone(), request.getTargetPlatform(), request.getTargetAudience());
+        return String.format("Generate %s content with %s tone for %s platform, targeting %s audience", request.getContentType(), request.getTone(), request.getTargetPlatform(), request.getTargetAudience());
     }
 
     private Integer mapTargetAudienceToInteger(String targetAudience) {
@@ -310,10 +357,7 @@ public class PostService implements IPostService {
 
     @Override
     public List<PostResponseDTO> getAllPosts() {
-        return postRepository.findAll()
-                .stream()
-                .map(this::mapToResponseDTO)
-                .toList();
+        return postRepository.findAll().stream().map(this::mapToResponseDTO).toList();
     }
 
     @Override
@@ -321,5 +365,13 @@ public class PostService implements IPostService {
         return postRepository.findPostFilterDTOs(workspaceId, campaignId, topicId);
     }
 
+    @Override
+    public long countPostsByTopic(Long topicId) {
+        return postRepository.countByTopicId(topicId);
+    }
 
+    @Override
+    public long countPostsByTopicAndStatus(Long topicId, PostStatus status) {
+        return postRepository.countByTopicIdAndStatus(topicId, status);
+    }
 }

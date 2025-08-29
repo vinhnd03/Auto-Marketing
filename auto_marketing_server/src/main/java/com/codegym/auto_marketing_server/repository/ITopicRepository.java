@@ -10,4 +10,8 @@ public interface ITopicRepository extends JpaRepository<Topic, Long> {
     List<Topic> findByCampaignId(Long campaignId);
 
     List<Topic> findByCampaignIdAndStatus(Long campaignId, TopicStatus status);
+
+    long countByStatus(TopicStatus status);
+
+    long countByCampaignIdAndStatus(Long campaignId, TopicStatus status);
 }
