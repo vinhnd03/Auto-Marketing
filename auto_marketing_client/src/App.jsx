@@ -75,6 +75,7 @@ import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
 
 import GlobalScrollToTop from "./components/ui/GlobalScrollToTop";
+import EmailVerificationPage from "./pages/auth/EmailVerificationPage";
 
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
@@ -95,6 +96,7 @@ const AppLayout = ({ children }) => {
     "/register",
     "/reset-password",
     "/forgot-password",
+    "/verification"
   ].includes(location.pathname);
 
   const isAdminPage = location.pathname.startsWith("/admin");
@@ -246,6 +248,7 @@ function App() {
                     </GuestRoute>
                   }
                 />
+                <Route path="/verification" element={<EmailVerificationPage />}/>
                 <Route path="/oauth2/success" element={<OAuth2Success />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />

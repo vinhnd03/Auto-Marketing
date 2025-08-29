@@ -53,7 +53,6 @@ public class UserController {
         user.setName(userProfile.name());
         user.setDescription(userProfile.description());
         user.setJob(userProfile.job());
-        user.setPhone(userProfile.phone());
 
         userService.updateUserProfile(user);
         return ResponseEntity.ok(Map.of("success", true));

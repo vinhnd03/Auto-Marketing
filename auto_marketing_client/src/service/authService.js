@@ -38,8 +38,12 @@ const login = async (data) => {
     } catch (error) {
         if (error.response?.status === 401) {
             return { success: false, error: "Email hoặc mật khẩu không đúng" };
-        }else if(error.response?.status === 403) {
+        } else if (error.response?.status === 403) {
+            if (error.response.data.error === "EMAIL_NOT_VERIFIED") {
+                return { success: false, error: "Vui lòng kiểm tra email để xác nhận tài khoản" };
+            }
             return { success: false, error: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên" };
+
         }
         return { success: false, error: "Lỗi kết nối khi đăng nhập" };
     }
@@ -70,12 +74,22 @@ const getCurrentUser = async () => {
 
 const changePassword = async (token, newPassword) => {
     try {
-        const resp = await axios.post(`${API_URL}/reset-password`, {token, newPassword});
-        return {success: resp.data.success, data: resp.data};
-    } catch (error){
+        const resp = await axios.post(`${API_URL}/reset-password`, { token, newPassword });
+        return { success: resp.data.success, data: resp.data };
+    } catch (error) {
         console.log(error);
-        return {success: false, error: error.response?.data?.message || "Đổi mật khẩu thất bại"}
+        return { success: false, error: error.response?.data?.message || "Đổi mật khẩu thất bại" }
     }
 }
 
-export default { register, login, logout, getCurrentUser, changePassword };
+const verifyEmail = async (token) => {
+    try {
+        const resp = await axios.get(`${API_URL}/email-verification?token=${token}`)
+        return { success: resp.data.success, data: resp.data };
+    } catch (error) {
+        console.log(error);
+        return { success: false, error: error.response?.data?.message || "Xác nhận tài khoản thất bại" }
+    }
+}
+
+export default { register, login, logout, getCurrentUser, changePassword, verifyEmail };
