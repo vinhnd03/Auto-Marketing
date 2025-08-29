@@ -34,7 +34,9 @@ const AIContentGenerator = ({
   const [showResults, setShowResults] = useState(false);
 
   // Lưu và lấy lại content từ localStorage
-  const LOCAL_KEY = selectedTopic?.id ? `ai_preview_content_${selectedTopic.id}` : null;
+  const LOCAL_KEY = selectedTopic?.id
+    ? `ai_preview_content_${selectedTopic.id}`
+    : null;
 
   // Khi gen xong thì lưu vào localStorage
   useEffect(() => {
@@ -245,6 +247,12 @@ const AIContentGenerator = ({
       toast.success("Lưu nội dung thành công!");
       setGenerating(false);
       setShowResults(false); // Nếu muốn ẩn kết quả sau khi lưu
+
+      // Xoá localStorage sau khi lưu thành công
+      const LOCAL_KEY = selectedTopic?.id
+        ? `ai_preview_content_${selectedTopic.id}`
+        : null;
+      if (LOCAL_KEY) localStorage.removeItem(LOCAL_KEY);
 
       // Gọi callback để cập nhật danh sách content ở component cha
       if (typeof onContentSaved === "function") {

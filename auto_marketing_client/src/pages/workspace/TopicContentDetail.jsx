@@ -102,7 +102,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
         isOpen={showGenContentModal}
         onClose={() => {
           setShowGenContentModal(false);
-          setHasGeneratedResults(false); // Khi modal đóng, trở lại trạng thái ban đầu
+          // KHÔNG reset setHasGeneratedResults ở đây, chỉ reset khi bấm nút Lưu
         }}
         selectedTopic={topic}
         onContentSaved={(newContents) => {
@@ -122,6 +122,8 @@ const TopicContentDetail = ({ topic, onBack }) => {
             ? newContents.map(normalize)
             : [normalize(newContents, 0)];
           setContents((prev) => [...normalized, ...prev]);
+          // Khi lưu xong thì reset trạng thái nút về 'Tạo thêm nội dung'
+          setHasGeneratedResults(false);
         }}
         onShowResultsChange={setHasGeneratedResults}
       />

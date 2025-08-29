@@ -186,21 +186,42 @@ function ImageGenModal({ isOpen, onClose, onSubmit }) {
                 Hủy
               </button>
               <button
-                className={`px-5 py-3 rounded text-base flex items-center justify-center transition ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 text-white hover:bg-purple-700'}`}
+                className={`px-5 py-3 rounded text-base flex items-center justify-center transition ${
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-purple-600 text-white hover:bg-purple-700"
+                }`}
                 onClick={loading ? undefined : validateAndGenImages}
                 disabled={loading}
                 style={{ minWidth: 120 }}
               >
                 {loading ? (
                   <>
-                    <svg className="animate-spin mr-2" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="#fff" strokeWidth="4" />
-                      <path className="opacity-75" fill="#fff" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    <svg
+                      className="animate-spin mr-2"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="#fff"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="#fff"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
                     </svg>
                     Đang tạo...
                   </>
                 ) : (
-                  'Tạo hình ảnh'
+                  "Tạo hình ảnh"
                 )}
               </button>
             </div>
