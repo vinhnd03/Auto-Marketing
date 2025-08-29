@@ -98,6 +98,17 @@ export default function Navbar() {
     setDropdownOpen(false);
   };
 
+  // Format ngày tháng năm kiểu Việt Nam: dd/MM/yyyy, HH:mm:ss
+  function formatDateVN(date) {
+    const d = new Date(date);
+    const pad = (n) => n.toString().padStart(2, "0");
+    return `${pad(d.getDate())}/${pad(
+      d.getMonth() + 1
+    )}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(
+      d.getSeconds()
+    )}`;
+  }
+
   const navLinks = [
     { path: "/", label: "Trang chủ" },
     { path: "/features", label: "Tính năng" },
@@ -177,7 +188,11 @@ export default function Navbar() {
                   title="Thông báo"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowBellDropdown((prev) => !prev);
+                    setShowBellDropdown((prev) => {
+                      // Nếu đang mở dropdown user thì đóng lại
+                      if (dropdownOpen) setDropdownOpen(false);
+                      return !prev;
+                    });
                     setHasUnread(false);
                   }}
                   ref={bellButtonRef}
@@ -224,7 +239,7 @@ export default function Navbar() {
                             >
                               {n.message}
                               <span className="block text-xs text-gray-400 mt-1">
-                                {new Date(n.createdAt).toLocaleString()}
+                                {formatDateVN(n.createdAt)}
                               </span>
                             </li>
                           ))}
@@ -240,7 +255,11 @@ export default function Navbar() {
                   )}
                 </button>
                 <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  onClick={() => {
+                    // Nếu đang mở dropdown thông báo thì đóng lại
+                    if (showBellDropdown) setShowBellDropdown(false);
+                    setDropdownOpen((prev) => !prev);
+                  }}
                   className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors"
                 >
                   <img

@@ -19,6 +19,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedContent, setSelectedContent] = useState(null);
+  const [hasGeneratedResults, setHasGeneratedResults] = useState(false);
 
   // Thêm state cho phân trang content
   const DEFAULT_CONTENTS_PER_PAGE = 6;
@@ -57,13 +58,16 @@ const TopicContentDetail = ({ topic, onBack }) => {
           className="px-4 py-2 w-full sm:w-auto bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all"
           onClick={() => setShowGenContentModal(true)}
         >
-          Tạo thêm nội dung
+          {hasGeneratedResults ? "Xem nội dung đã tạo" : "Tạo thêm nội dung"}
         </button>
       </div>
       {/* Modal AIContentGenerator */}
       <AIContentGenerator
         isOpen={showGenContentModal}
-        onClose={() => setShowGenContentModal(false)}
+        onClose={() => {
+          setShowGenContentModal(false);
+          setHasGeneratedResults(false); // Khi modal đóng, trở lại trạng thái ban đầu
+        }}
         selectedTopic={topic}
         onContentSaved={(newContents) => {
           // Chuẩn hoá lại dữ liệu content mới để đảm bảo có trường content/text/body
@@ -83,6 +87,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
             : [normalize(newContents, 0)];
           setContents((prev) => [...normalized, ...prev]);
         }}
+        onShowResultsChange={setHasGeneratedResults}
       />
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2 break-words">

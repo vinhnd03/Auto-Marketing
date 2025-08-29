@@ -16,12 +16,15 @@ const AIContentGenerator = ({
   onGenerate,
   selectedTopic,
   onContentSaved,
+  onShowResultsChange,
 }) => {
+  // ...existing code...
+
   const { addNotification } = useNotification();
   const [generating, setGenerating] = useState(false);
   const [contentSettings, setContentSettings] = useState({
     postCount: 1,
-    contentType: "mixed",
+    customPostCount: 1,
     tone: "professional",
     includeHashtags: true,
     includeCTA: true,
@@ -29,6 +32,13 @@ const AIContentGenerator = ({
   const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [previewContent, setPreviewContent] = useState([]);
   const [showResults, setShowResults] = useState(false);
+
+  // Notify parent when showResults changes
+  useEffect(() => {
+    if (typeof onShowResultsChange === "function") {
+      onShowResultsChange(showResults);
+    }
+  }, [showResults, onShowResultsChange]);
   const [selectedContentForDetail, setSelectedContentForDetail] =
     useState(null);
   const [showContentDetail, setShowContentDetail] = useState(false);
@@ -52,11 +62,7 @@ const AIContentGenerator = ({
     }
   }, [isOpen]);
 
-  const contentTypes = [
-    { value: "text", label: "Chỉ văn bản", icon: FileText },
-    { value: "image", label: "Hình ảnh + văn bản", icon: Image },
-    { value: "mixed", label: "Đa dạng", icon: Sparkles },
-  ];
+  // Đã bỏ loại nội dung
 
   const toneOptions = [
     { value: "casual", label: "Thân thiện", description: "Gần gũi, dễ hiểu" },
@@ -81,18 +87,22 @@ const AIContentGenerator = ({
 
     const body = {
       topicId: selectedTopic?.id,
-      numberOfPosts: contentSettings.postCount || 1,
+      numberOfPosts:
+        contentSettings.postCount === -1
+          ? contentSettings.customPostCount &&
+            /^\d+$/.test(contentSettings.customPostCount)
+            ? Number(contentSettings.customPostCount)
+            : 1
+          : contentSettings.postCount || 1,
       tone: contentSettings.tone || "professional",
-      contentType: contentSettings.contentType, // <- lấy giá trị theo lựa chọn
       targetWordCount: 800,
       includeSections: true,
       includeIntroConclusion: true,
       includeBulletPoints: true,
-      includeCallToAction: contentSettings.includeCTA, // <-- map từ UI
+      includeCallToAction: contentSettings.includeCTA,
       includeStatistics: false,
       includeCaseStudies: false,
-      includeImage: contentSettings.contentType !== "text", // <-- chỉ gửi true nếu không phải chỉ văn bản
-      includeHashtag: contentSettings.includeHashtags, // <-- map từ UI
+      includeHashtag: contentSettings.includeHashtags,
       additionalInstructions: additionalInstructions || "",
       targetPlatform: "facebook",
       targetAudience: "general",
@@ -121,12 +131,14 @@ const AIContentGenerator = ({
       setShowResults(true);
       setGenerating(false);
       // Thông báo thành công qua chuông
+      const postCountDisplay =
+        contentSettings.postCount === -1
+          ? contentSettings.customPostCount
+          : contentSettings.postCount;
       addNotification &&
         addNotification({
           type: "success",
-          message: `Đã tạo thành công ${
-            contentSettings.postCount
-          } bài viết cho chủ đề "${
+          message: `Đã tạo thành công ${postCountDisplay} bài viết cho chủ đề "${
             selectedTopic?.title || selectedTopic?.name || ""
           }"!`,
           createdAt: new Date(),
@@ -542,64 +554,93 @@ const AIContentGenerator = ({
                     <label className="block text-base font-semibold text-gray-700 mb-3">
                       Số lượng bài viết
                     </label>
-                    <select
-                      value={contentSettings.postCount}
-                      onChange={
-                        generating
-                          ? undefined
-                          : (e) =>
-                              setContentSettings({
-                                ...contentSettings,
-                                postCount: parseInt(e.target.value),
-                              })
-                      }
-                      disabled={generating}
-                      className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm ${
-                        generating ? "cursor-not-allowed opacity-50" : ""
-                      }`}
-                    >
-                      <option value={1}>1 bài viết</option>
-                      <option value={2}>2 bài viết</option>
-                      <option value={3}>3 bài viết</option>
-                    </select>
-                  </div>
-
-                  {/* Content Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Loại nội dung
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {contentTypes.map((type) => {
-                        const Icon = type.icon;
-                        return (
-                          <div
-                            key={type.value}
-                            onClick={
-                              generating
-                                ? undefined
-                                : () =>
+                    <div className="w-full flex items-center gap-2 mb-2">
+                      <select
+                        value={
+                          contentSettings.postCount > 0
+                            ? contentSettings.postCount
+                            : -1
+                        }
+                        onChange={
+                          generating
+                            ? undefined
+                            : (e) => {
+                                const val = parseInt(e.target.value);
+                                if (val === -1) {
+                                  setContentSettings({
+                                    ...contentSettings,
+                                    postCount: -1,
+                                    customPostCount: "",
+                                  });
+                                } else {
+                                  setContentSettings({
+                                    ...contentSettings,
+                                    postCount: val,
+                                    customPostCount: undefined,
+                                  });
+                                }
+                              }
+                        }
+                        disabled={generating}
+                        className={`px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm min-w-[180px] max-w-[220px] ${
+                          generating ? "cursor-not-allowed opacity-50" : ""
+                        }`}
+                      >
+                        <option value={1}>1 bài viết</option>
+                        <option value={2}>2 bài viết</option>
+                        <option value={3}>3 bài viết</option>
+                        <option value={-1}>Tùy chọn...</option>
+                      </select>
+                      {contentSettings.postCount === -1 && (
+                        <input
+                          type="number"
+                          min={1}
+                          max={50}
+                          value={contentSettings.customPostCount ?? ""}
+                          onChange={
+                            generating
+                              ? undefined
+                              : (e) => {
+                                  const val = e.target.value;
+                                  // Cho phép xóa input
+                                  if (
+                                    val === "" ||
+                                    (/^\d+$/.test(val) &&
+                                      Number(val) > 0 &&
+                                      Number(val) <= 50)
+                                  ) {
                                     setContentSettings({
                                       ...contentSettings,
-                                      contentType: type.value,
-                                    })
-                            }
-                            className={`p-2 border rounded-lg cursor-pointer transition-all text-center ${
-                              contentSettings.contentType === type.value
-                                ? "border-green-500 bg-green-50"
-                                : "border-gray-300 hover:border-gray-400"
-                            } ${
-                              generating
-                                ? "cursor-not-allowed opacity-50 pointer-events-none"
-                                : ""
-                            }`}
-                          >
-                            <Icon size={16} className="mx-auto mb-1" />
-                            <div className="text-xs">{type.label}</div>
-                          </div>
-                        );
-                      })}
+                                      customPostCount:
+                                        val === "" ? "" : Number(val),
+                                    });
+                                  }
+                                }
+                          }
+                          disabled={generating}
+                          className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm flex-1 w-full min-w-[220px]"
+                          placeholder="Số lượng bài viết mong muốn"
+                          style={{ minWidth: 0 }}
+                        />
+                      )}
                     </div>
+                  </div>
+
+                  {/* Section nhập hướng dẫn cho AI */}
+                  <div className="col-span-1 md:col-span-2">
+                    <label className="block text-base font-semibold text-gray-700 mb-3">
+                      Hướng dẫn thêm cho AI (tuỳ chọn)
+                    </label>
+                    <textarea
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      rows={4}
+                      placeholder="Nhập hướng dẫn chi tiết cho AI để tạo nội dung đúng ý bạn (ví dụ: chủ đề, phong cách, yêu cầu đặc biệt...)"
+                      value={additionalInstructions}
+                      onChange={(e) =>
+                        setAdditionalInstructions(e.target.value)
+                      }
+                      disabled={generating}
+                    />
                   </div>
                 </div>
 
