@@ -12,7 +12,7 @@ const imageGenSchema = yup.object().shape({
     .required("Vui lòng nhập mô tả hình ảnh.")
     .min(10, "Mô tả phải từ 10 ký tự trở lên.")
     .max(300, "Mô tả tối đa 300 ký tự."),
-  style: yup.string(),
+  style: yup.string().required("Vui lòng chọn phong cách hình ảnh."),
   numImages: yup
     .number()
     .typeError("Số lượng hình ảnh phải là số.")
@@ -145,7 +145,9 @@ function ImageGenModal({ isOpen, onClose, onSubmit, postTitle, postId }) {
                 Phong cách hình ảnh
               </label>
               <select
-                className="w-full border rounded px-4 py-3 text-base"
+                className={`w-full border rounded px-4 py-3 text-base ${
+                  errors.style ? "border-red-500" : ""
+                }`}
                 value={style}
                 onChange={(e) => setStyle(e.target.value)}
               >
@@ -156,6 +158,9 @@ function ImageGenModal({ isOpen, onClose, onSubmit, postTitle, postId }) {
                 <option value="vintage">Cổ điển</option>
                 <option value="modern">Hiện đại</option>
               </select>
+              {errors.style && (
+                <p className="text-red-500 text-sm mt-1">{errors.style}</p>
+              )}
             </div>
             <div className="mb-6">
               <label className="block text-base font-semibold mb-2">
