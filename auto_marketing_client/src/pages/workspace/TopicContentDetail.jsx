@@ -70,12 +70,31 @@ const TopicContentDetail = ({ topic, onBack }) => {
   };
 
   const handleImageGenSubmit = async (selectedImages) => {
-    // Lưu ảnh đầu tiên (hoặc tất cả) vào content
-    if (selectedImages && selectedImages.length > 0) {
+    // Lưu tất cả ảnh vào content
+    if (selectedImages && selectedImages.length > 0 && imageGenTarget) {
       setContents((prev) =>
         prev.map((c) =>
-          c === imageGenTarget ? { ...c, imageUrl: selectedImages[0] } : c
+          c.id === imageGenTarget.id
+            ? {
+                ...c,
+                imageUrls: Array.isArray(c.imageUrls)
+                  ? [...c.imageUrls, ...selectedImages]
+                  : selectedImages,
+                imageUrl: selectedImages[0],
+              }
+            : c
         )
+      );
+      setSelectedContent((prev) =>
+        prev && prev.id === imageGenTarget.id
+          ? {
+              ...prev,
+              imageUrls: Array.isArray(prev.imageUrls)
+                ? [...prev.imageUrls, ...selectedImages]
+                : selectedImages,
+              imageUrl: selectedImages[0],
+            }
+          : prev
       );
     }
     setShowImageGenModal(false);
