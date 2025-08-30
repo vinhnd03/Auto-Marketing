@@ -21,6 +21,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
   const [error, setError] = useState(null);
   const [selectedContent, setSelectedContent] = useState(null);
   const [hasGeneratedResults, setHasGeneratedResults] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState(null);
 
   // Kiểm tra localStorage khi mount để xác định trạng thái nút
   useEffect(() => {
@@ -103,6 +104,34 @@ const TopicContentDetail = ({ topic, onBack }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-8 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+      {/* Modal zoom ảnh */}
+      {zoomedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+          <div className="relative">
+            <button
+              className="absolute top-2 right-2 w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-200 shadow-lg"
+              onClick={() => setZoomedImage(null)}
+              aria-label="Đóng"
+            >
+              <svg width="28" height="28" viewBox="0 0 22 22" fill="none">
+                <circle cx="11" cy="11" r="11" fill="#f3f3f3" />
+                <path
+                  d="M7 7L15 15M15 7L7 15"
+                  stroke="#888"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+            <img
+              src={zoomedImage}
+              alt="Zoomed"
+              className="max-w-[90vw] max-h-[80vh] rounded-xl shadow-2xl border-4 border-white"
+              style={{ objectFit: "contain" }}
+            />
+          </div>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
         <button
           className="px-4 py-2 w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
@@ -252,7 +281,11 @@ const TopicContentDetail = ({ topic, onBack }) => {
                 selectedContent.imageUrls.length > 0 && (
                   <div className="mt-6 flex justify-center gap-4 flex-wrap">
                     {selectedContent.imageUrls.map((url, idx) => (
-                      <div className="relative group w-full max-w-md" key={idx}>
+                      <div
+                        className="relative group w-full max-w-md cursor-zoom-in"
+                        key={idx}
+                        onClick={() => setZoomedImage(url)}
+                      >
                         <img
                           src={url}
                           alt={`AI generated ${idx + 1}`}
