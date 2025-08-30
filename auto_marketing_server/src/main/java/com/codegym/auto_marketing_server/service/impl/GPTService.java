@@ -113,17 +113,23 @@ public class GPTService implements IGPTService {
     }
 
     @Override
-    public CompletableFuture<String> generateLongFormContent(Topic topic, ContentGenerationRequestDTO request) {
+    public CompletableFuture<String> generateLongFormContent(Topic topic, ContentGenerationRequestDTO request, String aiModel) {
         try {
-            log.info("🇻🇳 Generating long-form {} content ({} words) for topic '{}', includeHashtag={}, includeCallToAction={}", request.getContentType(), request.getTargetWordCount(), topic.getName(), request.getIncludeHashtag(), request.getIncludeCallToAction());
+            log.info("🇻🇳 Generating long-form {} content ({} words) for topic '{}' with model '{}', includeHashtag={}, includeCallToAction={}",
+                    request.getContentType(), request.getTargetWordCount(), topic.getName(), aiModel, request.getIncludeHashtag(), request.getIncludeCallToAction());
 
-            String prompt = buildLongFormContentPrompt(topic, request.getTone(), request.getContentType(), request.getTargetWordCount(), request.getIncludeBulletPoints(), request.getIncludeStatistics(), request.getIncludeCaseStudies(), request.getIncludeCallToAction(), request.getIncludeHashtag(), request.getAdditionalInstructions());
+            String prompt = buildLongFormContentPrompt(topic, request.getTone(), request.getContentType(),
+                    request.getTargetWordCount(), request.getIncludeBulletPoints(), request.getIncludeStatistics(),
+                    request.getIncludeCaseStudies(), request.getIncludeCallToAction(), request.getIncludeHashtag(), request.getAdditionalInstructions());
 
             GPTRequestDTO requestDTO = new GPTRequestDTO();
-            requestDTO.setModel(GPT_MODEL);
-            requestDTO.setMax_tokens(calculateTokensForWordCount(request.getTargetWordCount()));
+            requestDTO.setModel(aiModel); // model truyền từ FE
+            requestDTO.setMax_tokens(32768);
             requestDTO.setTemperature(0.7);
-            requestDTO.setMessages(Arrays.asList(new GPTMessageDTO(SYSTEM_ROLE, buildLongFormSystemPrompt(request)), new GPTMessageDTO(USER_ROLE, prompt)));
+            requestDTO.setMessages(Arrays.asList(
+                    new GPTMessageDTO(SYSTEM_ROLE, buildLongFormSystemPrompt(request)),
+                    new GPTMessageDTO(USER_ROLE, prompt)
+            ));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
             String content = responseDTO.getChoices().get(0).getMessage().getContent();

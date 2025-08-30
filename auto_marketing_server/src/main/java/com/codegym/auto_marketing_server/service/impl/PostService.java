@@ -56,35 +56,49 @@ public class PostService implements IPostService {
                     throw new RuntimeException("Topic must be approved before generating content.");
                 }
 
-                // Log instruction từ request
-                log.info("📝 User instruction for GPT: '{}'", request.getAdditionalInstructions());
+                log.info("📝 User instruction for AI: '{}'", request.getAdditionalInstructions());
 
                 int numberOfPosts = request.getNumberOfPosts();
+                String selectedModel = request.getAiModel() != null && !request.getAiModel().isBlank() ? request.getAiModel() : "gpt-4.1";
+
                 List<CompletableFuture<Post>> futures = new ArrayList<>();
 
                 for (int i = 0; i < numberOfPosts; i++) {
                     final int postIndex = i + 1;
                     futures.add(CompletableFuture.supplyAsync(() -> {
                         long postStart = System.currentTimeMillis();
-                        log.info("⏳ [AI GEN] Bắt đầu gen bài số {} cho topic {}", postIndex, topic.getId());
+                        log.info("⏳ [AI GEN] Bắt đầu gen bài số {} cho topic {} với model {}", postIndex, topic.getId(), selectedModel);
 
-                        String promptUsed = gptService.buildLongFormContentPrompt(topic, request.getTone(), request.getContentType(), request.getTargetWordCount(), request.getIncludeBulletPoints(), request.getIncludeStatistics(), request.getIncludeCaseStudies(), request.getIncludeCallToAction(), request.getIncludeHashtag(), request.getAdditionalInstructions());
-                        log.info("📢 Prompt sent to GPT (post {}): \n{}", postIndex, promptUsed);
+                        String promptUsed = gptService.buildLongFormContentPrompt(
+                                topic,
+                                request.getTone(),
+                                request.getContentType(),
+                                request.getTargetWordCount(),
+                                request.getIncludeBulletPoints(),
+                                request.getIncludeStatistics(),
+                                request.getIncludeCaseStudies(),
+                                request.getIncludeCallToAction(),
+                                request.getIncludeHashtag(),
+                                request.getAdditionalInstructions()
+                        );
+                        log.info("📢 Prompt sent to AI model {} (post {}): \n{}", selectedModel, postIndex, promptUsed);
 
                         String gptResponse;
                         try {
-                            gptResponse = gptService.generateLongFormContent(topic, request).get();
+                            // Truyền model vào request nếu GPTService hỗ trợ
+                            gptResponse = gptService.generateLongFormContent(topic, request, selectedModel).get();
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             log.error("Thread interrupted when generating post {}", postIndex, e);
                             throw new RuntimeException("Thread interrupted", e);
                         } catch (ExecutionException e) {
                             log.error("Execution error when generating post {}", postIndex, e);
-                            throw new RuntimeException("Error in GPT generation", e);
+                            throw new RuntimeException("Error in AI generation", e);
                         }
 
                         Post post = createPostFromGPTResponse(gptResponse, topic, request);
-                        post.setImageUrl(null); // nếu cần sinh ảnh thì xử lý riêng
+                        post.setAiModel(selectedModel); // Lưu lại model đã dùng
+                        post.setImageUrl(null);
 
                         long postTime = System.currentTimeMillis() - postStart;
                         log.info("✅ [AI GEN] Hoàn thành bài số {} trong {} ms ({} giây)", postIndex, postTime, postTime / 1000.0);
@@ -93,10 +107,8 @@ public class PostService implements IPostService {
                     }));
                 }
 
-                // Đợi tất cả các bài gen xong
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-                // Collect kết quả
                 List<Post> generatedPosts = futures.stream().map(CompletableFuture::join).toList();
 
                 List<Post> savedPosts = postRepository.saveAll(generatedPosts);
