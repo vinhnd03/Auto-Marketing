@@ -10,6 +10,13 @@ import {
 
 import toast from "react-hot-toast";
 
+const AI_MODEL_MAP = {
+  gpt: "gpt-4.1",
+  gemini: "gemini-pro",
+  claude: "claude-3-opus",
+  llama: "llama-3-70b",
+};
+
 const AIContentGenerator = ({
   isOpen,
   onClose,
@@ -18,8 +25,6 @@ const AIContentGenerator = ({
   onContentSaved,
   onShowResultsChange,
 }) => {
-  // ...existing code...
-
   const { addNotification } = useNotification();
   const [generating, setGenerating] = useState(false);
   const [contentSettings, setContentSettings] = useState({
@@ -28,6 +33,7 @@ const AIContentGenerator = ({
     tone: "professional",
     includeHashtags: true,
     includeCTA: true,
+    model: "gpt", // mặc định GPT
   });
   const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [previewContent, setPreviewContent] = useState([]);
@@ -138,6 +144,7 @@ const AIContentGenerator = ({
       additionalInstructions: additionalInstructions || "",
       targetPlatform: "facebook",
       targetAudience: "general",
+      aiModel: AI_MODEL_MAP[contentSettings.model || "gpt"],
     };
 
     try {
@@ -632,36 +639,37 @@ const AIContentGenerator = ({
                         <option value={-1}>Tùy chọn...</option>
                       </select>
                       {contentSettings.postCount === -1 && (
-                        <input
-                          type="number"
-                          min={1}
-                          max={50}
-                          value={contentSettings.customPostCount ?? ""}
-                          onChange={
-                            generating
-                              ? undefined
-                              : (e) => {
-                                  const val = e.target.value;
-                                  // Cho phép xóa input
-                                  if (
-                                    val === "" ||
-                                    (/^\d+$/.test(val) &&
-                                      Number(val) > 0 &&
-                                      Number(val) <= 50)
-                                  ) {
-                                    setContentSettings({
-                                      ...contentSettings,
-                                      customPostCount:
-                                        val === "" ? "" : Number(val),
-                                    });
+                        <div className="flex w-full gap-2 mt-2">
+                          <input
+                            type="number"
+                            min={1}
+                            max={50}
+                            value={contentSettings.customPostCount ?? ""}
+                            onChange={
+                              generating
+                                ? undefined
+                                : (e) => {
+                                    const val = e.target.value;
+                                    // Cho phép xóa input
+                                    if (
+                                      val === "" ||
+                                      (/^\d+$/.test(val) &&
+                                        Number(val) > 0 &&
+                                        Number(val) <= 50)
+                                    ) {
+                                      setContentSettings({
+                                        ...contentSettings,
+                                        customPostCount:
+                                          val === "" ? "" : Number(val),
+                                      });
+                                    }
                                   }
-                                }
-                          }
-                          disabled={generating}
-                          className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm flex-1 w-full min-w-[220px]"
-                          placeholder="Số lượng bài viết mong muốn"
-                          style={{ minWidth: 0 }}
-                        />
+                            }
+                            disabled={generating}
+                            className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm flex-1 w-full"
+                            placeholder="Số lượng bài viết mong muốn"
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -681,6 +689,33 @@ const AIContentGenerator = ({
                       }
                       disabled={generating}
                     />
+                  </div>
+                  {/* Model AI lựa chọn */}
+                  <div className="mb-6 col-span-1 md:col-span-2">
+                    <label className="block text-base font-semibold text-gray-700 mb-3">
+                      Chọn Model AI
+                    </label>
+                    <select
+                      value={contentSettings.model || "gpt"}
+                      onChange={
+                        generating
+                          ? undefined
+                          : (e) =>
+                              setContentSettings({
+                                ...contentSettings,
+                                model: e.target.value,
+                              })
+                      }
+                      disabled={generating}
+                      className={`px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm min-w-[180px] max-w-[220px] ${
+                        generating ? "cursor-not-allowed opacity-50" : ""
+                      }`}
+                    >
+                      <option value="gpt">GPT (OpenAI)</option>
+                      <option value="gemini">Gemini (Google)</option>
+                      <option value="claude">Claude (Anthropic)</option>
+                      <option value="llama">Llama (Meta)</option>
+                    </select>
                   </div>
                 </div>
 
