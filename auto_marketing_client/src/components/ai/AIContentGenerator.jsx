@@ -2,7 +2,7 @@ import { playNotificationSound } from "../../utils/notificationSound";
 import { useNotification } from "../../context/NotificationContext";
 import React, { useState, useEffect } from "react";
 import { X, Wand2, FileText, Image, Sparkles, Eye, Edit } from "lucide-react";
-import SocialMediaPublisher from "./SocialMediaPublisher";
+import Swal from "sweetalert2";
 import {
   generateContentWithAI,
   approveAndCleanPosts,
@@ -198,9 +198,33 @@ const AIContentGenerator = ({
     setShowContentDetail(true);
   };
 
-  // Function để xử lý chỉnh sửa content
-  const handleEditContent = (content) => {
-    setEditingContent({ ...content });
+  // Function để xử lý chỉ dùng model GPT trong thời gian hiện tại
+  const handleModelChange = (e) => {
+    const value = e.target.value;
+    if (value !== "gpt") {
+      Swal.fire({
+        icon: "warning",
+        title: "Model đang phát triển",
+        text: "Vui lòng chọn GPT (OpenAI)!",
+        confirmButtonColor: "#1976d2",
+        confirmButtonText: "Đã hiểu",
+        allowOutsideClick: true,
+        backdrop: true,
+        // popup z-index
+        didOpen: () => {
+          document.querySelector(".swal2-container").style.zIndex = "999999";
+        },
+      });
+      setContentSettings((prev) => ({
+        ...prev,
+        model: "gpt",
+      }));
+    } else {
+      setContentSettings((prev) => ({
+        ...prev,
+        model: value,
+      }));
+    }
   };
 
   // Function để lưu content đã chỉnh sửa
@@ -274,20 +298,6 @@ const AIContentGenerator = ({
       setGenerating(false);
       toast.error("Lưu nội dung thất bại!");
     }
-  };
-  // Function để xử lý khi publish thành công
-  const handlePublishSuccess = (publishResult) => {
-    onGenerate(publishResult.publishedContent);
-    setShowPublisher(false);
-    setShowResults(false);
-    setPreviewContent([]);
-    setSelectedContentForDetail(null);
-    setShowContentDetail(false);
-    setEditingContent(null);
-    setSelectedContentIds([]);
-    // toast.success("Publish nội dung lên mạng xã hội thành công!", {
-    //   style: TOAST_STYLE,
-    // });
   };
 
   // Function để quay lại form settings
@@ -697,15 +707,7 @@ const AIContentGenerator = ({
                     </label>
                     <select
                       value={contentSettings.model || "gpt"}
-                      onChange={
-                        generating
-                          ? undefined
-                          : (e) =>
-                              setContentSettings({
-                                ...contentSettings,
-                                model: e.target.value,
-                              })
-                      }
+                      onChange={generating ? undefined : handleModelChange}
                       disabled={generating}
                       className={`px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm min-w-[180px] max-w-[220px] ${
                         generating ? "cursor-not-allowed opacity-50" : ""
