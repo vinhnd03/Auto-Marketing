@@ -1,8 +1,6 @@
 package com.codegym.auto_marketing_server.service.impl;
 
-import com.codegym.auto_marketing_server.dto.ContentGenerationRequestDTO;
-import com.codegym.auto_marketing_server.dto.PostFilterDTO;
-import com.codegym.auto_marketing_server.dto.PostResponseDTO;
+import com.codegym.auto_marketing_server.dto.*;
 import com.codegym.auto_marketing_server.entity.Post;
 import com.codegym.auto_marketing_server.entity.PostMedia;
 import com.codegym.auto_marketing_server.entity.Topic;
@@ -20,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.net.URL;
@@ -433,4 +432,149 @@ public class PostService implements IPostService {
     public long countPostsByTopicAndStatus(Long topicId, PostStatus status) {
         return postRepository.countByTopicIdAndStatus(topicId, status);
     }
+
+    // ========================
+// DTO Mapper mới
+// ========================
+    private PostResponseDTO mapToResponseDTOV2(Post post) {
+        PostResponseDTO dto = new PostResponseDTO();
+
+        // Set thủ công thay vì dùng modelMapper (tránh ghi đè ngoài ý muốn)
+        dto.setId(post.getId());
+        dto.setTopicId(post.getTopic() != null ? post.getTopic().getId() : null);
+        dto.setTitle(post.getTitle());
+        dto.setContent(post.getContent());
+        dto.setHashtag(post.getHashtag());
+        dto.setGeneratedByAI(post.getGeneratedByAI());
+        dto.setAiPrompt(post.getAiPrompt());
+        dto.setAiModel(post.getAiModel());
+        dto.setContentType(post.getContentType());
+        dto.setTone(post.getTone());
+        dto.setTargetAudience(post.getTargetAudience());
+        dto.setTokenUsage(post.getTokenUsage());
+        dto.setGenerateTime(post.getGenerateTime());
+        dto.setStatus(post.getStatus());
+        dto.setCreatedAt(post.getCreatedAt());
+        dto.setUpdatedAt(post.getUpdatedAt());
+
+        // Topic mapping nếu cần
+        if (post.getTopic() != null) {
+            TopicResponseDTO topicDTO = new TopicResponseDTO();
+            topicDTO.setId(post.getTopic().getId());
+            topicDTO.setName(post.getTopic().getName());
+            dto.setTopic(topicDTO);
+        }
+
+        // Mapping medias → imageUrls
+        List<String> imageUrls = (post.getMedias() == null || post.getMedias().isEmpty())
+                ? List.of()
+                : post.getMedias().stream()
+                .map(PostMedia::getUrl)
+                .collect(Collectors.toList());
+        dto.setImageUrls(imageUrls);
+
+        // imageUrl ưu tiên DB field, nếu null thì lấy cái đầu trong imageUrls
+        String imageUrl = post.getImageUrl();
+        if ((imageUrl == null || imageUrl.isBlank()) && !imageUrls.isEmpty()) {
+            imageUrl = imageUrls.get(0);
+        }
+        dto.setImageUrl(imageUrl);
+
+        return dto;
+    }
+
+    // ========================
+// Save Images V2
+// ========================
+    @Transactional
+    public void saveImagesForPostV2(Long postId, List<String> selectedImageUrls) {
+        Post post = findById(postId);
+
+        if (post.getMedias() == null) {
+            post.setMedias(new ArrayList<>());
+        }
+
+        List<String> oldUrls = post.getMedias().stream()
+                .map(PostMedia::getUrl)
+                .collect(Collectors.toList());
+
+        for (String url : selectedImageUrls) {
+            if (!oldUrls.contains(url)) {
+                PostMedia media = new PostMedia();
+                media.setUrl(url);
+                media.setType(PostMediaType.PIC);
+                media.setPost(post);
+                post.getMedias().add(media);
+            }
+        }
+
+        postRepository.save(post);
+    }
+
+    // ========================
+// Update Post V2
+// ========================
+    @Transactional
+    public PostResponseDTO updatePostV2(Long postId, PostUpdateDTO requestDto, MultipartFile[] files) throws Exception {
+        Post post = findById(postId);
+
+        // 1. Update text fields
+        if (requestDto.getContent() != null) post.setContent(requestDto.getContent());
+        if (requestDto.getHashtag() != null) post.setHashtag(requestDto.getHashtag());
+        if (requestDto.getTitle() != null) post.setTitle(requestDto.getTitle());
+        if (requestDto.getTopicId() != null) {
+            post.setTopic(topicService.findById(requestDto.getTopicId()));
+        }
+
+        // 2. Xử lý medias
+        List<PostMedia> updatedMedias = new ArrayList<>();
+
+        // Giữ lại ảnh còn lại (cập nhật URL/type nếu có)
+        if (requestDto.getMedias() != null) {
+            for (PostMediaDTO dto : requestDto.getMedias()) {
+                if (dto.id() != null) {
+                    // tìm media cũ
+                    post.getMedias().stream()
+                            .filter(m -> m.getId().equals(dto.id()))
+                            .findFirst()
+                            .ifPresent(m -> {
+                                if (dto.url() != null) m.setUrl(dto.url());
+                                m.setType(dto.type() != null ? dto.type() : PostMediaType.PIC);
+                                updatedMedias.add(m); // chỉ giữ những ảnh còn lại
+                            });
+                } else {
+                    // Ảnh mới dạng URL
+                    PostMedia newMedia = new PostMedia();
+                    newMedia.setPost(post);
+                    newMedia.setUrl(dto.url());
+                    newMedia.setType(dto.type() != null ? dto.type() : PostMediaType.PIC);
+                    updatedMedias.add(newMedia);
+                }
+            }
+        }
+
+        // 3. Upload file mới
+        if (files != null && files.length > 0) {
+            for (MultipartFile file : files) {
+                String url = cloudinaryService.uploadMultipart(file);
+                PostMedia newMedia = new PostMedia();
+                newMedia.setPost(post);
+                newMedia.setUrl(url);
+                newMedia.setType(PostMediaType.PIC);
+                updatedMedias.add(newMedia);
+            }
+        }
+
+        // Gán lại danh sách medias mới hoàn toàn
+        post.getMedias().clear();
+        post.getMedias().addAll(updatedMedias);
+
+        // 4. Save
+        post.setUpdatedAt(LocalDate.now());
+        Post saved = postRepository.save(post);
+
+        return mapToResponseDTOV2(saved);
+    }
+
+
 }
