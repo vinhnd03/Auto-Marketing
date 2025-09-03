@@ -1,8 +1,10 @@
 import axios from "axios";
+import api from "../../context/api";
 
 export async function getAllPackages() {
     try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/plans`, {withCredentials: true});
+        // const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/plans`, {withCredentials: true});
+        const response = await api.get(`/plans`, {withCredentials: true});
         const plans = response.data?.data || response.data;
         return Array.isArray(plans) ? plans : [];
     } catch (e) {
@@ -11,7 +13,8 @@ export async function getAllPackages() {
     }
 }
 
-const BASE = `${process.env.REACT_APP_BACKEND_URL}/api/users`; // giữ nguyên
+// const BASE = `${process.env.REACT_APP_BACKEND_URL}/api/users`; // giữ nguyên
+const BASE = `/users`; 
 
 /**
  * Backend response shape:
@@ -27,7 +30,8 @@ export async function getStatisticPackageByMonthYear(month, year) {
         if (month !== "all") params.month = Number(month);
 
         // Gọi endpoint mới statistics_packages
-        const { data } = await axios.get(`${BASE}/statistics_packages`, { params, withCredentials: true });
+        // const { data } = await axios.get(`${BASE}/statistics_packages`, { params, withCredentials: true });
+        const { data } = await api.get(`${BASE}/statistics_packages`, { params, withCredentials: true });
 
         // ---- MONTHLY ----
         const monthArr = new Array(12).fill(0);

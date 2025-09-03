@@ -1,6 +1,8 @@
 import axios from "axios";
+import api from "../../context/api";
 
-const BASE = "http://localhost:8080/api/users";
+// const BASE = `${process.env.REACT_APP_BACKEND_URL}/api/users`;
+const BASE = `/users`;
 
 export async function filterUsersByPackage(
     filter = null, // "NO_PACKAGE" | "EXPIRED"
@@ -8,7 +10,8 @@ export async function filterUsersByPackage(
     size = 10
 ) {
     try {
-        const { data } = await axios.get(`${BASE}/search`, {
+        // const { data } = await axios.get(`${BASE}/search`, {
+        const { data } = await api.get(`${BASE}/search`, {
             withCredentials: true,
             params: {
                 subscriptionFilter: filter || undefined,
@@ -31,7 +34,8 @@ export async function filterUsersByPackage(
 
 export async function getAll() {
     try {
-        const response = await axios.get("http://localhost:8080/api/users", {
+        // const response = await axios.get(BASE, {
+        const response = await api.get(BASE, {
             withCredentials: true,
             params: {
                 page: 0,
@@ -53,7 +57,8 @@ export async function getAll() {
 
 export async function updateUser(id, user) {
     try {
-        const response = await axios.patch("http://localhost:8080/api/users/" + id, user, {withCredentials: true});
+        // const response = await axios.patch(BASE + id, user, { withCredentials: true });
+        const response = await api.patch(BASE + id, user, { withCredentials: true });
         return response.data;
     } catch (e) {
         console.log(e)
@@ -63,9 +68,10 @@ export async function updateUser(id, user) {
 
 export async function findById(id) {
     try {
-        const response=await axios.get("http://localhost:8080/api/users/"+id, {withCredentials: true});
+        // const response = await axios.get(BASE + "/" + id, { withCredentials: true });
+        const response = await api.get(BASE + "/" + id, { withCredentials: true });
         return response.data;
-    }catch (e) {
+    } catch (e) {
         console.log(e)
         return null;
     }
@@ -81,7 +87,8 @@ export async function search(
     showLocked = null // thêm tham số để lọc status ngay trong API call
 ) {
     try {
-        const { data: result } = await axios.get("http://localhost:8080/api/users", {
+        // const { data: result } = await axios.get(BASE, {
+        const { data: result } = await api.get(BASE, {
             withCredentials: true,
             params: {
                 name: nameKeyword || undefined,

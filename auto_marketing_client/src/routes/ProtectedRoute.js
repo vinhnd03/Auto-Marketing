@@ -9,6 +9,7 @@ const ProtectedRoute = ({ children }) => {
     return <Preloader />;
   }
   if (!user) {
+    console.log("Về trang chủ");
     return <Navigate to="/login" replace />;
   }
 

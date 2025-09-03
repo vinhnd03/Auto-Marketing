@@ -1,10 +1,13 @@
 import axios from "axios";
+import api from "../../context/api";
 
-const BASE = `${process.env.REACT_APP_BACKEND_URL}/api/users`;
+// const BASE = `${process.env.REACT_APP_BACKEND_URL}/api/users`;
+const BASE = `/users`;
 
 export async function getAllServicePackages() {
     try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/plans`, {withCredentials: true});
+        // const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/plans`, {withCredentials: true});
+        const response = await api.get(`${process.env.REACT_APP_BACKEND_URL}/api/plans`, {withCredentials: true});
         const plans = response.data?.data || response.data;
         return Array.isArray(plans) ? plans : [];
     } catch (e) {
@@ -26,7 +29,8 @@ export async function getStatisticByMonthYear(month, year) {
         const params = { year };
         if (month !== "all") params.month = Number(month);
 
-        const { data } = await axios.get(`${BASE}/statistics`, { params, withCredentials: true });
+        // const { data } = await axios.get(`${BASE}/statistics`, { params, withCredentials: true });
+        const { data } = await api.get(`${BASE}/statistics`, { params, withCredentials: true });
 
         // ---- MONTHLY ----
         const monthArr = new Array(12).fill(0);
@@ -106,7 +110,8 @@ export async function getStatisticByMonthYear(month, year) {
 // Lấy dữ liệu tháng hiện tại + tháng trước
 export async function getMonthlyDetail(year, month) {
     try {
-        const { data } = await axios.get(`${BASE}/statistics/monthly-detail`,{withCredentials: true,
+        // const { data } = await axios.get(`${BASE}/statistics/monthly-detail`,{withCredentials: true,
+        const { data } = await api.get(`${BASE}/statistics/monthly-detail`,{withCredentials: true,
             params: { year, month }
             
         });

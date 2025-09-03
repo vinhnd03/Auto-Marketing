@@ -6,7 +6,7 @@ import { useAuth } from "./AuthContext";
 
 export const useAxiosInterceptor = () => {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { setUser, logout } = useAuth();
   // const hasShown = useRef(false);
 
   // ✅ Dùng useCallback để giữ 1 reference duy nhất
@@ -14,14 +14,16 @@ export const useAxiosInterceptor = () => {
     (error) => {
       if (error.response?.status === 401) {
         // if (!hasShown.current) {
-          cancelAllRequests();
-          setSessionExpired(true);
-          // hasShown.current = true;
-          setUser(null);
-          toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.", {
-            id: "session-expired",
-          });
-          navigate("/login", { replace: true });
+        // cancelAllRequests();
+        // setSessionExpired(true);
+        // hasShown.current = true;
+        // logout();
+        setUser(null);
+
+        toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.", {
+          id: "session-expired",
+        });
+        navigate("/login", { replace: true });
         // }
       }
       return Promise.reject(error);
