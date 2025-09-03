@@ -1,9 +1,12 @@
 import axios from "axios";
-const URL = `${process.env.REACT_APP_BACKEND_URL}/api/campaign`;
+import api from "../context/api";
+// const URL = `${process.env.REACT_APP_BACKEND_URL}/api/campaign`;
+const URL = `/campaign`;
 
 const findCampaignByWorkspaceId = async (workspaceId) => {
   try {
-    const resp = await axios.get(`${URL}/workspaceId`,{
+    // const resp = await axios.get(`${URL}/workspaceId`,{
+    const resp = await api.get(`${URL}/workspaceId`,{
       params: {workspaceId},
       withCredentials:true
     })
@@ -24,7 +27,8 @@ const findAllCampaign = async (
 ) => {
   const params = { page, size, name, startDate, endDate, workspaceId };
   try {
-    const resp = await axios.get(URL, { params, withCredentials: true });
+    // const resp = await axios.get(URL, { params, withCredentials: true });
+    const resp = await api.get(URL, { params, withCredentials: true });
     console.log("resp", resp.data);
     return {
       content: resp.data.content || [],
@@ -38,7 +42,8 @@ const findAllCampaign = async (
 
 const create = async (dto) => {
   try {
-    const res = await axios.post(URL, dto, { withCredentials: true });
+    // const res = await axios.post(URL, dto, { withCredentials: true });
+    const res = await api.post(URL, dto, { withCredentials: true });
     return { data: res.data, errors: null };
   } catch (error) {
     if (error.response && error.response.status === 400) {
@@ -51,7 +56,8 @@ const create = async (dto) => {
 // Lấy danh sách trạng thái (enum) từ server
 const getStatuses = async () => {
   try {
-    const res = await axios.get(`${URL}/statuses`, { withCredentials: true });
+    // const res = await axios.get(`${URL}/statuses`, { withCredentials: true });
+    const res = await api.get(`${URL}/statuses`, { withCredentials: true });
     return res.data;
   } catch (error) {
     console.error("Lỗi khi lấy trạng thái:", error);
@@ -62,7 +68,8 @@ const getStatuses = async () => {
 // Lấy campaign theo id
 const findById = async (id) => {
   try {
-    const res = await axios.get(`${URL}/${id}`, {withCredentials: true});
+    // const res = await axios.get(`${URL}/${id}`, {withCredentials: true});
+    const res = await api.get(`${URL}/${id}`, {withCredentials: true});
     return { data: res.data, errors: null };
   } catch (error) {
     if (error.response && error.response.status === 404) {
@@ -75,7 +82,8 @@ const findById = async (id) => {
 // Cập nhật campaign theo id
 const update = async (id, dto) => {
   try {
-    const res = await axios.put(`${URL}/${id}`, dto, {withCredentials: true});
+    // const res = await axios.put(`${URL}/${id}`, dto, {withCredentials: true});
+    const res = await api.put(`${URL}/${id}`, dto, {withCredentials: true});
     return { data: res.data, errors: null };
   } catch (error) {
     if (error.response && error.response.status === 400) {
@@ -87,7 +95,8 @@ const update = async (id, dto) => {
 
 const softDelete = async (id) => {
   try {
-    const res = await axios.delete(`${URL}/${id}`, { withCredentials: true });
+    // const res = await axios.delete(`${URL}/${id}`, { withCredentials: true });
+    const res = await api.delete(`${URL}/${id}`, { withCredentials: true });
     return { success: true, message: res.data };
   } catch (error) {
     if (error.response) {
@@ -104,7 +113,8 @@ const uploadExcel = async (file, workspaceId) => {
   formData.append("file", file);
 
   try {
-    const res = await axios.post(
+    // const res = await axios.post(
+    const res = await api.post(
       `${URL}/upload-excel?workspaceId=${workspaceId}`, // query param đủ
       formData,
       {
@@ -125,7 +135,8 @@ const uploadExcel = async (file, workspaceId) => {
 
 const countCampaign = async (id) => {
   try {
-    const resp = await axios.get(`${URL}/totalCampaign`, {
+    // const resp = await axios.get(`${URL}/totalCampaign`, {
+    const resp = await api.get(`${URL}/totalCampaign`, {
       params: { userId: id },
       withCredentials: true,
     });

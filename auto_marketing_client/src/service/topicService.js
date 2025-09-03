@@ -1,11 +1,14 @@
 import axios from "axios";
 import { data } from 'react-router-dom';
+import api from "../context/api";
 
 // Base URL for topic API
 const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}/api/v1`;
+// const BASE_URL = `/v1`;
 
 export const getTopicsByCampaignId = async (campaignId) => {
   try {
+    // const resp = await axios.get(`${BASE_URL}/topics/campaignId`, {
     const resp = await axios.get(`${BASE_URL}/topics/campaignId`, {
       params: {campaignId},
       withCredentials:true
@@ -19,6 +22,7 @@ export const getTopicsByCampaignId = async (campaignId) => {
   }
 }
 // Configure axios with default timeout
+// const apiClient = axios.create({
 const apiClient = axios.create({
   withCredentials: true,
   baseURL: BASE_URL,
