@@ -87,6 +87,6 @@ public class CampaignService implements ICampaignService {
 
     @Override
     public List<Campaign> getCampaignsByWorkspace(Long workspaceId) {
-        return campaignRepository.findByWorkspaceId(workspaceId);
+        return campaignRepository.findActiveCampaignsByWorkspace(workspaceId);
     }
 }

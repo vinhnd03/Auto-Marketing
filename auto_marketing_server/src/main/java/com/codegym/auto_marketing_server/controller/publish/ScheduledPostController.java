@@ -45,7 +45,7 @@ public class ScheduledPostController {
             @RequestParam Long workspaceId) {
         return ResponseEntity.ok(scheduledPostService.getScheduledByWorkspace(workspaceId));
     }
-    
+
     // 3. Xem chi tiết một ScheduledPost
     @GetMapping("/{id}")
     public ResponseEntity<ScheduledPost> getScheduledPost(@PathVariable Long id) {

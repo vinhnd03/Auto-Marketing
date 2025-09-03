@@ -252,6 +252,6 @@ public class TopicService implements ITopicService {
 
     @Override
     public List<Topic> getTopicsByCampaignId(Long campaignId) {
-        return topicRepository.findByCampaignId(campaignId);
+        return topicRepository.findActiveTopicsWithPosts(campaignId);
     }
 }
