@@ -7,6 +7,7 @@ import * as Yup from "yup";
 import verifyToken from "../../service/tokenService";
 import authService from "../../service/authService";
 import Preloader from "./../../components/ui/Preloader";
+import PasswordStrength from "./PasswordStrength";
 
 // Validation schema
 const registerSchema = Yup.object({
@@ -112,7 +113,7 @@ const ResetPasswordPage = () => {
             validationSchema={registerSchema}
             onSubmit={handleSubmit}
           >
-            {({ isSubmitting, errors, touched }) => (
+            {({ isSubmitting, errors, touched, values }) => (
               <Form className="space-y-6">
                 {/* Password Field */}
                 <div>
@@ -136,7 +137,7 @@ const ResetPasswordPage = () => {
                           ? "border-red-500"
                           : "border-gray-300"
                       }`}
-                      placeholder="Tạo mật khẩu mạnh"
+                      placeholder="Nhập mật khẩu mới"
                     />
                     <button
                       type="button"
@@ -146,6 +147,7 @@ const ResetPasswordPage = () => {
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
+                  <PasswordStrength password={values.password} />
                   <ErrorMessage
                     name="password"
                     component="div"

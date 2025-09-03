@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 @ConditionalOnProperty(name = "app.gpt.mock.enabled", havingValue = "false")
 public class GPTService implements IGPTService {
 
-    public static final String GPT_MODEL = "gpt-4o";
+    public static final String GPT_MODEL = "gpt-4.1";
     private static final String SYSTEM_ROLE = "system";
     private static final String USER_ROLE = "user";
     private static final String DEFAULT_SOCIAL_POST = "bài đăng mạng xã hội";
@@ -49,14 +49,14 @@ public class GPTService implements IGPTService {
     @Override
     public CompletableFuture<String> generateTopicsFromCampaign(Campaign campaign, Integer numberOfTopics, String additionalInstructions, double temperature, String tone) {
         try {
-            log.info("🇻🇳 Generating {} Vietnamese topics for campaign '{}', creativity temperature {}, tone '{}'", numberOfTopics, campaign.getName(), temperature, tone);
+            log.info("🇻🇳 Generating {} Vietnamese topics for campaign '{}', creativity temperature {}, tone '{}', additionalInstructions '{}", numberOfTopics, campaign.getName(), temperature, tone, additionalInstructions);
 
             String prompt = buildVietnameseTopicGenerationPrompt(campaign, numberOfTopics, additionalInstructions, tone);
 
             GPTRequestDTO requestDTO = new GPTRequestDTO();
             requestDTO.setModel(GPT_MODEL);
-            requestDTO.setMax_tokens(1500);
-            requestDTO.setTemperature(temperature); // dùng giá trị truyền vào từ UI
+            requestDTO.setMax_tokens(32768); // Tăng lên tối đa cho GPT-4.1
+            requestDTO.setTemperature(temperature);
             requestDTO.setMessages(Arrays.asList(new GPTMessageDTO(SYSTEM_ROLE, "Bạn là một chuyên gia marketing người Việt Nam với 10 năm kinh nghiệm. Bạn hiểu rõ thị trường Việt Nam, văn hóa, ngôn ngữ và hành vi tiêu dùng. Hãy tạo các chủ đề marketing bằng tiếng Việt thuần túy, phù hợp với người Việt. QUAN TRỌNG: Chỉ trả lời bằng tiếng Việt, không dùng tiếng Anh."), new GPTMessageDTO(USER_ROLE, prompt)));
 
             GPTResponseDTO responseDTO = callGPTAPI(requestDTO).get();
@@ -96,7 +96,7 @@ public class GPTService implements IGPTService {
 
             GPTRequestDTO requestDTO = new GPTRequestDTO();
             requestDTO.setModel(GPT_MODEL);
-            requestDTO.setMax_tokens(1200);
+            requestDTO.setMax_tokens(32768); // Tăng lên tối đa cho GPT-4.1
             requestDTO.setTemperature(0.8);
             requestDTO.setMessages(Arrays.asList(new GPTMessageDTO(SYSTEM_ROLE, "Bạn là một copywriter chuyên nghiệp người Việt Nam, chuyên tạo nội dung marketing tiếng Việt. Bạn viết theo phong cách người Việt, sử dụng từ ngữ thân thiện, dễ hiểu. QUAN TRỌNG: Chỉ viết bằng tiếng Việt, không dùng tiếng Anh trừ khi cần thiết cho hashtag."), new GPTMessageDTO(USER_ROLE, prompt)));
 
@@ -113,36 +113,18 @@ public class GPTService implements IGPTService {
     }
 
     @Override
-    public CompletableFuture<String> generateLongFormContent(
-            Topic topic,
-            ContentGenerationRequestDTO request
-    ) {
+    public CompletableFuture<String> generateLongFormContent(Topic topic, ContentGenerationRequestDTO request, String aiModel) {
         try {
-            log.info(
-                    "🇻🇳 Generating long-form {} content ({} words) for topic '{}', includeHashtag={}, includeCallToAction={}",
-                    request.getContentType(),
-                    request.getTargetWordCount(),
-                    topic.getName(),
-                    request.getIncludeHashtag(),
-                    request.getIncludeCallToAction()
-            );
+            log.info("🇻🇳 Generating long-form {} content ({} words) for topic '{}' with model '{}', includeHashtag={}, includeCallToAction={}",
+                    request.getContentType(), request.getTargetWordCount(), topic.getName(), aiModel, request.getIncludeHashtag(), request.getIncludeCallToAction());
 
-            String prompt = buildLongFormContentPrompt(
-                    topic,
-                    request.getTone(),
-                    request.getContentType(),
-                    request.getTargetWordCount(),
-                    request.getIncludeBulletPoints(),
-                    request.getIncludeStatistics(),
-                    request.getIncludeCaseStudies(),
-                    request.getIncludeCallToAction(),
-                    request.getIncludeHashtag(),
-                    request.getAdditionalInstructions()
-            );
+            String prompt = buildLongFormContentPrompt(topic, request.getTone(), request.getContentType(),
+                    request.getTargetWordCount(), request.getIncludeBulletPoints(), request.getIncludeStatistics(),
+                    request.getIncludeCaseStudies(), request.getIncludeCallToAction(), request.getIncludeHashtag(), request.getAdditionalInstructions());
 
             GPTRequestDTO requestDTO = new GPTRequestDTO();
-            requestDTO.setModel(GPT_MODEL);
-            requestDTO.setMax_tokens(calculateTokensForWordCount(request.getTargetWordCount()));
+            requestDTO.setModel(aiModel); // model truyền từ FE
+            requestDTO.setMax_tokens(32768);
             requestDTO.setTemperature(0.7);
             requestDTO.setMessages(Arrays.asList(
                     new GPTMessageDTO(SYSTEM_ROLE, buildLongFormSystemPrompt(request)),
@@ -171,7 +153,7 @@ public class GPTService implements IGPTService {
 
             GPTRequestDTO requestDTO = new GPTRequestDTO();
             requestDTO.setModel(GPT_MODEL);
-            requestDTO.setMax_tokens(300);
+            requestDTO.setMax_tokens(2048); // Image prompt chỉ cần tối đa 2048 token (hoặc tùy bạn)
             requestDTO.setTemperature(0.6);
             requestDTO.setMessages(Arrays.asList(new GPTMessageDTO(SYSTEM_ROLE, "Bạn là chuyên gia tạo prompt cho AI image generation. " + "Hãy tạo prompt tiếng Anh ngắn gọn, chính xác cho DALL-E hoặc Midjourney."), new GPTMessageDTO(USER_ROLE, prompt)));
 
@@ -239,18 +221,7 @@ public class GPTService implements IGPTService {
         return systemPrompt.toString();
     }
 
-    private String buildLongFormContentPrompt(
-            Topic topic,
-            String tone,
-            String contentType,
-            Integer targetWordCount,
-            Boolean includeBulletPoints,
-            Boolean includeStatistics,
-            Boolean includeCaseStudies,
-            Boolean includeCallToAction,
-            Boolean includeHashtag,
-            String additionalInstructions
-    ) {
+    String buildLongFormContentPrompt(Topic topic, String tone, String contentType, Integer targetWordCount, Boolean includeBulletPoints, Boolean includeStatistics, Boolean includeCaseStudies, Boolean includeCallToAction, Boolean includeHashtag, String additionalInstructions) {
         StringBuilder prompt = new StringBuilder();
 
         prompt.append("NHIỆM VỤ: Viết bài ").append(mapContentTypeToVietnamese(contentType));
@@ -311,10 +282,10 @@ public class GPTService implements IGPTService {
     }
 
     private Integer calculateTokensForWordCount(Integer wordCount) {
-        if (wordCount == null) return 1500;
+        if (wordCount == null) return 32768; // Tăng lên tối đa cho GPT-4.1
         int estimatedTokens = (int) (wordCount * 1.5);
         int totalTokens = estimatedTokens + 500;
-        return Math.min(4000, totalTokens);
+        return Math.min(32768, totalTokens); // Tối đa cho GPT-4.1
     }
 
     public String buildVietnameseTopicGenerationPrompt(Campaign campaign, Integer numberOfTopics, String additionalInstruction, String tone) {
@@ -376,8 +347,7 @@ public class GPTService implements IGPTService {
         String vietnameseTone = mapToneToVietnamese(tone);
         String vietnameseContentType = mapContentTypeToVietnamese(contentType);
 
-        prompt.append("NHIỆM VỤ: Viết một bài đăng ").append(vietnameseContentType)
-                .append(" bằng TIẾNG VIỆT về chủ đề dưới đây, liền mạch như một câu chuyện hoặc chia sẻ, truyền cảm hứng, chuyên nghiệp, không chia phần, không đặt tiêu đề phụ, không lạm dụng emoji.\n\n");
+        prompt.append("NHIỆM VỤ: Viết một bài đăng ").append(vietnameseContentType).append(" bằng TIẾNG VIỆT về chủ đề dưới đây, liền mạch như một câu chuyện hoặc chia sẻ, truyền cảm hứng, chuyên nghiệp, không chia phần, không đặt tiêu đề phụ, không lạm dụng emoji.\n\n");
 
         prompt.append("THÔNG TIN CHỦ ĐỀ:\n");
         prompt.append("• Chủ đề: ").append(topic.getName()).append("\n");

@@ -108,8 +108,15 @@ public class SubscriptionManagementService {
     }
 
     @Transactional
-    public void register(User newUser) {
+    public void startTrialPlan(User newUser) {
+        Plan trialPlan = planService.findByName("Trial");
+        if (trialPlan == null) {
+            throw new RuntimeException("Plan Trial không tồn tại trong DB");
+        }
         User user = userService.save(newUser);
-        activateTrialPlan(user.getId());
+        int used = subscriptionRepository.countSuccessSubscriptionByPlan(newUser.getId(), trialPlan.getId());
+        if(used <= 0){
+            activateTrialPlan(user.getId());
+        }
     }
 }

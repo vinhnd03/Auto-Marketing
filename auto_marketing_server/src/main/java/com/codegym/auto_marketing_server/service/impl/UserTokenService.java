@@ -2,10 +2,12 @@ package com.codegym.auto_marketing_server.service.impl;
 
 import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.entity.UserToken;
+import com.codegym.auto_marketing_server.enums.TokenType;
 import com.codegym.auto_marketing_server.repository.IUserTokenRepository;
 import com.codegym.auto_marketing_server.service.IUserTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -22,9 +24,9 @@ public class UserTokenService implements IUserTokenService {
     private final IUserTokenRepository userTokenRepository;
 
     @Override
-    public String generateToken(User user) {
+    public String generateToken(User user, TokenType tokenType) {
         // Hủy những Token cũ nếu đang true
-        List<UserToken> activeTokens = userTokenRepository.findAllByUserAndStatusTrue(user);
+        List<UserToken> activeTokens = userTokenRepository.findAllByUserAndTokenTypeAndStatusIsTrue(user, tokenType);
         for (UserToken token : activeTokens) {
             token.setStatus(false);
         }
@@ -38,11 +40,12 @@ public class UserTokenService implements IUserTokenService {
         userToken.setTokenHash(tokenHash);
         userToken.setExpiresAt(LocalDateTime.now().plusHours(1));
         userToken.setStatus(true);
+        userToken.setTokenType(tokenType);
         userToken.setUser(user);
 
         userTokenRepository.save(userToken);
 
-        // RowToken được hiển thị trên url
+        // RawToken được hiển thị trên url
         return rawToken;
     }
 
@@ -67,4 +70,5 @@ public class UserTokenService implements IUserTokenService {
     public UserToken save(UserToken userToken) {
         return userTokenRepository.save(userToken);
     }
+
 }

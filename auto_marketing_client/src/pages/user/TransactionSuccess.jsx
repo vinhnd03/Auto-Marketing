@@ -1,5 +1,4 @@
 import {useEffect, useState} from "react";
-import axios from "axios";
 import {IoChevronBack, IoChevronForward} from "react-icons/io5";
 import {getAllTransactionSuccess} from "../../service/transaction/transaction_service";
 
@@ -15,6 +14,10 @@ export default function TransactionSuccess() {
     const [filterPlan, setFilterPlan] = useState("");
 
     useEffect(() => {
+        setPage(0);
+    }, [filterPlan]);
+
+    useEffect(() => {
         const loadTransactions = async () => {
             try {
                 setLoading(true);
@@ -23,10 +26,6 @@ export default function TransactionSuccess() {
                 setTransactions(data.transactions);
                 setTotalPages(data.totalPages);
 
-                //  Reset page nếu vượt quá tổng số trang
-                if (data.totalPages > 0) {
-                    setPage(0); // về trang đầu tiên
-                }
             } catch (err) {
                 console.error("Lỗi khi tải lịch sử giao dịch:", err);
             } finally {

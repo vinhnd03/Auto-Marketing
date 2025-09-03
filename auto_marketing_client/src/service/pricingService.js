@@ -38,10 +38,12 @@ export const createPayment = async (plan, userId) => {
 
 export const getMostPopularPlan = async () => {
     try {
-        const res = await axios.get(`${API_URL}}/api/v1/plans/getMostPopular`, {withCredentials: true})
+        const res = await axios.get(`${API_URL}/api/v1/plans/getMostPopular`, {withCredentials: true})
+        console.log(res.data)
         return res.data;
     } catch (e) {
         console.log("loi ket noi du lieu")
+
         return "";
     }
 }

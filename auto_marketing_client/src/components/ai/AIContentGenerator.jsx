@@ -1,6 +1,8 @@
+import { playNotificationSound } from "../../utils/notificationSound";
+import { useNotification } from "../../context/NotificationContext";
 import React, { useState, useEffect } from "react";
 import { X, Wand2, FileText, Image, Sparkles, Eye, Edit } from "lucide-react";
-import SocialMediaPublisher from "./SocialMediaPublisher";
+import Swal from "sweetalert2";
 import {
   generateContentWithAI,
   approveAndCleanPosts,
@@ -8,24 +10,73 @@ import {
 
 import toast from "react-hot-toast";
 
+const AI_MODEL_MAP = {
+  gpt: "gpt-4.1",
+  gemini: "gemini-pro",
+  claude: "claude-3-opus",
+  llama: "llama-3-70b",
+};
+
 const AIContentGenerator = ({
   isOpen,
   onClose,
   onGenerate,
   selectedTopic,
   onContentSaved,
+  onShowResultsChange,
 }) => {
+  const { addNotification } = useNotification();
   const [generating, setGenerating] = useState(false);
   const [contentSettings, setContentSettings] = useState({
     postCount: 1,
-    contentType: "mixed",
+    customPostCount: 1,
     tone: "professional",
     includeHashtags: true,
     includeCTA: true,
+    model: "gpt", // mặc định GPT
   });
   const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [previewContent, setPreviewContent] = useState([]);
   const [showResults, setShowResults] = useState(false);
+
+  // Lưu và lấy lại content từ localStorage
+  const LOCAL_KEY = selectedTopic?.id
+    ? `ai_preview_content_${selectedTopic.id}`
+    : null;
+
+  // Khi gen xong thì lưu vào localStorage
+  useEffect(() => {
+    if (showResults && previewContent.length > 0 && LOCAL_KEY) {
+      try {
+        localStorage.setItem(LOCAL_KEY, JSON.stringify(previewContent));
+      } catch (e) {}
+    }
+  }, [showResults, previewContent, LOCAL_KEY]);
+
+  // Khi mở modal thì lấy lại nếu có
+  useEffect(() => {
+    if (isOpen && LOCAL_KEY) {
+      const saved = localStorage.getItem(LOCAL_KEY);
+      if (saved) {
+        try {
+          const arr = JSON.parse(saved);
+          if (Array.isArray(arr) && arr.length > 0) {
+            setPreviewContent(arr);
+            setShowResults(true);
+            setSelectedContentIds(arr.map((c) => c.id));
+          }
+        } catch (e) {}
+      }
+    }
+    // Khi đóng modal thì không xóa dữ liệu, chỉ xóa khi tạo lại hoặc quay lại settings
+  }, [isOpen, LOCAL_KEY]);
+
+  // Notify parent when showResults changes
+  useEffect(() => {
+    if (typeof onShowResultsChange === "function") {
+      onShowResultsChange(showResults);
+    }
+  }, [showResults, onShowResultsChange]);
   const [selectedContentForDetail, setSelectedContentForDetail] =
     useState(null);
   const [showContentDetail, setShowContentDetail] = useState(false);
@@ -49,11 +100,7 @@ const AIContentGenerator = ({
     }
   }, [isOpen]);
 
-  const contentTypes = [
-    { value: "text", label: "Chỉ văn bản", icon: FileText },
-    { value: "image", label: "Hình ảnh + văn bản", icon: Image },
-    { value: "mixed", label: "Đa dạng", icon: Sparkles },
-  ];
+  // Đã bỏ loại nội dung
 
   const toneOptions = [
     { value: "casual", label: "Thân thiện", description: "Gần gũi, dễ hiểu" },
@@ -78,21 +125,26 @@ const AIContentGenerator = ({
 
     const body = {
       topicId: selectedTopic?.id,
-      numberOfPosts: contentSettings.postCount || 1,
+      numberOfPosts:
+        contentSettings.postCount === -1
+          ? contentSettings.customPostCount &&
+            /^\d+$/.test(contentSettings.customPostCount)
+            ? Number(contentSettings.customPostCount)
+            : 1
+          : contentSettings.postCount || 1,
       tone: contentSettings.tone || "professional",
-      contentType: contentSettings.contentType, // <- lấy giá trị theo lựa chọn
       targetWordCount: 800,
       includeSections: true,
       includeIntroConclusion: true,
       includeBulletPoints: true,
-      includeCallToAction: contentSettings.includeCTA, // <-- map từ UI
+      includeCallToAction: contentSettings.includeCTA,
       includeStatistics: false,
       includeCaseStudies: false,
-      includeImage: contentSettings.contentType !== "text", // <-- chỉ gửi true nếu không phải chỉ văn bản
-      includeHashtag: contentSettings.includeHashtags, // <-- map từ UI
+      includeHashtag: contentSettings.includeHashtags,
       additionalInstructions: additionalInstructions || "",
       targetPlatform: "facebook",
       targetAudience: "general",
+      aiModel: AI_MODEL_MAP[contentSettings.model || "gpt"],
     };
 
     try {
@@ -117,6 +169,21 @@ const AIContentGenerator = ({
       setSelectedContentIds(safeContent.map((c) => c.id));
       setShowResults(true);
       setGenerating(false);
+      // Thông báo thành công qua chuông
+      const postCountDisplay =
+        contentSettings.postCount === -1
+          ? contentSettings.customPostCount
+          : contentSettings.postCount;
+      addNotification &&
+        addNotification({
+          type: "success",
+          message: `Đã tạo thành công ${postCountDisplay} bài viết cho chủ đề "${
+            selectedTopic?.title || selectedTopic?.name || ""
+          }"!`,
+          createdAt: new Date(),
+        });
+      // Phát âm thanh
+      playNotificationSound && playNotificationSound();
       // toast.success("Tạo nội dung thành công!", { style: TOAST_STYLE });
     } catch (err) {
       setError("Không thể tạo nội dung. Vui lòng thử lại.");
@@ -131,9 +198,33 @@ const AIContentGenerator = ({
     setShowContentDetail(true);
   };
 
-  // Function để xử lý chỉnh sửa content
-  const handleEditContent = (content) => {
-    setEditingContent({ ...content });
+  // Function để xử lý chỉ dùng model GPT trong thời gian hiện tại
+  const handleModelChange = (e) => {
+    const value = e.target.value;
+    if (value !== "gpt") {
+      Swal.fire({
+        icon: "warning",
+        title: "Model đang phát triển",
+        text: "Vui lòng chọn GPT (OpenAI)!",
+        confirmButtonColor: "#1976d2",
+        confirmButtonText: "Đã hiểu",
+        allowOutsideClick: true,
+        backdrop: true,
+        // popup z-index
+        didOpen: () => {
+          document.querySelector(".swal2-container").style.zIndex = "999999";
+        },
+      });
+      setContentSettings((prev) => ({
+        ...prev,
+        model: "gpt",
+      }));
+    } else {
+      setContentSettings((prev) => ({
+        ...prev,
+        model: value,
+      }));
+    }
   };
 
   // Function để lưu content đã chỉnh sửa
@@ -188,6 +279,12 @@ const AIContentGenerator = ({
       setGenerating(false);
       setShowResults(false); // Nếu muốn ẩn kết quả sau khi lưu
 
+      // Xoá localStorage sau khi lưu thành công
+      const LOCAL_KEY = selectedTopic?.id
+        ? `ai_preview_content_${selectedTopic.id}`
+        : null;
+      if (LOCAL_KEY) localStorage.removeItem(LOCAL_KEY);
+
       // Gọi callback để cập nhật danh sách content ở component cha
       if (typeof onContentSaved === "function") {
         // Truyền về mảng content mới đã được duyệt
@@ -202,20 +299,6 @@ const AIContentGenerator = ({
       toast.error("Lưu nội dung thất bại!");
     }
   };
-  // Function để xử lý khi publish thành công
-  const handlePublishSuccess = (publishResult) => {
-    onGenerate(publishResult.publishedContent);
-    setShowPublisher(false);
-    setShowResults(false);
-    setPreviewContent([]);
-    setSelectedContentForDetail(null);
-    setShowContentDetail(false);
-    setEditingContent(null);
-    setSelectedContentIds([]);
-    // toast.success("Publish nội dung lên mạng xã hội thành công!", {
-    //   style: TOAST_STYLE,
-    // });
-  };
 
   // Function để quay lại form settings
   const handleBackToSettings = () => {
@@ -226,6 +309,8 @@ const AIContentGenerator = ({
     setEditingContent(null);
     setSelectedContentIds([]);
     setShowPublisher(false);
+    // Xóa dữ liệu local khi quay lại settings
+    if (LOCAL_KEY) localStorage.removeItem(LOCAL_KEY);
   };
 
   useEffect(() => {
@@ -310,11 +395,8 @@ const AIContentGenerator = ({
               </div>
             </div>
             <button
-              onClick={generating ? undefined : onClose}
-              disabled={generating}
-              className={`text-gray-400 hover:text-gray-600 ${
-                generating ? "cursor-not-allowed opacity-50" : ""
-              }`}
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
             >
               <X size={24} />
             </button>
@@ -529,64 +611,113 @@ const AIContentGenerator = ({
                     <label className="block text-base font-semibold text-gray-700 mb-3">
                       Số lượng bài viết
                     </label>
-                    <select
-                      value={contentSettings.postCount}
-                      onChange={
-                        generating
-                          ? undefined
-                          : (e) =>
-                              setContentSettings({
-                                ...contentSettings,
-                                postCount: parseInt(e.target.value),
-                              })
+                    <div className="w-full flex items-center gap-2 mb-2">
+                      <select
+                        value={
+                          contentSettings.postCount > 0
+                            ? contentSettings.postCount
+                            : -1
+                        }
+                        onChange={
+                          generating
+                            ? undefined
+                            : (e) => {
+                                const val = parseInt(e.target.value);
+                                if (val === -1) {
+                                  setContentSettings({
+                                    ...contentSettings,
+                                    postCount: -1,
+                                    customPostCount: "",
+                                  });
+                                } else {
+                                  setContentSettings({
+                                    ...contentSettings,
+                                    postCount: val,
+                                    customPostCount: undefined,
+                                  });
+                                }
+                              }
+                        }
+                        disabled={generating}
+                        className={`px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm min-w-[180px] max-w-[220px] ${
+                          generating ? "cursor-not-allowed opacity-50" : ""
+                        }`}
+                      >
+                        <option value={1}>1 bài viết</option>
+                        <option value={2}>2 bài viết</option>
+                        <option value={3}>3 bài viết</option>
+                        <option value={-1}>Tùy chọn...</option>
+                      </select>
+                      {contentSettings.postCount === -1 && (
+                        <div className="flex w-full gap-2 mt-2">
+                          <input
+                            type="number"
+                            min={1}
+                            max={50}
+                            value={contentSettings.customPostCount ?? ""}
+                            onChange={
+                              generating
+                                ? undefined
+                                : (e) => {
+                                    const val = e.target.value;
+                                    // Cho phép xóa input
+                                    if (
+                                      val === "" ||
+                                      (/^\d+$/.test(val) &&
+                                        Number(val) > 0 &&
+                                        Number(val) <= 50)
+                                    ) {
+                                      setContentSettings({
+                                        ...contentSettings,
+                                        customPostCount:
+                                          val === "" ? "" : Number(val),
+                                      });
+                                    }
+                                  }
+                            }
+                            disabled={generating}
+                            className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm flex-1 w-full"
+                            placeholder="Số lượng bài viết mong muốn"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Section nhập hướng dẫn cho AI */}
+                  <div className="col-span-1 md:col-span-2">
+                    <label className="block text-base font-semibold text-gray-700 mb-3">
+                      Hướng dẫn thêm cho AI (tuỳ chọn)
+                    </label>
+                    <textarea
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      rows={4}
+                      placeholder="Nhập hướng dẫn chi tiết cho AI để tạo nội dung đúng ý bạn (ví dụ: chủ đề, phong cách, yêu cầu đặc biệt...)"
+                      value={additionalInstructions}
+                      onChange={(e) =>
+                        setAdditionalInstructions(e.target.value)
                       }
                       disabled={generating}
-                      className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm ${
+                    />
+                  </div>
+                  {/* Model AI lựa chọn */}
+                  <div className="mb-6 col-span-1 md:col-span-2">
+                    <label className="block text-base font-semibold text-gray-700 mb-3">
+                      Chọn Model AI
+                    </label>
+                    <select
+                      value={contentSettings.model || "gpt"}
+                      onChange={generating ? undefined : handleModelChange}
+                      disabled={generating}
+                      className={`px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-base shadow-sm min-w-[180px] max-w-[220px] ${
                         generating ? "cursor-not-allowed opacity-50" : ""
                       }`}
                     >
-                      <option value={1}>1 bài viết</option>
-                      <option value={2}>2 bài viết</option>
-                      <option value={3}>3 bài viết</option>
+                      <option value="gpt">GPT (OpenAI)</option>
+                      <option value="gemini">Gemini (Google)</option>
+                      <option value="claude">Claude (Anthropic)</option>
+                      <option value="llama">Llama (Meta)</option>
                     </select>
-                  </div>
-
-                  {/* Content Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Loại nội dung
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {contentTypes.map((type) => {
-                        const Icon = type.icon;
-                        return (
-                          <div
-                            key={type.value}
-                            onClick={
-                              generating
-                                ? undefined
-                                : () =>
-                                    setContentSettings({
-                                      ...contentSettings,
-                                      contentType: type.value,
-                                    })
-                            }
-                            className={`p-2 border rounded-lg cursor-pointer transition-all text-center ${
-                              contentSettings.contentType === type.value
-                                ? "border-green-500 bg-green-50"
-                                : "border-gray-300 hover:border-gray-400"
-                            } ${
-                              generating
-                                ? "cursor-not-allowed opacity-50 pointer-events-none"
-                                : ""
-                            }`}
-                          >
-                            <Icon size={16} className="mx-auto mb-1" />
-                            <div className="text-xs">{type.label}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
                   </div>
                 </div>
 

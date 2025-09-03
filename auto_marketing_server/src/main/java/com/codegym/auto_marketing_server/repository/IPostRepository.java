@@ -42,10 +42,16 @@ public interface IPostRepository extends JpaRepository<Post, Long> {
         WHERE (:workspaceId IS NULL OR w.id = :workspaceId)
           AND (:campaignId IS NULL OR c.id = :campaignId)
           AND (:topicId IS NULL OR t.id = :topicId)
+          AND c.status = 'ACTIVE'
+          AND p.status = 'APPROVED'
     """)
     List<PostFilterDTO> findPostFilterDTOs(
             @Param("workspaceId") Long workspaceId,
             @Param("campaignId") Long campaignId,
             @Param("topicId") Long topicId
     );
+
+    long countByTopicId(Long topicId);
+
+    long countByTopicIdAndStatus(Long topicId, PostStatus status);
 }

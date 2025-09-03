@@ -5,11 +5,13 @@ import com.codegym.auto_marketing_server.dto.MonthStatisticDTO;
 import com.codegym.auto_marketing_server.dto.NotificationDTO;
 import com.codegym.auto_marketing_server.dto.QuarterStatisticDTO;
 import com.codegym.auto_marketing_server.dto.WeekStatisticDTO;
-import com.codegym.auto_marketing_server.entity.User;
+import com.codegym.auto_marketing_server.enums.TokenType;
 import com.codegym.auto_marketing_server.repository.IUserRepository;
-import com.codegym.auto_marketing_server.service.ISubscriptionService;
+import com.codegym.auto_marketing_server.security.email.EmailService;
 import com.codegym.auto_marketing_server.service.IUserService;
+import com.codegym.auto_marketing_server.service.IUserTokenService;
 import com.codegym.auto_marketing_server.util.CloudinaryService;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,12 +28,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class UserService implements IUserService {
     private final IUserRepository userRepository;
+    private final IUserTokenService userTokenService;
+    private final EmailService emailService;
 
     @Override
     public Long selectUserIdBySocialAccountId(Long id) {
@@ -226,5 +228,25 @@ public class UserService implements IUserService {
         return null;
     }
 
+    @Override
+    @Transactional
+    public void register(User user){
+        try {
+            User savedUser = save(user);
+            String token =  userTokenService.generateToken(savedUser, TokenType.EMAIL_VERIFICATION);
+            emailService.sendUserVerificationEmail(savedUser.getEmail(), savedUser.getName(), token);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    @Override
+    public void resendEmailVerification(User user) {
+        try {
+            String token = userTokenService.generateToken(user, TokenType.EMAIL_VERIFICATION);
+            emailService.sendUserVerificationEmail(user.getEmail(), user.getName(), token);
+        }catch (MessagingException e){
+            throw new RuntimeException(e);
+        }
+    }
 }

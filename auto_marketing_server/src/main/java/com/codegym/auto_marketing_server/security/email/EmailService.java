@@ -94,4 +94,26 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    public void sendUserVerificationEmail(String to, String name, String token) throws MessagingException{
+        try {
+            Context context = new Context();
+            context.setVariable("name", name);
+            context.setVariable("verificationUrl",frontendUrl + "/verification?token=" +  token);
+
+            String htmlContent = templateEngine.process("email-verification", context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail, "Auto Marketing System");
+            helper.setTo(to);
+            helper.setSubject("Yêu cầu xác nhận đăng ký tài khoản");
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+
+        } catch (UnsupportedEncodingException e) {
+            throw new MessagingException("Lỗi encoding khi gửi email", e);
+        }
+    }
 }

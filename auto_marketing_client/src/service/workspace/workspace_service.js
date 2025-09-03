@@ -5,8 +5,8 @@ const url = `${process.env.REACT_APP_BACKEND_URL}/api/v1/workspaces`
 // const url = "/v1/workspaces"
 export const getAllWorkspaceByUserId = async (id) => {
     try {
-        const res = await axios.get(`${url}/user/${id}`, {withCredentials: true,})
-        // const res = await api.get(`${url}/user/${id}`, {withCredentials: true,})
+        // const res = await axios.get(`${url}/user/${id}`, {withCredentials: true,})
+        const res = await api.get(`${url}/user/${id}`, {withCredentials: true,})
         return res.data;
     } catch (e) {
         console.log("loi ket noi db")
@@ -16,7 +16,8 @@ export const getAllWorkspaceByUserId = async (id) => {
 
 export const addWorkspace = async (formData) => {
     try {
-        const res = await axios.post(
+        // const res = await axios.post(
+        const res = await api.post(
             `${url}`,
             formData,
             {
@@ -35,7 +36,8 @@ export const addWorkspace = async (formData) => {
 
 export const updateWorkspace = async (id, formData) => {
     try {
-        const res = await axios.patch(
+        // const res = await axios.patch(
+        const res = await api.patch(
             `${url}/${id}`,
             formData,
             {
@@ -55,20 +57,21 @@ export const updateWorkspace = async (id, formData) => {
 export const getMaxWorkspace = async (id) => {
 
     try {
-        const res = await axios.get(`${url}/${id}/workspace-limit`, {withCredentials: true,});
         // const res = await axios.get(`${url}/${id}/workspace-limit`, {withCredentials: true,});
+        const res = await api.get(`${url}/${id}/workspace-limit`, {withCredentials: true,});
         return res.data;
     } catch (error) {
         if (error.response && error.response.data) {
             return {error: error.response.data};
         }
-        return {error: "Không thể kết nối dữ liệu .vui lòng thử lại"};
+        return {error: "Không thể kết nối dữ liệu. Vui lòng thử lại"};
     }
 }
 
 export const updateWorkspaceStatus = async (userId, ids, status) => {
     try {
-        const res = await axios.patch(`${url}/${userId}/status`, {
+        // const res = await axios.patch(`${url}/${userId}/status`, {
+        const res = await api.patch(`${url}/${userId}/status`, {
             ids,
             status
         }, {withCredentials: true,});
@@ -83,7 +86,8 @@ export const updateWorkspaceStatus = async (userId, ids, status) => {
 
 export const getWorkspaceDetail = async (workspaceId) => {
     try {
-        const res = await axios.get(`${url}/${workspaceId}`,{withCredentials: true,});
+        // const res = await axios.get(`${url}/${workspaceId}`,{withCredentials: true,});
+        const res = await api.get(`${url}/${workspaceId}`,{withCredentials: true,});
         return res.data;
     } catch (err) {
         console.log(err);

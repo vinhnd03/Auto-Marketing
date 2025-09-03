@@ -71,4 +71,8 @@ public class ContentGenerationRequestDTO {
     @Schema(description = "Target audience for the content", example = "general", allowableValues = {
             "general", "business_owners", "young_professionals", "students", "tech_enthusiasts"})
     private String targetAudience = "general";
+
+    @Schema(description = "AI Model to use for content generation", example = "gpt-4.1", allowableValues = {
+            "gpt-4.1", "gemini-pro", "claude-3-opus", "llama-3-70b"})
+    private String aiModel = "gpt-4.1";
 }

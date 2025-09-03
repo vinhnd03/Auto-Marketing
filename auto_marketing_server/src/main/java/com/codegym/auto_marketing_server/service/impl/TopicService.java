@@ -252,6 +252,16 @@ public class TopicService implements ITopicService {
 
     @Override
     public List<Topic> getTopicsByCampaignId(Long campaignId) {
-        return topicRepository.findByCampaignId(campaignId);
+        return topicRepository.findActiveTopicsWithPosts(campaignId);
+    }
+
+    @Override
+    public long countTopicsByStatus(TopicStatus status) {
+        return topicRepository.countByStatus(status);
+    }
+
+    @Override
+    public long countTopicsByCampaignAndStatus(Long campaignId, TopicStatus status) {
+        return topicRepository.countByCampaignIdAndStatus(campaignId, status);
     }
 }

@@ -9,7 +9,6 @@ import com.codegym.auto_marketing_server.service.ISocialAccountService;
 import com.codegym.auto_marketing_server.service.IUserService;
 import com.codegym.auto_marketing_server.service.impl.SubscriptionManagementService;
 import com.codegym.auto_marketing_server.util.CloudinaryService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -141,7 +140,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             user.setRole(userRole);
             user.setPassword("OAUTH2"); // tránh null
             user.setStatus(true);
-            subscriptionManagementService.register(user);
+            subscriptionManagementService.startTrialPlan(user);
         }
 
         // Cập nhật thông tin OAuth2

@@ -15,6 +15,8 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.getWriter().write("Unauthorized: Token invalid or expired");
+//        response.getWriter().write("Unauthorized: Token invalid or expired");
+        String json = "{\"error\": \"Unauthorized\", \"message\": \"Token invalid or expired\"}";
+        response.getWriter().write(json);
     }
 }

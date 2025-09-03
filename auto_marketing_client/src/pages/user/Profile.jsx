@@ -120,10 +120,6 @@ export default function Profile() {
     email: Yup.string()
       .required("Email không được để trống")
       .email("Email không hợp lệ"),
-
-    phone: Yup.string()
-      // .required("Số điện thoại không được để trống")
-      .matches(/^0\d{9,10}$/, "Số điện thoại không hợp lệ"),
   });
 
   if (!user) return <Preloader />;
@@ -304,7 +300,7 @@ export default function Profile() {
                     </div>
 
                     {/* Số điện thoại */}
-                    <div>
+                    {/* <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         <PhoneIcon className="w-4 h-4 inline mr-2" />
                         Số điện thoại
@@ -327,7 +323,7 @@ export default function Profile() {
                       ) : (
                         <p className="text-gray-900 py-2">{formData.phone}</p>
                       )}
-                    </div>
+                    </div> */}
 
                     {/* Công ty */}
                     <div>

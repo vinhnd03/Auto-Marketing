@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import AIContentGenerator from "../../components/ai/AIContentGenerator";
 import { Wand2 } from "lucide-react";
-import { getPostsByTopic } from "../../service/postService";
+import { getApprovedPostsByTopic } from "../../service/postService";
 import dayjs from "dayjs";
+import ImageGenModal from "../../components/modal/ImageGenModal";
 
 const TopicContentDetail = ({ topic, onBack }) => {
   // Khi quay lại danh sách content, nếu content vừa xem là mới thì bỏ badge 'Mới'
@@ -19,6 +20,26 @@ const TopicContentDetail = ({ topic, onBack }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedContent, setSelectedContent] = useState(null);
+  const [hasGeneratedResults, setHasGeneratedResults] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState(null);
+
+  // Kiểm tra localStorage khi mount để xác định trạng thái nút
+  useEffect(() => {
+    if (topic?.id) {
+      const localKey = `ai_preview_content_${topic.id}`;
+      const saved = localStorage.getItem(localKey);
+      if (saved) {
+        try {
+          const arr = JSON.parse(saved);
+          if (Array.isArray(arr) && arr.length > 0) {
+            setHasGeneratedResults(true);
+          }
+        } catch (e) {}
+      }
+    }
+  }, [topic]);
+  const [showImageGenModal, setShowImageGenModal] = useState(false);
+  const [imageGenTarget, setImageGenTarget] = useState(null);
 
   // Thêm state cho phân trang content
   const DEFAULT_CONTENTS_PER_PAGE = 6;
@@ -31,7 +52,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
       setLoading(true);
       setError(null);
       try {
-        const data = await getPostsByTopic(topic.id);
+        const data = await getApprovedPostsByTopic(topic.id);
         setContents(Array.isArray(data) ? data : []);
       } catch (err) {
         setError("Không thể tải content cho topic này.");
@@ -44,8 +65,73 @@ const TopicContentDetail = ({ topic, onBack }) => {
     }
   }, [topic]);
 
+  const handleGenerateImage = (content) => {
+    setImageGenTarget(content);
+    setShowImageGenModal(true);
+  };
+
+  const handleImageGenSubmit = async (selectedImages) => {
+    // Lưu tất cả ảnh vào content
+    if (selectedImages && selectedImages.length > 0 && imageGenTarget) {
+      setContents((prev) =>
+        prev.map((c) =>
+          c.id === imageGenTarget.id
+            ? {
+                ...c,
+                imageUrls: Array.isArray(c.imageUrls)
+                  ? [...c.imageUrls, ...selectedImages]
+                  : selectedImages,
+                imageUrl: selectedImages[0],
+              }
+            : c
+        )
+      );
+      setSelectedContent((prev) =>
+        prev && prev.id === imageGenTarget.id
+          ? {
+              ...prev,
+              imageUrls: Array.isArray(prev.imageUrls)
+                ? [...prev.imageUrls, ...selectedImages]
+                : selectedImages,
+              imageUrl: selectedImages[0],
+            }
+          : prev
+      );
+    }
+    setShowImageGenModal(false);
+    setImageGenTarget(null);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-8 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+      {/* Modal zoom ảnh */}
+      {zoomedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+          <div className="relative">
+            <button
+              className="absolute top-2 right-2 w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-200 shadow-lg"
+              onClick={() => setZoomedImage(null)}
+              aria-label="Đóng"
+            >
+              <svg width="28" height="28" viewBox="0 0 22 22" fill="none">
+                <circle cx="11" cy="11" r="11" fill="#f3f3f3" />
+                <path
+                  d="M7 7L15 15M15 7L7 15"
+                  stroke="#888"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+            <img
+              src={zoomedImage}
+              alt="Zoomed"
+              className="max-w-[90vw] max-h-[80vh] rounded-xl shadow-2xl border-4 border-white"
+              style={{ objectFit: "contain" }}
+            />
+          </div>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
         <button
           className="px-4 py-2 w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
@@ -57,13 +143,16 @@ const TopicContentDetail = ({ topic, onBack }) => {
           className="px-4 py-2 w-full sm:w-auto bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all"
           onClick={() => setShowGenContentModal(true)}
         >
-          Tạo thêm nội dung
+          {hasGeneratedResults ? "Xem nội dung đã tạo" : "Tạo thêm nội dung"}
         </button>
       </div>
       {/* Modal AIContentGenerator */}
       <AIContentGenerator
         isOpen={showGenContentModal}
-        onClose={() => setShowGenContentModal(false)}
+        onClose={() => {
+          setShowGenContentModal(false);
+          // KHÔNG reset setHasGeneratedResults ở đây, chỉ reset khi bấm nút Lưu
+        }}
         selectedTopic={topic}
         onContentSaved={(newContents) => {
           // Chuẩn hoá lại dữ liệu content mới để đảm bảo có trường content/text/body
@@ -82,8 +171,29 @@ const TopicContentDetail = ({ topic, onBack }) => {
             ? newContents.map(normalize)
             : [normalize(newContents, 0)];
           setContents((prev) => [...normalized, ...prev]);
+          // Khi lưu xong thì reset trạng thái nút về 'Tạo thêm nội dung'
+          setHasGeneratedResults(false);
         }}
+        onShowResultsChange={setHasGeneratedResults}
       />
+      {selectedContent && (
+        <ImageGenModal
+          isOpen={showImageGenModal}
+          onClose={() => {
+            setShowImageGenModal(false);
+            setImageGenTarget(null);
+          }}
+          onSubmit={handleImageGenSubmit}
+          postTitle={
+            selectedContent.title ||
+            selectedContent.text ||
+            selectedContent.body ||
+            selectedContent.content ||
+            ""
+          }
+          postId={selectedContent.id}
+        />
+      )}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2 break-words">
           {topic.title || topic.name}
@@ -106,12 +216,20 @@ const TopicContentDetail = ({ topic, onBack }) => {
         ) : selectedContent ? (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
-              <button
-                className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200"
-                onClick={handleBackFromDetail}
-              >
-                ← Quay lại danh sách content
-              </button>
+              <div className="flex gap-2">
+                <button
+                  className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200"
+                  onClick={handleBackFromDetail}
+                >
+                  ← Quay lại danh sách content
+                </button>
+                <button
+                  className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold hover:bg-purple-200"
+                  onClick={() => handleGenerateImage(selectedContent)}
+                >
+                  Generate hình ảnh
+                </button>
+              </div>
               <span className="text-xs text-gray-500 sm:ml-4">
                 Ngày tạo:{" "}
                 {selectedContent.createdAt
@@ -159,18 +277,25 @@ const TopicContentDetail = ({ topic, onBack }) => {
                 </div>
               )}
               {/* Ảnh ở dưới cùng */}
-              {selectedContent.imageUrl && (
-                <div className="mt-6 flex justify-center">
-                  <div className="relative group w-full max-w-md">
-                    <img
-                      src={selectedContent.imageUrl}
-                      alt="AI generated"
-                      className="rounded-xl border-4 border-blue-300 shadow-lg object-cover w-full max-h-72 transition-transform duration-300 group-hover:scale-105 bg-white"
-                      style={{ aspectRatio: "16/9", objectFit: "cover" }}
-                    />
+              {Array.isArray(selectedContent.imageUrls) &&
+                selectedContent.imageUrls.length > 0 && (
+                  <div className="mt-6 flex justify-center gap-4 flex-wrap">
+                    {selectedContent.imageUrls.map((url, idx) => (
+                      <div
+                        className="relative group w-full max-w-md cursor-zoom-in"
+                        key={idx}
+                        onClick={() => setZoomedImage(url)}
+                      >
+                        <img
+                          src={url}
+                          alt={`AI generated ${idx + 1}`}
+                          className="rounded-xl border-4 border-blue-300 shadow-lg object-cover w-full max-h-72 transition-transform duration-300 group-hover:scale-105 bg-white"
+                          style={{ aspectRatio: "16/9", objectFit: "cover" }}
+                        />
+                      </div>
+                    ))}
                   </div>
-                </div>
-              )}
+                )}
             </div>
           </div>
         ) : contents.length > 0 ? (

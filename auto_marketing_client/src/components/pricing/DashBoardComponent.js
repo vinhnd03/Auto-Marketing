@@ -104,14 +104,14 @@ const TransactionSuccess = () => {
     };
 
     const getCardStyles = (plan) => {
-        if (plan?.planLevel === 2) {
+        if (plan?.name === mostPopularPlan) {
             return "border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 shadow-xl scale-105 relative";
         }
         return "border border-gray-200 bg-white shadow-lg hover:shadow-xl transition-all duration-300";
     };
 
     const getButtonStyles = (plan) => {
-        if (plan?.planLevel === 2) {
+        if (plan?.name === mostPopularPlan) {
             return "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg";
         }
         return "bg-white border-2 border-gray-300 text-gray-700 hover:border-blue-500 hover:text-blue-600";
@@ -161,7 +161,7 @@ const TransactionSuccess = () => {
                                         key={plan.id}
                                         className={`relative rounded-2xl p-8 ${getCardStyles(plan)}`}
                                     >
-                                        {plan?.name ===(mostPopularPlan) && (
+                                        {plan?.name === (mostPopularPlan) && (
                                             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                                                 <div
                                                     className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">

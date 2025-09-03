@@ -1,3 +1,4 @@
+import { NotificationProvider } from "./context/NotificationContext";
 import {
   BrowserRouter as Router,
   Routes,
@@ -73,9 +74,12 @@ import MarketingNewsletterPage from "./pages/admin/MarketingNewsletterPage";
 import MarketingNotificationsPage from "./pages/admin/MarketingNotificationsPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
+import AIGeneratedPostsPage from "./pages/ai/AIGeneratedPostsPage";
 
 import GlobalScrollToTop from "./components/ui/GlobalScrollToTop";
 import TransactionSuccess from "./pages/user/TransactionSuccess";
+import EmailVerificationPage from "./pages/auth/EmailVerificationPage";
+import AIGeneratedPostDetailPage from "./pages/ai/AIGeneratedPostDetailPage";
 
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
@@ -96,6 +100,7 @@ const AppLayout = ({ children }) => {
     "/register",
     "/reset-password",
     "/forgot-password",
+    "/verification"
   ].includes(location.pathname);
 
   const isAdminPage = location.pathname.startsWith("/admin");
@@ -135,7 +140,7 @@ function App() {
   if (loading) return <Preloader />;
 
   return (
-    <>
+    <NotificationProvider>
       <AxiosInterceptor />
       <ScrollToTop />
       <Routes>
@@ -308,6 +313,22 @@ function App() {
                   }
                 />
                 <Route
+                  path="/ai-generated-posts"
+                  element={
+                    <ProtectedRoute>
+                      <AIGeneratedPostsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ai-generated-posts/:id"
+                  element={
+                    <ProtectedRoute>
+                      <AIGeneratedPostDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                     path="/transaction_history"
                     element={
                       <ProtectedRoute>
@@ -354,7 +375,7 @@ function App() {
           },
         }}
       />
-    </>
+    </NotificationProvider>
   );
 }
 

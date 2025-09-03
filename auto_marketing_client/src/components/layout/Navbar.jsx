@@ -1,3 +1,5 @@
+// Notification context/hook
+import { useNotification } from "../../context/NotificationContext";
 import { useState, useRef, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -16,11 +18,22 @@ import toast from "react-hot-toast";
 import ConfirmLogoutModal from "../modal/ConfirmLogoutModal";
 
 export default function Navbar() {
+  const bellButtonRef = useRef(null);
+  const bellDropdownRef = useRef(null);
+  const [hasUnread, setHasUnread] = useState(false);
+  const { notifications, clearNotifications } = useNotification();
+  const [showBellDropdown, setShowBellDropdown] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  // Khi có thông báo mới, set hasUnread=true
+  useEffect(() => {
+    if (notifications.length > 0) {
+      setHasUnread(true);
+    }
+  }, [notifications]);
   const { user } = useAuth();
   // console.log(user);
 
@@ -40,26 +53,43 @@ export default function Navbar() {
   //     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
   // };
 
-  // Đóng dropdown khi click bên ngoài
+  // Đóng dropdown thông báo khi click bên ngoài
   useEffect(() => {
-    function handleClickOutside(event) {
+    function handleClickOutsideBell(event) {
+      const bellBtn = bellButtonRef.current;
+      const bellDropdown = bellDropdownRef.current;
+      if (
+        bellDropdown &&
+        !bellDropdown.contains(event.target) &&
+        bellBtn &&
+        !bellBtn.contains(event.target)
+      ) {
+        setShowBellDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutsideBell);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutsideBell);
+    };
+  }, []);
+
+  // Đóng dropdown user khi click bên ngoài hoặc nhấn Escape
+  useEffect(() => {
+    function handleClickOutsideUser(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
     }
-
     function handleEscapeKey(event) {
       if (event.key === "Escape") {
         closeMenu();
         setDropdownOpen(false);
       }
     }
-
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutsideUser);
     document.addEventListener("keydown", handleEscapeKey);
-
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutsideUser);
       document.removeEventListener("keydown", handleEscapeKey);
     };
   }, []);
@@ -68,6 +98,17 @@ export default function Navbar() {
     setShowLogoutModal(true);
     setDropdownOpen(false);
   };
+
+  // Format ngày tháng năm kiểu Việt Nam: dd/MM/yyyy, HH:mm:ss
+  function formatDateVN(date) {
+    const d = new Date(date);
+    const pad = (n) => n.toString().padStart(2, "0");
+    return `${pad(d.getDate())}/${pad(
+      d.getMonth() + 1
+    )}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(
+      d.getSeconds()
+    )}`;
+  }
 
   const navLinks = [
     { path: "/", label: "Trang chủ" },
@@ -137,10 +178,87 @@ export default function Navbar() {
 
             {/* {isLoggedIn ? ( */}
             {user ? (
-              /* Avatar và Dropdown Menu */
-              <div className="relative" ref={dropdownRef}>
+              /* Avatar, Bell và Dropdown Menu */
+              <div
+                className="relative flex items-center gap-2"
+                ref={dropdownRef}
+              >
+                {/* Notification Bell Icon */}
                 <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="relative focus:outline-none hover:bg-gray-100 rounded-full p-2"
+                  title="Thông báo"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowBellDropdown((prev) => {
+                      // Nếu đang mở dropdown user thì đóng lại
+                      if (dropdownOpen) setDropdownOpen(false);
+                      return !prev;
+                    });
+                    setHasUnread(false);
+                  }}
+                  ref={bellButtonRef}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-gray-600 hover:text-blue-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
+                  </svg>
+                  {/* Badge nếu có thông báo mới */}
+                  {hasUnread && (
+                    <span className="absolute top-0 right-0 h-3 w-3 rounded-full bg-red-500 border-2 border-white"></span>
+                  )}
+                  {/* Dropdown thông báo */}
+                  {showBellDropdown && (
+                    <div
+                      ref={bellDropdownRef}
+                      className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                    >
+                      <div className="px-4 py-2 border-b border-gray-100 font-bold text-gray-800">
+                        Thông báo
+                      </div>
+                      {notifications.length === 0 ? (
+                        <div className="px-4 py-4 text-gray-500 text-sm">
+                          Không có thông báo nào.
+                        </div>
+                      ) : (
+                        <ul className="max-h-60 overflow-y-auto">
+                          {notifications.map((n, idx) => (
+                            <li
+                              key={idx}
+                              className="px-4 py-3 border-b last:border-b-0 text-gray-700 text-sm"
+                            >
+                              {n.message}
+                              <span className="block text-xs text-gray-400 mt-1">
+                                {formatDateVN(n.createdAt)}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <div
+                        onClick={clearNotifications}
+                        className="w-full px-4 py-2 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-b-lg"
+                      >
+                        Xóa tất cả thông báo
+                      </div>
+                    </div>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    // Nếu đang mở dropdown thông báo thì đóng lại
+                    if (showBellDropdown) setShowBellDropdown(false);
+                    setDropdownOpen((prev) => !prev);
+                  }}
                   className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors"
                 >
                   <img
@@ -163,7 +281,7 @@ export default function Navbar() {
 
                 {/* Dropdown Menu */}
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                  <div className="absolute right-0 top-full w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">
                         {user.name}
@@ -189,6 +307,27 @@ export default function Navbar() {
                       Lịch sử thanh toán
                     </Link>
 
+                    <Link
+                      to="/ai-generated-posts"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-4 h-4 mr-3 text-gray-400"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.362 5.214A6.75 6.75 0 1 1 5.214 15.362m10.148-10.148a6.751 6.751 0 0 0-10.148 10.148m10.148-10.148L21 3m-5.638 2.214L21 3m-15.786 12.362L3 21m2.214-5.638L3 21"
+                        />
+                      </svg>
+                      Xem bài viết AI đã tạo
+                    </Link>
                     <Link
                       to="/settings"
                       onClick={() => setDropdownOpen(false)}
@@ -345,6 +484,27 @@ export default function Navbar() {
                   Lịch sử thanh toán
                 </Link>
 
+                <Link
+                  to="/ai-generated-posts"
+                  onClick={closeMenu}
+                  className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-5 h-5 mr-3 text-gray-400"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.362 5.214A6.75 6.75 0 1 1 5.214 15.362m10.148-10.148a6.751 6.751 0 0 0-10.148 10.148m10.148-10.148L21 3m-5.638 2.214L21 3m-15.786 12.362L3 21m2.214-5.638L3 21"
+                    />
+                  </svg>
+                  Xem bài viết AI đã tạo
+                </Link>
                 <Link
                   to="/settings"
                   onClick={closeMenu}

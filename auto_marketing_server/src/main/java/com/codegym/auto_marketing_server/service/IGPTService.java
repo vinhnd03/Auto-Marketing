@@ -22,7 +22,7 @@ public interface IGPTService {
                                                        Boolean includeHashtag,
                                                        Boolean includeCallToAction);
 
-    CompletableFuture<String> generateLongFormContent(Topic topic, ContentGenerationRequestDTO request);
+    CompletableFuture<String> generateLongFormContent(Topic topic, ContentGenerationRequestDTO request, String aiModel);
 
     CompletableFuture<String> generateImagePromptFromContent(String content);
 

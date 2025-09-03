@@ -37,8 +37,6 @@ public class User implements UserDetails {
     @CreationTimestamp  // Hibernate tự gán ngày hiện tại khi insert
     private LocalDate createdAt;
 
-    private String phone;
-
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -50,6 +48,8 @@ public class User implements UserDetails {
     private String provider;
 
     private String providerId;
+
+    private Boolean emailVerification;
 
     private Boolean status;
     @Column(columnDefinition = "TEXT")
@@ -66,7 +66,6 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user") // ánh xạ ngược tới trường 'user' trong Subscriptions
     private List<Subscription> subscriptions;
-
 
 //    @PrePersist
 //    protected void onCreate() {
