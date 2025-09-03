@@ -36,4 +36,12 @@ join User u on s.user.id = u.id
 where c.softDel = false and u.id = :userId
 """)
     int getCampaignsBySoftDel(@Param("userId") Long id);
+
+    @Query("""
+    select c from Campaign c
+    where c.workspace.id = :workspaceId
+      and c.status = 'ACTIVE'
+""")
+    List<Campaign> findActiveCampaignsByWorkspace(@Param("workspaceId") Long workspaceId);
+
 }
