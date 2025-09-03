@@ -15,7 +15,7 @@ const SelectSocialNetwork = ({ isOpen, onClose }) => {
     }
 
     // Redirect tới backend để link Facebook (Option B)
-    window.location.href = "http://localhost:8080/api/social/connect/facebook";
+    window.location.href = `${process.env.REACT_APP_BACKEND_URL}/api/social/connect/facebook`;
   };
 
   return (

@@ -1,40 +1,47 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import { toast } from "react-hot-toast";
-import { Shield } from "lucide-react";
+import {toast} from "react-hot-toast";
+import {Shield} from "lucide-react";
 import {useAuth} from "../../context/AuthContext"
 import PaymentResultModal from "./PaymentResultComponent";
 import {useLocation, useNavigate} from "react-router-dom";
+import {createPayment, fetchPlans, getMostPopularPlan, subscribeTrial} from "../../service/pricingService";
 // tách riêng modal
 
-const ListComponent = () => {
+const TransactionSuccess = () => {
     const [plans, setPlans] = useState([]);
     const [loadingId, setLoadingId] = useState(null);
     const [paymentResult, setPaymentResult] = useState(null);
 
-    const { user } = useAuth(); // lấy thông tin user hiện tại
+    const {user} = useAuth(); // lấy thông tin user hiện tại
     const navigate = useNavigate();
     const location = useLocation();
 
+    const [mostPopularPlan, setMostPopularPlan] = useState("");
 
     const handleCloseResult = () => {
         setPaymentResult(null);
     };
 
+    useEffect(() => {
+        const fetMostPopularPlan = async () => {
+            const newMostPopularPlan = await getMostPopularPlan();
+            setMostPopularPlan(newMostPopularPlan);
+        }
+        fetMostPopularPlan();
+    })
     // Fetch plans
     useEffect(() => {
-        const fetchPlans = async () => {
+        const loadPlans = async () => {
             try {
-                const response = await axios.get("http://localhost:8080/api/v1/plans", {
-                    withCredentials: true,
-                });
-                setPlans(Array.isArray(response.data) ? response.data : []);
+                const data = await fetchPlans();
+                setPlans(data);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách gói:", error);
-                toast.error("Không thể tải bảng giá. Vui lòng thử lại sau!")
+                toast.error("Không thể tải bảng giá. Vui lòng thử lại sau!");
             }
         };
-        fetchPlans();
+        loadPlans();
     }, []);
 
     // Đọc query params khi redirect từ backend
@@ -59,7 +66,6 @@ const ListComponent = () => {
                 workspaces: getNum("workspaces"),
                 duration: getNum("duration"),
             });
-
             if (txnRef) sessionStorage.setItem("shownTxnRef", txnRef);
         }
     }, [location.search]);
@@ -67,7 +73,6 @@ const ListComponent = () => {
     const handleBuy = async (plan) => {
         if (!plan) return;
 
-        // Kiểm tra đăng nhập
         if (!user?.id) {
             toast.error("Bạn cần đăng nhập để có thể mua gói dịch vụ!");
             navigate("/login");
@@ -78,28 +83,12 @@ const ListComponent = () => {
 
         try {
             if (plan.id === 1) {
-                // Gói FREE
-                const response = await axios.post(
-                    `http://localhost:8080/api/v1/workspaces/subscriptions/trial?userId=${user.id}`,
-                    {},
-                    { withCredentials: true }
-                );
-                toast.success(response.data || "Đã kích hoạt gói FREE");
+                // FREE
+                const msg = await subscribeTrial(user.id);
+                toast.success(msg || "Đã kích hoạt gói FREE");
             } else {
-                // Các gói khác: gọi VNPAY
-                const response = await axios.post(
-                    "http://localhost:8080/api/payment",
-                    {
-                        serviceName: plan.name,
-                        amount: plan.price,
-                        userId: user.id,
-                        maxWorkspace: plan.maxWorkspace,
-                        duration: plan.durationDate, // hoặc trường tương ứng
-                    },
-                    { withCredentials: true }
-                );
-
-                const { paymentUrl } = response.data;
+                // Paid
+                const {paymentUrl} = await createPayment(plan, user.id);
                 if (paymentUrl) {
                     window.location.href = paymentUrl;
                 } else {
@@ -135,7 +124,7 @@ const ListComponent = () => {
                 <div className="container mx-auto px-6 text-center max-w-4xl">
                     <div
                         className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                        <Shield className="w-4 h-4" />
+                        <Shield className="w-4 h-4"/>
                         Tiết kiệm đến 80% thời gian quản lý
                     </div>
 
@@ -172,10 +161,11 @@ const ListComponent = () => {
                                         key={plan.id}
                                         className={`relative rounded-2xl p-8 ${getCardStyles(plan)}`}
                                     >
-                                        {plan?.planLevel === 2 && (
+                                        {plan?.name ===(mostPopularPlan) && (
                                             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                                                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
-                                                     Phổ biến nhất
+                                                <div
+                                                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
+                                                    Phổ biến nhất
                                                 </div>
                                             </div>
                                         )}
@@ -192,14 +182,15 @@ const ListComponent = () => {
                                                         <div className="text-sm text-gray-600">VNĐ</div>
                                                     </div>
                                                 </div>
-                                            ): (
+                                            ) : (
                                                 <div className="flex items-center justify-center gap-2 mb-4">
                                                     <span className="text-4xl font-bold text-gray-900">
                                                         Miễn phí
                                                     </span>
                                                 </div>
                                             )}
-                                            <div className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                                            <div
+                                                className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
                                                 <span role="img" aria-label="moneybag">💰</span>
                                                 Tiết kiệm{" "}
                                                 {plan?.planLevel === 1
@@ -234,7 +225,8 @@ const ListComponent = () => {
                                         >
                                             {loadingId === plan?.id ? (
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                                    <div
+                                                        className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                                                     Đang xử lý...
                                                 </div>
                                             ) : (
@@ -257,4 +249,4 @@ const ListComponent = () => {
     );
 };
 
-export default ListComponent;
+export default TransactionSuccess;

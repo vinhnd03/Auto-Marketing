@@ -65,7 +65,7 @@ public class SubscriptionService implements ISubscriptionService {
     }
 
     @Override
-    public int countSubscriptionByPlantName(String planName,Long userId) {
+    public int countSubscriptionByPlantName(String planName, Long userId) {
         return subscriptionRepository.countSubscriptionByPlantName(planName,userId);
     }
 }

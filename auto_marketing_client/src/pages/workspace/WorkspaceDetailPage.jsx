@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { getPostsByTopic } from "../../service/postService";
 import AIGeneratedTopicCard from "../../components/ai/AIGeneratedTopicCard";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -7,7 +8,6 @@ import { AITopicGenerator, CampaignTable } from "../../components";
 import {
   ArrowLeft,
   Target,
-  TrendingUp,
   Folder,
   Wand2,
   BarChart3,
@@ -23,8 +23,8 @@ import {
   approveTopic,
   deleteTopicsByCampaignAndStatus,
   getTopicsByCampaign,
-} from "../../service/topic_service";
-import dayjs from "dayjs";
+} from "../../service/topicService";
+// import dayjs from "dayjs";
 import { getWorkspaceDetail } from "../../service/workspace/workspace_service";
 import { ArrowUpCircle } from "lucide-react";
 import campaignService from "../../service/campaignService";
@@ -32,9 +32,6 @@ import axios from "axios";
 
 import { useAuth } from "../../context/AuthContext";
 const WorkspaceDetailPage = () => {
-
-  const [expanded, setExpanded] = useState(false);
-  const maxLength = 100;
   // State cho tìm kiếm campaign
   const [campaignSearch, setCampaignSearch] = useState("");
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
@@ -55,39 +52,33 @@ const WorkspaceDetailPage = () => {
   const { workspaceId } = useParams();
   const [workspace, setWorkspace] = useState(null);
   const [loadingWorkspace, setLoadingWorkspace] = useState(true);
-  const [activeTab, setActiveTab] = useState("campaigns");
+  const [activeTab, setActiveTab] = useState("overview");
   const [showTopicGenerator, setShowTopicGenerator] = useState(false);
-  const [newlyCreatedTopics, setNewlyCreatedTopics] = useState([]);
+  // Persist AI generated topics so section remains after reload
+  const [newlyCreatedTopics, setNewlyCreatedTopics] = useState(() => {
+    try {
+      const saved = localStorage.getItem("newlyCreatedTopics");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [selectedTopicForContent, setSelectedTopicForContent] = useState(null);
   const [autoGeneratingTopics, setAutoGeneratingTopics] = useState(false);
   const [approvedTopics, setApprovedTopics] = useState(new Set());
   const [savingTopics, setSavingTopics] = useState(false);
   const [apiCampaigns, setApiCampaigns] = useState([]);
+  const topicsTopRef = useRef(null);
   const [topicsPageByCampaign, setTopicsPageByCampaign] = useState({});
+  const [topicContentCounts, setTopicContentCounts] = useState({});
   const [totalCampaign, setTotalCampaign] = useState(0);
   const [totalCampaignFirstLoading, setTotalCampaignFirstLoading] = useState(0);
   const [confirmedPosts, setConfirmedPosts] = useState([]);
-  const [firstLoad, setFirstLoad] = useState(true);
+  const firstLoad = true;
   const DEFAULT_TOPICS_PER_PAGE = 6;
   const { user } = useAuth();
   // Lọc danh sách bài viết đã xác nhận (mock)
-  const initialPosts = [
-    {
-      id: 1,
-      content: "Bài viết 1",
-      time: dayjs().add(1, "day").toISOString(),
-      platform: "Facebook",
-      status: "pending",
-    },
-    {
-      id: 2,
-      content: "Bài viết 2",
-      time: dayjs().add(2, "day").toISOString(),
-      platform: "Instagram",
-      status: "posted",
-    },
-  ];
-  const [posts, setPosts] = useState(initialPosts);
+  // const [posts, setPosts] = useState([]); // reserved for publish tab
   const fetchCountCampaignFirstLoading = async () => {
     try {
       const campaignNumber = await campaignService.countCampaign(user.id);
@@ -118,6 +109,7 @@ const WorkspaceDetailPage = () => {
 
     fetchCampaigns();
     fetchCountCampaignFirstLoading();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalCampaign, workspaceId]);
 
   // Reset phân trang khi workspace thay đổi
@@ -132,7 +124,7 @@ const WorkspaceDetailPage = () => {
   }, [workspace]);
 
   // Mock data - trong thực tế sẽ lấy từ API dựa trên workspaceId
-  const initialWorkspace = {
+  /* const initialWorkspace = {
     id: parseInt(workspaceId),
     name: "Summer Sale Campaign",
     description: "Chiến dịch khuyến mãi mùa hè 2024",
@@ -158,7 +150,7 @@ const WorkspaceDetailPage = () => {
       },
       // ...other campaigns
     ],
-  };
+  }; */
 
   const handleUpdateCampaigns = (updatedCampaigns) => {
     setApiCampaigns(updatedCampaigns);
@@ -239,13 +231,31 @@ const WorkspaceDetailPage = () => {
   };
 
   const getStatusBadge = (status) => {
+    if (!status) return null;
+    // Ẩn toàn bộ badge "Nháp" và các trạng thái không xác định
+    const normalized = String(status).toLowerCase();
+    if (normalized === "draft" || normalized === "nháp") return null;
+
     const statusConfig = {
-      draft: { color: "bg-yellow-100 text-yellow-800", text: "Nháp" },
       completed: { color: "bg-gray-100 text-gray-800", text: "Hoàn thành" },
       paused: { color: "bg-red-100 text-red-800", text: "Tạm dừng" },
+      active: { color: "bg-green-100 text-green-700", text: "Đang hoạt động" },
+      "đang hoạt động": {
+        color: "bg-green-100 text-green-700",
+        text: "Đang hoạt động",
+      },
+      "đã kết thúc": {
+        color: "bg-gray-100 text-gray-800",
+        text: "Đã kết thúc",
+      },
+      "sắp bắt đầu": {
+        color: "bg-blue-100 text-blue-700",
+        text: "Sắp bắt đầu",
+      },
     };
 
-    const config = statusConfig[status] || statusConfig.draft;
+    const config = statusConfig[normalized] || statusConfig[status] || null;
+    if (!config) return null;
     return (
       <span
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}
@@ -308,7 +318,9 @@ const WorkspaceDetailPage = () => {
         }
         return updatedWorkspace;
       });
-      setNewlyCreatedTopics(newGeneratedTopics.map((topic) => topic.id));
+      const topicIds = newGeneratedTopics.map((topic) => topic.id);
+      setNewlyCreatedTopics(topicIds);
+      localStorage.setItem("newlyCreatedTopics", JSON.stringify(topicIds));
       setActiveTab("topics");
       toast.dismiss();
       toast.success(
@@ -584,6 +596,7 @@ const WorkspaceDetailPage = () => {
         duration: 4000,
       });
       setNewlyCreatedTopics([]);
+      localStorage.removeItem("newlyCreatedTopics");
       setApprovedTopics(new Set());
     } catch (error) {
       toast.dismiss(loadingToast);
@@ -614,7 +627,7 @@ const WorkspaceDetailPage = () => {
   // Lấy danh sách bài viết từ DB
   useEffect(() => {
     axios
-      .get("http://localhost:8080/api/v1/posts/all", { withCredentials: true })
+      .get(`${process.env.REACT_APP_BACKEND_URL}/api/v1/posts/all`, { withCredentials: true })
       .then((res) => {
         const dataArray = Array.isArray(res.data) ? res.data : [];
         const formattedData = dataArray.map((p) => ({
@@ -636,54 +649,94 @@ const WorkspaceDetailPage = () => {
     setConfirmedPosts(posts);
   };
 
-  const handleDeletePost = (deletedPost) => {
-    setPosts((prev) => prev.filter((p) => p.id !== deletedPost.id));
-  };
+  // const handleDeletePost = () => {};
 
-  const fetchWorkspaceData = async () => {
-      setLoadingWorkspace(true);
-      try {
-        // 1. Lấy workspace từ API
-        const wsData = await getWorkspaceDetail(workspaceId); // bạn cần có hàm này
+  const fetchWorkspaceData = useCallback(async () => {
+    setLoadingWorkspace(true);
+    try {
+      // 1. Lấy workspace từ API
+      const wsData = await getWorkspaceDetail(workspaceId); // bạn cần có hàm này
 
-        // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
-        const campaignsData =
-          wsData.campaigns ??
-          (
-            await campaignService.findAllCampaign(
-              0,
-              10,
-              "",
-              "",
-              "",
-              workspaceId
-            )
-          ).content;
-        // 3. Với mỗi campaign => lấy topics
-        const campaignsWithTopics = await Promise.all(
-          campaignsData.map(async (campaign) => {
-            const topicsList = await getTopicsByCampaign(campaign.id);
-            return { ...campaign, topicsList: topicsList || [] };
-          })
-        );
+      // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
+      const campaignsData =
+        wsData.campaigns ??
+        (await campaignService.findAllCampaign(0, 10, "", "", "", workspaceId))
+          .content;
+      // 3. Với mỗi campaign => lấy topics
+      const campaignsWithTopics = await Promise.all(
+        campaignsData.map(async (campaign) => {
+          const topicsList = await getTopicsByCampaign(campaign.id);
+          return { ...campaign, topicsList: topicsList || [] };
+        })
+      );
 
-        setWorkspace({
-          ...wsData,
-          campaigns: campaignsWithTopics,
-        });
-      } catch (err) {
-        toast.error("Không thể tải dữ liệu workspace từ API");
-        setWorkspace(null);
-      } finally {
-        setLoadingWorkspace(false);
-      }
-    };
-
-  useEffect(() => {
-
-    fetchWorkspaceData();
+      setWorkspace({
+        ...wsData,
+        campaigns: campaignsWithTopics,
+      });
+    } catch (err) {
+      toast.error("Không thể tải dữ liệu workspace từ API");
+      setWorkspace(null);
+    } finally {
+      setLoadingWorkspace(false);
+    }
   }, [workspaceId]);
 
+  useEffect(() => {
+    fetchWorkspaceData();
+  }, [fetchWorkspaceData]);
+
+  // Fetch content counts for visible topics when tab = topics
+  useEffect(() => {
+    const fetchCounts = async () => {
+      if (activeTab !== "topics" || !workspace?.campaigns) return;
+      const topics = workspace.campaigns.flatMap((c) => c.topicsList || []);
+      const approved = topics.filter((t) =>
+        ["APPROVED", "ACTIVE", "active"].includes(
+          String(t.status).toUpperCase()
+        )
+      );
+      const toFetch = approved.filter((t) => topicContentCounts[t.id] == null);
+      if (toFetch.length === 0) return;
+      const entries = await Promise.all(
+        toFetch.map(async (t) => {
+          try {
+            const posts = await getPostsByTopic(t.id);
+            const count = Array.isArray(posts)
+              ? posts.length
+              : posts?.totalElements ?? posts?.length ?? 0;
+            return [t.id, count];
+          } catch (_) {
+            return [t.id, 0];
+          }
+        })
+      );
+      setTopicContentCounts((prev) => ({
+        ...prev,
+        ...Object.fromEntries(entries),
+      }));
+    };
+    fetchCounts();
+  }, [activeTab, workspace, topicContentCounts]);
+
+  // Khi người dùng chuyển tab sang "Chủ đề", tự động refetch workspace/campaigns
+  useEffect(() => {
+    if (activeTab === "topics") {
+      // Phát tín hiệu cho các trang khác nếu cần và làm mới dữ liệu tại chỗ
+      try {
+        window.dispatchEvent(new CustomEvent("campaign:refresh-active"));
+      } catch (_) {}
+      fetchWorkspaceData();
+      // Scroll tới phần đầu của tab Chủ đề
+      requestAnimationFrame(() => {
+        if (topicsTopRef.current) {
+          const el = topicsTopRef.current;
+          const top = el.getBoundingClientRect().top + window.scrollY - 80;
+          window.scrollTo({ top, behavior: "smooth" });
+        }
+      });
+    }
+  }, [activeTab]);
 
   // Lọc campaign theo tên khi search
   useEffect(() => {
@@ -691,11 +744,14 @@ const WorkspaceDetailPage = () => {
       setFilteredCampaigns([]);
       return;
     }
+    const onlyActive = workspace.campaigns.filter(
+      (c) => String(c.status).toUpperCase() === "ACTIVE"
+    );
     if (!campaignSearch.trim()) {
-      setFilteredCampaigns(workspace.campaigns);
+      setFilteredCampaigns(onlyActive);
     } else {
       setFilteredCampaigns(
-        workspace.campaigns.filter((c) =>
+        onlyActive.filter((c) =>
           (c.name || "").toLowerCase().includes(campaignSearch.toLowerCase())
         )
       );
@@ -709,6 +765,64 @@ const WorkspaceDetailPage = () => {
     return <div>Không có dữ liệu workspace</div>;
   }
 
+  const totalTopicsCount = Array.isArray(workspace?.campaigns)
+    ? workspace.campaigns.reduce((sum, c) => {
+        if (Array.isArray(c.topicsList)) return sum + c.topicsList.length;
+        return sum + (c.topics || 0);
+      }, 0)
+    : 0;
+
+  const totalContentCount = Array.isArray(workspace?.campaigns)
+    ? workspace.campaigns.reduce((sum, c) => {
+        if (Array.isArray(c.topicsList)) {
+          const approved = c.topicsList.filter((t) =>
+            ["APPROVED", "ACTIVE", "active"].includes(
+              String(t.status).toUpperCase()
+            )
+          ).length;
+          return sum + approved;
+        }
+        return sum + (c.content || 0);
+      }, 0)
+    : 0;
+
+  // Helper: try to infer number of contents/posts for a topic coming from various shapes
+  const getTopicContentCount = (topic) => {
+    if (!topic || typeof topic !== "object") return 0;
+    if (
+      topicContentCounts &&
+      topic.id &&
+      topicContentCounts[topic.id] != null
+    ) {
+      return topicContentCounts[topic.id];
+    }
+    // explicit counters first
+    if (typeof topic.contentCount === "number") return topic.contentCount;
+    if (typeof topic.postsCount === "number") return topic.postsCount;
+    if (typeof topic.postCount === "number") return topic.postCount;
+    if (typeof topic.contentsCount === "number") return topic.contentsCount;
+    if (typeof topic.totalContents === "number") return topic.totalContents;
+    // arrays next
+    const arrayKeys = [
+      "contents",
+      "content",
+      "posts",
+      "postList",
+      "postsList",
+      "topicContents",
+      "topicContentList",
+      "contentList",
+      "items",
+    ];
+    for (const key of arrayKeys) {
+      const val = topic[key];
+      if (Array.isArray(val)) return val.length;
+    }
+    return 0;
+  };
+
+  // removed duplicate hook (moved above)
+
   const stats = [
     {
       label: "Tổng chiến dịch",
@@ -718,18 +832,13 @@ const WorkspaceDetailPage = () => {
     },
     {
       label: "Tổng chủ đề",
-      value: Array.isArray(transformedCampaigns)
-        ? transformedCampaigns.reduce((sum, c) => sum + (c.topics || 0), 0)
-        : 0,
+      value: totalTopicsCount,
       color: "purple",
       icon: <Folder size={24} />,
     },
     {
       label: "Tổng content",
-      value:
-        workspace && Array.isArray(workspace.campaigns)
-          ? workspace.campaigns.reduce((sum, c) => sum + (c.content || 0), 0)
-          : 0,
+      value: totalContentCount,
       color: "orange",
       icon: <BarChart3 size={24} />,
     },
@@ -746,7 +855,7 @@ const WorkspaceDetailPage = () => {
   };
 
   return (
-    <div className="bg-gray-50 py-8">
+    <div className="bg-gray-50 py-4 min-h-screen">
       {/* Scroll to top button */}
       {showScrollTop && (
         <button
@@ -757,14 +866,14 @@ const WorkspaceDetailPage = () => {
           <ArrowUpCircle size={32} />
         </button>
       )}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="space-y-6">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
+        <div className="space-y-4 md:space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <div className="flex items-center space-x-2 md:space-x-4">
               <Link
-                  to="/workspace"
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                to="/workspace"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <ArrowLeft size={20} className="text-gray-600" />
               </Link>
@@ -772,25 +881,10 @@ const WorkspaceDetailPage = () => {
                 <h1 className="text-2xl font-bold text-gray-900">
                   {workspace.name}
                 </h1>
-
-                <p className="text-gray-600">
-                  {expanded
-                      ? workspace.description
-                      : workspace.description?.length > maxLength
-                          ? workspace.description.substring(0, maxLength) + "..."
-                          : workspace.description}
-                  {workspace.description?.length > maxLength && (
-                      <button
-                          onClick={() => setExpanded(!expanded)}
-                          className="ml-2 text-blue-500 hover:underline"
-                      >
-                        {expanded ? "Thu gọn" : "Xem thêm"}
-                      </button>
-                  )}
-                </p>
+                <p className="text-gray-600">{workspace.description}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 md:space-x-3 mt-2 md:mt-0">
               {getStatusBadge(workspace.status)}
               <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <MoreHorizontal size={20} className="text-gray-600" />
@@ -798,7 +892,7 @@ const WorkspaceDetailPage = () => {
             </div>
           </div>
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 justify-center items-center mx-auto w-full max-w-2xl">
             {stats.map((stat) => (
               <div
                 key={stat.label}
@@ -825,11 +919,11 @@ const WorkspaceDetailPage = () => {
             ))}
           </div>
           {/* Quick Actions */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               🚀 Hành động nhanh
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
               {quickActions.map((action) => (
                 <button
                   key={action.action}
@@ -852,54 +946,45 @@ const WorkspaceDetailPage = () => {
             </div>
           </div>
           {/* Tabs */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-8 px-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+            <div className="border-b border-gray-200 w-full overflow-x-auto">
+              <nav className="flex flex-nowrap space-x-2 px-2 py-2 scrollbar-hide">
                 {[
-                  // {
-                  //   id: "overview",
-                  //   label: "Tổng quan",
-                  //   icon: <BarChart3 size={16} />,
-                  // },
+                  {
+                    id: "overview",
+                    label: "Tổng quan",
+                    icon: <BarChart3 size={14} />,
+                  },
                   {
                     id: "campaigns",
                     label: "Chiến dịch",
-                    icon: <Target size={16} />,
+                    icon: <Target size={14} />,
                   },
                   {
                     id: "topics",
                     label: "Chủ đề",
-                    icon: <Folder size={16} />,
+                    icon: <Folder size={14} />,
                   },
                   {
                     id: "publish",
                     label: "Đăng bài",
-                    icon: <Send size={16} />,
+                    icon: <Send size={14} />,
                   },
                   {
                     id: "publishedManager",
                     label: "Quản lý bài",
-                    icon: <Table size={16} />,
-                  },
-                  {
-                    id: "analytics",
-                    label: "Phân tích",
-                    icon: <TrendingUp size={16} />,
-                  },
-                  {
-                    id: "settings",
-                    label: "Cài đặt",
-                    icon: <Settings size={16} />,
+                    icon: <Table size={14} />,
                   },
                 ].map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
+                    className={`flex items-center space-x-1 px-3 py-2 rounded-full font-medium text-xs md:text-sm transition-all duration-150 whitespace-nowrap shadow-sm border ${
                       activeTab === tab.id
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
+                        ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                        : "bg-white text-gray-500 border-gray-200 hover:bg-blue-50 hover:text-blue-600"
                     }`}
+                    style={{ minWidth: "max-content" }}
                   >
                     {tab.icon}
                     <span>{tab.label}</span>
@@ -908,71 +993,70 @@ const WorkspaceDetailPage = () => {
               </nav>
             </div>
 
-            <div className="p-6">
-              {/*{activeTab === "overview" && (*/}
-              {/*  <div className="space-y-6">*/}
-              {/*    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">*/}
-              {/*      /!*<div>*!/*/}
-              {/*      /!*  <h3 className="text-lg font-semibold text-gray-900 mb-4">*!/*/}
-              {/*      /!*    Thông tin workspace*!/*/}
-              {/*      /!*  </h3>*!/*/}
-              {/*      /!*  <div className="space-y-3">*!/*/}
-              {/*      /!*    <div className="flex justify-between">*!/*/}
-              {/*      /!*      <span className="text-gray-600">Template:</span>*!/*/}
-              {/*      /!*      <span className="font-medium">*!/*/}
-              {/*      /!*        E-commerce Marketing*!/*/}
-              {/*      /!*      </span>*!/*/}
-              {/*      /!*    </div>*!/*/}
-              {/*      /!*    <div className="flex justify-between">*!/*/}
-              {/*      /!*      <span className="text-gray-600">Ngân sách:</span>*!/*/}
-              {/*      /!*      <span className="font-medium">*!/*/}
-              {/*      /!*        {formatCurrency(workspace.budget)}*!/*/}
-              {/*      /!*      </span>*!/*/}
-              {/*      /!*    </div>*!/*/}
-              {/*      /!*    <div className="flex justify-between">*!/*/}
-              {/*      /!*      <span className="text-gray-600">Thời gian:</span>*!/*/}
-              {/*      /!*      <span className="font-medium">*!/*/}
-              {/*      /!*        {workspace.duration}*!/*/}
-              {/*      /!*      </span>*!/*/}
-              {/*      /!*    </div>*!/*/}
-              {/*      /!*    <div className="flex justify-between">*!/*/}
-              {/*      /!*      <span className="text-gray-600">Tạo ngày:</span>*!/*/}
-              {/*      /!*      <span className="font-medium">*!/*/}
-              {/*      /!*        {workspace.createdAt}*!/*/}
-              {/*      /!*      </span>*!/*/}
-              {/*      /!*    </div>*!/*/}
-              {/*      /!*  </div>*!/*/}
-              {/*      /!*</div>*!/*/}
-              {/*      /!*<div>*!/*/}
-              {/*      /!*  <h3 className="text-lg font-semibold text-gray-900 mb-4">*!/*/}
-              {/*      /!*    Mục tiêu*!/*/}
-              {/*      /!*  </h3>*!/*/}
-              {/*      /!*  <div className="space-y-2">*!/*/}
-              {/*      /!*    {Array.isArray(workspace.goals) &&*!/*/}
-              {/*      /!*    workspace.goals.length > 0 ? (*!/*/}
-              {/*      /!*      workspace.goals.map((goal, goalIndex) => (*!/*/}
-              {/*      /!*        <div*!/*/}
-              {/*      /!*          key={`goal-${goalIndex}-${goal}`}*!/*/}
-              {/*      /!*          className="flex items-center space-x-2"*!/*/}
-              {/*      /!*        >*!/*/}
-              {/*      /!*          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>*!/*/}
-              {/*      /!*          <span className="text-gray-700">{goal}</span>*!/*/}
-              {/*      /!*        </div>*!/*/}
-              {/*      /!*      ))*!/*/}
-              {/*      /!*    ) : (*!/*/}
-              {/*      /!*      <span className="text-gray-500">*!/*/}
-              {/*      /!*        Chưa có mục tiêu nào*!/*/}
-              {/*      /!*      </span>*!/*/}
-              {/*      /!*    )}*!/*/}
-              {/*      /!*  </div>*!/*/}
-              {/*      /!*</div>*!/*/}
-              {/*    </div>*/}
-              {/*  </div>*/}
-              {/*)}*/}
-
+            <div className="p-2 md:p-6">
+              {activeTab === "overview" && (
+                <div className="space-y-4 md:space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Thông tin workspace
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Template:</span>
+                          <span className="font-medium">
+                            E-commerce Marketing
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Ngân sách:</span>
+                          <span className="font-medium">
+                            {formatCurrency(workspace.budget)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Thời gian:</span>
+                          <span className="font-medium">
+                            {workspace.duration}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Tạo ngày:</span>
+                          <span className="font-medium">
+                            {workspace.createdAt}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Mục tiêu
+                      </h3>
+                      <div className="space-y-2">
+                        {Array.isArray(workspace.goals) &&
+                        workspace.goals.length > 0 ? (
+                          workspace.goals.map((goal, goalIndex) => (
+                            <div
+                              key={`goal-${goalIndex}-${goal}`}
+                              className="flex items-center space-x-2"
+                            >
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <span className="text-gray-700">{goal}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <span className="text-gray-500">
+                            Chưa có mục tiêu nào
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               {/* CAMPAIGN CUA ANH KHANH */}
               {activeTab === "campaigns" && (
-                <div>
+                <div className="px-2 sm:px-4 md:px-8 lg:px-12">
                   <CampaignTable
                     campaigns={transformedCampaigns}
                     onUpdateCampaigns={handleUpdateCampaigns}
@@ -980,19 +1064,18 @@ const WorkspaceDetailPage = () => {
                   />
                 </div>
               )}
-
               {activeTab === "topics" && (
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6" ref={topicsTopRef}>
                   {/* Thanh tìm kiếm campaign */}
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <input
                       type="text"
-                      className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="Tìm kiếm tên chiến dịch  ..."
+                      className="w-full sm:max-w-md px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                      placeholder="Tìm kiếm tên chiến dịch ..."
                       value={campaignSearch}
                       onChange={(e) => setCampaignSearch(e.target.value)}
                     />
-                    <div className="flex space-x-3">
+                    <div className="flex space-x-2 md:space-x-3 mt-2 sm:mt-0">
                       {/* Nút generate nhanh */}
                       {newlyCreatedTopics.length > 0 && (
                         <button
@@ -1038,17 +1121,11 @@ const WorkspaceDetailPage = () => {
                               bạn. Hãy xem và chỉnh sửa nếu cần.
                             </p>
                           </div>
-                          <button
-                            onClick={handleHideAITopics}
-                            className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center space-x-2"
-                          >
-                            <span>✕ Ẩn section</span>
-                          </button>
                         </div>
                       </div>
 
                       <div className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
                           {newlyCreatedTopics.map((topicId) => {
                             let foundTopic = null;
                             let foundCampaign = null;
@@ -1181,7 +1258,7 @@ const WorkspaceDetailPage = () => {
                             <div className="p-6">
                               {visibleTopics.length > 0 ? (
                                 <>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
                                     {visibleTopics.map((topic, topicIndex) => (
                                       <div
                                         key={`campaign-${campaign.id}-topic-${topic.id}-${topicIndex}`}
@@ -1210,6 +1287,18 @@ const WorkspaceDetailPage = () => {
                                         <p className="text-sm mb-3 text-gray-600">
                                           {topic.description}
                                         </p>
+                                        {/* Content count badge */}
+                                        {(() => {
+                                          const contentCount =
+                                            getTopicContentCount(topic);
+                                          return (
+                                            <div className="mb-3">
+                                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                                {contentCount} bài viết
+                                              </span>
+                                            </div>
+                                          );
+                                        })()}
                                         <div className="flex items-center justify-between mt-auto">
                                           <button
                                             className="w-full bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center justify-center"
@@ -1217,12 +1306,16 @@ const WorkspaceDetailPage = () => {
                                               setSelectedTopicForContent(topic);
                                             }}
                                           >
-                                            Xem Content
+                                            Xem các bài viết
                                           </button>
                                           <button
                                             className="ml-2 bg-purple-100 text-purple-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-purple-200 transition-colors flex items-center justify-center"
                                             title="Chỉnh sửa topic"
-                                            disabled
+                                            onClick={() =>
+                                              toast.success(
+                                                "Chức năng đang phát triển"
+                                              )
+                                            }
                                           >
                                             <Settings size={16} />
                                           </button>
@@ -1231,7 +1324,7 @@ const WorkspaceDetailPage = () => {
                                     ))}
                                   </div>
                                   {/* Nút phân trang: Xem thêm & Thu gọn */}
-                                  <div className="flex justify-center mt-6 space-x-3">
+                                  <div className="flex flex-wrap justify-center mt-4 md:mt-6 space-x-2 md:space-x-3 gap-y-2">
                                     {hasMore &&
                                       pageSize > DEFAULT_TOPICS_PER_PAGE && (
                                         <>
@@ -1294,17 +1387,17 @@ const WorkspaceDetailPage = () => {
                                   </div>
                                 </>
                               ) : (
-                                <div className="text-center py-8">
-                                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <div className="text-center py-6 md:py-8">
+                                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-4">
                                     <Folder
                                       className="text-gray-400"
                                       size={24}
                                     />
                                   </div>
-                                  <h5 className="text-lg font-semibold text-gray-900 mb-2">
+                                  <h5 className="text-base md:text-lg font-semibold text-gray-900 mb-2">
                                     Chưa có topics nào
                                   </h5>
-                                  <p className="text-gray-600 mb-4">
+                                  <p className="text-gray-600 mb-2 md:mb-4 text-sm md:text-base">
                                     Campaign "{campaign.name}" chưa có topics
                                     nào. Hãy để AI generate ra những chủ đề thú
                                     vị!
@@ -1314,13 +1407,9 @@ const WorkspaceDetailPage = () => {
                                       onClick={() =>
                                         setShowTopicGenerator(true)
                                       }
-                                      className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+                                      className="bg-purple-600 text-white px-3 py-2 rounded-lg text-xs md:text-sm font-medium hover:bg-purple-700 transition-colors"
                                     >
-                                      <Wand2
-                                        size={14}
-                                        className="mr-2 inline"
-                                      />
-                                      🎯 Generate Topics
+                                      Generate Topics
                                     </button>
                                   )}
                                 </div>
@@ -1333,7 +1422,6 @@ const WorkspaceDetailPage = () => {
                   )}
                 </div>
               )}
-
               {/* ĐĂNG BÀI LÊN MXH CỦA ANH BÌNH 
                 Có thể tạo 1 component và truyền props vào như của anh khánh ví dụ như:
                   <CampaignTable
@@ -1341,7 +1429,6 @@ const WorkspaceDetailPage = () => {
                   onUpdateCampaigns={handleUpdateCampaigns}
                 />
               */}
-
               {activeTab === "publish" && (
                 <SchedulePostCalendar
                   confirmedPosts={confirmedPosts}
@@ -1349,33 +1436,9 @@ const WorkspaceDetailPage = () => {
                   onSubmit={handleScheduleSubmit}
                 />
               )}
-
-              {activeTab === "publishedManager" && <ScheduledPostsList />}
-
-              {activeTab === "analytics" && (
-                <div className="text-center py-12">
-                  <TrendingUp
-                    size={48}
-                    className="text-gray-400 mx-auto mb-4"
-                  />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Analytics Dashboard
-                  </h3>
-                  <p className="text-gray-600">
-                    Tính năng phân tích chi tiết đang được phát triển
-                  </p>
-                </div>
-              )}
-
-              {activeTab === "settings" && (
-                <div className="text-center py-12">
-                  <Settings size={48} className="text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Cài đặt Workspace
-                  </h3>
-                  <p className="text-gray-600">
-                    Tính năng cài đặt đang được phát triển
-                  </p>
+              {activeTab === "publishedManager" && (
+                <div className="p-0 mt-0">
+                  <ScheduledPostsList />
                 </div>
               )}
             </div>

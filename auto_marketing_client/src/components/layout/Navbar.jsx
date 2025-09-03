@@ -10,6 +10,7 @@ import {
   ArrowRightEndOnRectangleIcon,
   ChevronDownIcon,
   IdentificationIcon,
+  ReceiptPercentIcon
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import ConfirmLogoutModal from "../modal/ConfirmLogoutModal";
@@ -22,7 +23,6 @@ export default function Navbar() {
 
   const { user } = useAuth();
   // console.log(user);
-
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -81,7 +81,9 @@ export default function Navbar() {
 
   return (
     <header className="bg-white shadow sticky top-0 z-50">
-      {showLogoutModal && <ConfirmLogoutModal onClose={() => setShowLogoutModal(false)} />}
+      {showLogoutModal && (
+        <ConfirmLogoutModal onClose={() => setShowLogoutModal(false)} />
+      )}
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link to="/" className="flex items-center space-x-2">
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-lg px-2 py-1 rounded">
@@ -176,6 +178,15 @@ export default function Navbar() {
                     >
                       <UserIcon className="w-4 h-4 mr-3" />
                       Hồ sơ cá nhân
+                    </Link>
+
+                    <Link
+                        to="/transaction_history"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <ReceiptPercentIcon className="w-4 h-4 mr-3" />
+                      Lịch sử thanh toán
                     </Link>
 
                     <Link
@@ -316,7 +327,7 @@ export default function Navbar() {
               </div>
 
               {/* User Menu */}
-              <div className="space-y-1">
+              <div className="space-y-1 max-h-[80vh] overflow-y-auto">
                 <Link
                   to="/profile"
                   onClick={closeMenu}
@@ -324,6 +335,14 @@ export default function Navbar() {
                 >
                   <UserIcon className="w-5 h-5 mr-3 text-gray-400" />
                   Hồ sơ cá nhân
+                </Link>
+                <Link
+                    to="/transaction_history"
+                    onClick={closeMenu}
+                    className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 rounded-lg transition-colors"
+                >
+                  <UserIcon className="w-5 h-5 mr-3 text-gray-400" />
+                  Lịch sử thanh toán
                 </Link>
 
                 <Link
@@ -334,6 +353,17 @@ export default function Navbar() {
                   <Cog6ToothIcon className="w-5 h-5 mr-3 text-gray-400" />
                   Cài đặt
                 </Link>
+
+                {user.role?.name === "ADMIN" && (
+                  <Link
+                    to="/admin"
+                    onClick={closeMenu}
+                    className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 rounded-lg transition-colors"
+                  >
+                    <IdentificationIcon className="w-5 h-5 mr-3 text-gray-400" />
+                    Trang quản trị
+                  </Link>
+                )}
 
                 <button
                   onClick={() => {
@@ -350,7 +380,7 @@ export default function Navbar() {
           ) : (
             /* Login/Signup Section */
             <div className="px-6 py-4 border-t border-gray-200">
-              <div className="space-y-3">
+              <div className="space-y-3 ">
                 <Link
                   to="/login"
                   onClick={closeMenu}

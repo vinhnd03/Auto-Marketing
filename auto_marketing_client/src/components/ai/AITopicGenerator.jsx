@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { X, Wand2, Sparkles } from "lucide-react";
-import { getAllCampaigns } from "../../service/campaign_service";
-import { generateTopicsWithAI } from "../../service/topic_service";
+import { X, Wand2, Sparkles, Info } from "lucide-react";
+// import { getAllCampaigns } from "../../service/campaign_service";
+import { generateTopicsWithAI } from "../../service/topicService";
 import { useParams } from "react-router-dom";
 import campaignService from "../../service/campaignService";
 
 const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
+  const [showEmptyWarning, setShowEmptyWarning] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState("");
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -13,6 +14,9 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
   const [generating, setGenerating] = useState(false);
   const [topicsCount, setTopicsCount] = useState(10);
   const [additionalInstructions, setAdditionalInstructions] = useState("");
+  // Cảnh báo nhập ký tự đặc biệt và quá 500 ký tự
+  const [showInvalidCharWarning, setShowInvalidCharWarning] = useState(false);
+  const [showLengthWarning, setShowLengthWarning] = useState(false);
   const [aiSettings, setAiSettings] = useState({
     creativity: "balanced", // conservative, balanced, creative
     contentStyle: "professional", // friendly, professional, creative
@@ -253,8 +257,11 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
               </div>
             </div>
             <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              onClick={generating ? undefined : onClose}
+              disabled={generating}
+              className={`text-gray-400 hover:text-gray-600 ${
+                generating ? "cursor-not-allowed opacity-50" : ""
+              }`}
             >
               <X size={24} />
             </button>
@@ -284,8 +291,9 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
 
             {/* Campaign Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chọn chiến dịch *
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                Chọn chiến dịch
+                <span className="text-red-500 font-bold">*</span>
               </label>
               {loading ? (
                 <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 flex items-center">
@@ -297,9 +305,15 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
               ) : (
                 <select
                   value={selectedCampaign}
-                  onChange={(e) => setSelectedCampaign(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  disabled={campaigns.length === 0}
+                  onChange={
+                    generating
+                      ? undefined
+                      : (e) => setSelectedCampaign(e.target.value)
+                  }
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    generating ? "cursor-not-allowed opacity-50" : ""
+                  }`}
+                  disabled={campaigns.length === 0 || generating}
                 >
                   <option value="">-- Chọn chiến dịch --</option>
                   {campaigns
@@ -325,8 +339,15 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
               </label>
               <select
                 value={topicsCount}
-                onChange={(e) => setTopicsCount(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                onChange={
+                  generating
+                    ? undefined
+                    : (e) => setTopicsCount(parseInt(e.target.value))
+                }
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                  generating ? "cursor-not-allowed opacity-50" : ""
+                }`}
+                disabled={generating}
               >
                 <option value={5}>5 topics</option>
                 <option value={10}>10 topics</option>
@@ -337,20 +358,72 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
 
             {/* Additional Instructions */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2 relative">
                 Hướng dẫn thêm cho AI (tùy chọn)
+                <span className="relative group cursor-pointer">
+                  <Info
+                    size={16}
+                    className="text-gray-400 group-hover:text-purple-600"
+                  />
+                  <span className="absolute left-6 top-1 z-10 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 shadow-lg whitespace-nowrap">
+                    Bạn có thể nhập hướng dẫn chi tiết cho AI. Tối đa 500 ký tự.
+                  </span>
+                </span>
               </label>
               <textarea
                 value={additionalInstructions}
-                onChange={(e) => setAdditionalInstructions(e.target.value)}
+                onChange={
+                  generating
+                    ? undefined
+                    : (e) => {
+                        let value = e.target.value;
+                        const forbiddenRegex = /[!@#$%^&*<>]/;
+                        const invalidChar = value.match(forbiddenRegex);
+                        setShowInvalidCharWarning(!!invalidChar);
+                        setShowLengthWarning(value.length > 500);
+                        // Nếu có nhiều hơn 1 dấu cách liên tiếp thì cảnh báo
+                        const hasMultipleSpaces = / {2,}/.test(value);
+                        // Chuẩn hóa: thay thế nhiều dấu cách liên tiếp bằng 1 dấu cách
+                        value = value.replace(/ {2,}/g, " ");
+                        setAdditionalInstructions(value);
+                        // Chuẩn hóa input: loại bỏ khoảng trắng thừa, trim đầu/cuối
+                        const normalized = value.replace(/\s+/g, " ").trim();
+                        // Nếu normalized rỗng hoặc chỉ có 1 từ thì báo lỗi
+                        const wordCount =
+                          normalized.length === 0
+                            ? 0
+                            : normalized.split(" ").length;
+                        setShowEmptyWarning(wordCount < 2 || hasMultipleSpaces);
+                      }
+                }
                 placeholder="Ví dụ: Tập trung vào đối tượng khách hàng trẻ tuổi, sử dụng hashtag trending, đề cập đến sản phẩm mới..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none ${
+                  showInvalidCharWarning || showLengthWarning
+                    ? "border-red-500"
+                    : ""
+                } ${generating ? "cursor-not-allowed opacity-50" : ""}`}
                 rows={3}
-                maxLength={500}
+                disabled={generating}
               />
+              {showEmptyWarning && (
+                <div className="text-xs text-red-600 mt-1">
+                  ⚠️ Nội dung không được để trống hoặc chỉ toàn khoảng trắng.
+                </div>
+              )}
               <div className="text-xs text-gray-500 mt-1">
                 {additionalInstructions.length}/500 ký tự
               </div>
+              {showInvalidCharWarning && (
+                <div className="text-xs text-red-600 mt-1">
+                  ⚠️ Không được nhập ký tự đặc biệt! Vui lòng kiểm tra lại nội
+                  dung.
+                </div>
+              )}
+              {showLengthWarning && (
+                <div className="text-xs text-red-600 mt-1">
+                  ⚠️ Bạn đã nhập quá 500 ký tự! Vui lòng rút ngắn hướng dẫn.
+                </div>
+              )}
             </div>
 
             {/* AI Settings */}
@@ -366,16 +439,23 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
                   {creativityOptions.map((option) => (
                     <div
                       key={option.value}
-                      onClick={() =>
-                        setAiSettings({
-                          ...aiSettings,
-                          creativity: option.value,
-                        })
+                      onClick={
+                        generating
+                          ? undefined
+                          : () =>
+                              setAiSettings({
+                                ...aiSettings,
+                                creativity: option.value,
+                              })
                       }
                       className={`p-3 border rounded-lg cursor-pointer transition-all ${
                         aiSettings.creativity === option.value
                           ? "border-purple-500 bg-purple-50"
                           : "border-gray-300 hover:border-gray-400"
+                      } ${
+                        generating
+                          ? "cursor-not-allowed opacity-50 pointer-events-none"
+                          : ""
                       }`}
                     >
                       <div className="font-medium text-sm">{option.label}</div>
@@ -396,16 +476,23 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
                   {styleOptions.map((option) => (
                     <div
                       key={option.value}
-                      onClick={() =>
-                        setAiSettings({
-                          ...aiSettings,
-                          contentStyle: option.value,
-                        })
+                      onClick={
+                        generating
+                          ? undefined
+                          : () =>
+                              setAiSettings({
+                                ...aiSettings,
+                                contentStyle: option.value,
+                              })
                       }
                       className={`p-3 border rounded-lg cursor-pointer transition-all ${
                         aiSettings.contentStyle === option.value
                           ? "border-purple-500 bg-purple-50"
                           : "border-gray-300 hover:border-gray-400"
+                      } ${
+                        generating
+                          ? "cursor-not-allowed opacity-50 pointer-events-none"
+                          : ""
                       }`}
                     >
                       <div className="font-medium text-sm">{option.label}</div>
@@ -467,16 +554,29 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
 
           <div className="flex justify-between items-center p-6 border-t bg-gray-50">
             <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              onClick={generating ? undefined : onClose}
+              disabled={generating}
+              className={`px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 ${
+                generating ? "cursor-not-allowed opacity-50" : ""
+              }`}
             >
               Hủy
             </button>
             <button
               onClick={handleGenerate}
-              disabled={!selectedCampaign || generating}
+              disabled={
+                !selectedCampaign ||
+                generating ||
+                showInvalidCharWarning ||
+                showLengthWarning ||
+                showEmptyWarning
+              }
               className={`px-6 py-2 text-sm font-medium rounded-lg transition-colors ${
-                !selectedCampaign || generating
+                !selectedCampaign ||
+                generating ||
+                showInvalidCharWarning ||
+                showLengthWarning ||
+                showEmptyWarning
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-purple-600 text-white hover:bg-purple-700"
               }`}

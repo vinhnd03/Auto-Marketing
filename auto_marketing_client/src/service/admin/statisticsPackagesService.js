@@ -2,7 +2,7 @@ import axios from "axios";
 
 export async function getAllPackages() {
     try {
-        const response = await axios.get("http://localhost:8080/api/plans", {withCredentials: true});
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/plans`, {withCredentials: true});
         const plans = response.data?.data || response.data;
         return Array.isArray(plans) ? plans : [];
     } catch (e) {
@@ -11,7 +11,7 @@ export async function getAllPackages() {
     }
 }
 
-const BASE = "http://localhost:8080/api/users"; // giữ nguyên
+const BASE = `${process.env.REACT_APP_BACKEND_URL}/api/users`; // giữ nguyên
 
 /**
  * Backend response shape:

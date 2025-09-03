@@ -7,6 +7,7 @@ import com.codegym.auto_marketing_server.security.jwt.service.JwtService;
 import com.codegym.auto_marketing_server.service.IRoleService;
 import com.codegym.auto_marketing_server.service.ISocialAccountService;
 import com.codegym.auto_marketing_server.service.IUserService;
+import com.codegym.auto_marketing_server.service.impl.SubscriptionManagementService;
 import com.codegym.auto_marketing_server.util.CloudinaryService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,6 +41,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final CloudinaryService cloudinaryService;
     private final ISocialAccountService socialAccountService;
+    private final SubscriptionManagementService subscriptionManagementService;
 
     @Value("${FACEBOOK_CLIENT_ID}")
     private String facebookClientId;
@@ -139,7 +141,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             user.setRole(userRole);
             user.setPassword("OAUTH2"); // tránh null
             user.setStatus(true);
-            userService.save(user);
+            subscriptionManagementService.register(user);
         }
 
         // Cập nhật thông tin OAuth2

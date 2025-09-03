@@ -1,5 +1,33 @@
 import axios from "axios";
 
+const BASE = "http://localhost:8080/api/users";
+
+export async function filterUsersByPackage(
+    filter = null, // "NO_PACKAGE" | "EXPIRED"
+    page = 1,
+    size = 10
+) {
+    try {
+        const { data } = await axios.get(`${BASE}/search`, {
+            withCredentials: true,
+            params: {
+                subscriptionFilter: filter || undefined,
+                page: page - 1, // backend dùng page = 0-based
+                size
+            }
+        });
+
+        return {
+            data: data?.content ?? [],
+            totalPages: data.totalPages,
+            currentPage: data.number + 1,
+            totalItems: data.totalElements
+        };
+    } catch (e) {
+        console.error("Error fetching filtered users:", e);
+        return { data: [], totalItems: 0, totalPages: 0, currentPage: page };
+    }
+}
 
 export async function getAll() {
     try {
@@ -76,6 +104,5 @@ export async function search(
         return { data: [], totalItems: 0, totalPages: 0, currentPage: page };
     }
 }
-
 
 

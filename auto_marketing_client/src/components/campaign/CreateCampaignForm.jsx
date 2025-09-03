@@ -192,9 +192,9 @@ export default function CreateCampaignForm({
   });
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
+    <div className="max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto p-4 sm:p-8">
       {/* Header */}
-      <div className="flex flex-col gap-3 mb-8">
+      <div className="flex flex-col gap-4 mb-10">
         <div className="flex items-center gap-3">
           <button
             onClick={onCancel}
@@ -213,7 +213,7 @@ export default function CreateCampaignForm({
         </div>
 
         {/* Phần mô tả chi tiết và link file mẫu */}
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <div className="bg-gray-50 p-4 sm:p-6 rounded-xl border border-gray-200">
           <p className="text-gray-700 text-sm mb-2">
             Hướng dẫn: Tải file mẫu Excel để điền dữ liệu chiến dịch. File mẫu
             bao gồm các cột:{" "}
@@ -233,10 +233,10 @@ export default function CreateCampaignForm({
 
       {/* Chọn cách thêm mới */}
       {!dataSourceMethod && (
-        <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="max-w-full sm:max-w-xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           <button
             onClick={() => setDataSourceMethod("manual")}
-            className="border-2 border-blue-200 rounded-xl p-6 bg-blue-50 hover:border-blue-300 transition-colors text-left"
+            className="border-2 border-blue-200 rounded-2xl p-6 sm:p-8 bg-blue-50 hover:border-blue-300 transition-colors text-left shadow"
           >
             <div className="text-center">
               <FileText className="w-12 h-12 text-blue-500 mx-auto mb-4" />
@@ -251,7 +251,7 @@ export default function CreateCampaignForm({
 
           <button
             onClick={() => setDataSourceMethod("upload")}
-            className="border-2 border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-colors text-left"
+            className="border-2 border-gray-200 rounded-2xl p-6 sm:p-8 hover:border-gray-300 transition-colors text-left shadow"
           >
             <div className="text-center">
               <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -272,7 +272,7 @@ export default function CreateCampaignForm({
           onSubmit={handleManualSubmit}
         >
           {({ isSubmitting }) => (
-            <Form className="max-w-2xl mx-auto space-y-6 mt-6">
+            <Form className="max-w-full sm:max-w-xl mx-auto space-y-8 mt-8">
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                   <Type size={16} className="text-blue-500" /> Tên chiến dịch
@@ -281,7 +281,7 @@ export default function CreateCampaignForm({
                 <Field
                   name="name"
                   placeholder="VD: Summer Sale 2024"
-                  className="w-full border rounded-lg px-4 py-3"
+                  className="w-full border rounded-xl px-4 py-3 text-base shadow-sm"
                 />
                 <ErrorMessage
                   name="name"
@@ -299,7 +299,7 @@ export default function CreateCampaignForm({
                   as="textarea"
                   name="description"
                   rows={3}
-                  className="w-full border rounded-lg px-4 py-3"
+                  className="w-full border rounded-xl px-4 py-3 text-base shadow-sm"
                 />
                 <ErrorMessage
                   name="description"
@@ -308,7 +308,7 @@ export default function CreateCampaignForm({
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                     <Calendar size={16} className="text-blue-500" /> Ngày bắt
@@ -318,7 +318,7 @@ export default function CreateCampaignForm({
                   <Field
                     type="date"
                     name="startDate"
-                    className="w-full border rounded-lg px-4 py-3"
+                    className="w-full border rounded-xl px-4 py-3 text-base shadow-sm"
                   />
                   <ErrorMessage
                     name="startDate"
@@ -335,7 +335,7 @@ export default function CreateCampaignForm({
                   <Field
                     type="date"
                     name="endDate"
-                    className="w-full border rounded-lg px-4 py-3"
+                    className="w-full border rounded-xl px-4 py-3 text-base shadow-sm"
                   />
                   <ErrorMessage
                     name="endDate"
@@ -344,18 +344,18 @@ export default function CreateCampaignForm({
                   />
                 </div>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <button
                   type="button"
                   onClick={() => setDataSourceMethod(null)}
-                  className="text-blue-600 hover:underline text-sm"
+                  className="text-blue-600 hover:underline text-sm mb-2 sm:mb-0"
                 >
                   ← Chọn phương thức khác
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  className="bg-blue-600 text-white px-6 py-3 rounded-xl shadow hover:bg-blue-700 transition-colors"
                 >
                   Tạo chiến dịch
                 </button>
@@ -367,13 +367,13 @@ export default function CreateCampaignForm({
 
       {/* Upload */}
       {dataSourceMethod === "upload" && (
-        <div className="max-w-2xl mx-auto space-y-6 mt-6">
+        <div className="max-w-full sm:max-w-xl mx-auto space-y-8 mt-8">
           <div>
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
               <Upload size={16} className="text-blue-500" /> Tải tệp Excel
               <span className="text-red-500">*</span>
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition">
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-8 text-center hover:border-blue-400 transition">
               <input
                 type="file"
                 accept=".xlsx, .xls"
@@ -394,7 +394,7 @@ export default function CreateCampaignForm({
                 </span>
               </label>
               {uploadedFile && (
-                <p className="mt-3 text-sm text-green-600 font-medium">
+                <p className="mt-3 text-base text-green-600 font-medium">
                   Đã chọn: {uploadedFile.name}
                 </p>
               )}
@@ -408,7 +408,7 @@ export default function CreateCampaignForm({
           )}
 
           {previewData.length > 0 && (
-            <table className="table-auto border-collapse border border-gray-300 w-full mt-4">
+            <table className="table-auto border-collapse border border-gray-300 w-full mt-4 text-base">
               <thead>
                 <tr>
                   {headers.map((key) => (
@@ -437,7 +437,7 @@ export default function CreateCampaignForm({
                       }
 
                       return (
-                        <td key={key} className="border p-2">
+                        <td key={key} className="border p-3">
                           {cellValue}
                         </td>
                       );
@@ -448,11 +448,11 @@ export default function CreateCampaignForm({
             </table>
           )}
 
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-4">
             <button
               type="button"
               onClick={() => setDataSourceMethod(null)}
-              className="text-blue-600 hover:underline text-sm"
+              className="text-blue-600 hover:underline text-sm mb-2 sm:mb-0"
             >
               ← Chọn phương thức khác
             </button>
@@ -460,7 +460,7 @@ export default function CreateCampaignForm({
               type="button"
               onClick={handleSubmitCampaign}
               disabled={!uploadedFile || previewData.length === 0 || loading}
-              className={`px-4 py-2 rounded-lg text-white ${
+              className={`px-6 py-3 rounded-xl text-white shadow ${
                 !uploadedFile || previewData.length === 0 || loading
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700"

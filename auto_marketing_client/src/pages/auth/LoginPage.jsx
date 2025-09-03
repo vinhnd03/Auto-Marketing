@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -21,12 +21,23 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { fetchUser, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const shownRef = useRef(false);
 
   const initialValues = {
     email: "",
     password: "",
     rememberMe: false,
   };
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (!shownRef.current && errorParam === "ACCOUNT_DISABLED") {
+      toast.error("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên");
+    } 
+    shownRef.current = true; 
+    navigate("/login", { replace: true });
+  }, [searchParams, navigate]);
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
@@ -51,11 +62,12 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `http://localhost:8080/api/auth/google`;
+    window.location.href = `${process.env.REACT_APP_BACKEND_URL}/api/auth/google`;
   };
 
   const handleFacebookLogin = () => {
-    window.location.href = `http://localhost:8080/api/auth/facebook`;
+    // window.location.href = `${process.env.REACT_APP_BACKEND_URL}/api/auth/facebook`;
+    window.location.href = `${process.env.REACT_APP_BACKEND_URL}/api/auth/facebook`;
   };
 
   return (

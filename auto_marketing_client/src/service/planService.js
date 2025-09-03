@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const URL = "http://localhost:8080/api/admin/plans";
+const URL = `${process.env.REACT_APP_BACKEND_URL}/api/admin/plans`;
 
 const getPlans = async () => {
     try {
