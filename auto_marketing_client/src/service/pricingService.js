@@ -43,7 +43,6 @@ export const getMostPopularPlan = async () => {
         return res.data;
     } catch (e) {
         console.log("loi ket noi du lieu")
-
         return "";
     }
 }

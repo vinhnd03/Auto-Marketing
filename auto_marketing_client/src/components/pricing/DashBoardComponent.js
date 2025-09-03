@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from "react";
-import axios from "axios";
 import {toast} from "react-hot-toast";
 import {Shield} from "lucide-react";
 import {useAuth} from "../../context/AuthContext"
@@ -29,7 +28,7 @@ const TransactionSuccess = () => {
             setMostPopularPlan(newMostPopularPlan);
         }
         fetMostPopularPlan();
-    })
+    },[])
     // Fetch plans
     useEffect(() => {
         const loadPlans = async () => {
@@ -37,8 +36,9 @@ const TransactionSuccess = () => {
                 const data = await fetchPlans();
                 setPlans(data);
             } catch (error) {
-                console.error("Lỗi khi lấy danh sách gói:", error);
-                toast.error("Không thể tải bảng giá. Vui lòng thử lại sau!");
+                toast.error("Không thể tải bảng giá. Vui lòng thử lại sau!", {
+                    id: "load-plans-error", // id cố định
+                });
             }
         };
         loadPlans();
