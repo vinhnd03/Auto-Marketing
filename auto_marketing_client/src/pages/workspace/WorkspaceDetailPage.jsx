@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { getPostsByTopic } from "../../service/postService";
-import AIGeneratedTopicCard from "../../components/ai/AIGeneratedTopicCard";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import TopicContentDetail from "./TopicContentDetail";
-import { AITopicGenerator, CampaignTable } from "../../components";
+import axios from "axios";
 import {
   ArrowLeft,
   Target,
@@ -15,22 +12,27 @@ import {
   MoreHorizontal,
   Send,
   Table,
+  ArrowUpCircle,
 } from "lucide-react";
-import SchedulePostCalendar from "../../components/publish/SchedulePostCalendar";
-import ScheduledPostsList from "../../components/publish/ScheduledPostsList";
+
+import { countApprovedTopicsByCampaign } from "../../service/topicService";
+import { getPostsByTopic, countPostsByTopic } from "../../service/postService";
 import {
   generateTopicsWithAI,
   approveTopic,
   deleteTopicsByCampaignAndStatus,
   getTopicsByCampaign,
 } from "../../service/topicService";
-// import dayjs from "dayjs";
 import { getWorkspaceDetail } from "../../service/workspace/workspace_service";
-import { ArrowUpCircle } from "lucide-react";
 import campaignService from "../../service/campaignService";
-import axios from "axios";
-
 import { useAuth } from "../../context/AuthContext";
+
+import AIGeneratedTopicCard from "../../components/ai/AIGeneratedTopicCard";
+import TopicContentDetail from "./TopicContentDetail";
+import { AITopicGenerator, CampaignTable } from "../../components";
+import SchedulePostCalendar from "../../components/publish/SchedulePostCalendar";
+import ScheduledPostsList from "../../components/publish/ScheduledPostsList";
+
 const WorkspaceDetailPage = () => {
   // State cho tìm kiếm campaign
   const [campaignSearch, setCampaignSearch] = useState("");
@@ -74,6 +76,7 @@ const WorkspaceDetailPage = () => {
   const [totalCampaign, setTotalCampaign] = useState(0);
   const [totalCampaignFirstLoading, setTotalCampaignFirstLoading] = useState(0);
   const [confirmedPosts, setConfirmedPosts] = useState([]);
+  const [topicPostCounts, setTopicPostCounts] = useState({});
   const firstLoad = true;
   const DEFAULT_TOPICS_PER_PAGE = 6;
   const { user } = useAuth();
@@ -627,7 +630,9 @@ const WorkspaceDetailPage = () => {
   // Lấy danh sách bài viết từ DB
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_BACKEND_URL}/api/v1/posts/all`, { withCredentials: true })
+      .get(`${process.env.REACT_APP_BACKEND_URL}/api/v1/posts/all`, {
+        withCredentials: true,
+      })
       .then((res) => {
         const dataArray = Array.isArray(res.data) ? res.data : [];
         const formattedData = dataArray.map((p) => ({
@@ -758,6 +763,53 @@ const WorkspaceDetailPage = () => {
     }
   }, [campaignSearch, workspace]);
 
+  // State cho tổng số topic APPROVED
+  const [totalApprovedTopicsCount, setTotalApprovedTopicsCount] = useState(0);
+  // Khi workspace/campaigns thay đổi, gọi API đếm topic APPROVED
+  useEffect(() => {
+    async function fetchTotalApprovedTopics() {
+      if (!workspace || !workspace.campaigns) {
+        setTotalApprovedTopicsCount(0);
+        return;
+      }
+      let total = 0;
+      for (const campaign of workspace.campaigns) {
+        if (campaign.id) {
+          const count = await countApprovedTopicsByCampaign(campaign.id);
+          total += Number(count) || 0;
+        }
+      }
+      setTotalApprovedTopicsCount(total);
+    }
+    fetchTotalApprovedTopics();
+  }, [workspace]);
+
+  // Thêm effect để fetch số lượng bài viết cho các topic đang hiển thị
+  useEffect(() => {
+    if (activeTab !== "topics" || !workspace?.campaigns) return;
+    const topics = workspace.campaigns.flatMap((c) => c.topicsList || []);
+    const approved = topics.filter((t) =>
+      ["APPROVED", "ACTIVE", "active"].includes(String(t.status).toUpperCase())
+    );
+    const toFetch = approved.filter((t) => topicPostCounts[t.id] == null);
+    if (toFetch.length === 0) return;
+    Promise.all(
+      toFetch.map(async (t) => {
+        try {
+          const count = await countPostsByTopic(t.id);
+          return [t.id, Number(count) || 0];
+        } catch {
+          return [t.id, 0];
+        }
+      })
+    ).then((entries) => {
+      setTopicPostCounts((prev) => ({
+        ...prev,
+        ...Object.fromEntries(entries),
+      }));
+    });
+  }, [activeTab, workspace, topicPostCounts]);
+
   if (loadingWorkspace) {
     return <div>Đang tải workspace...</div>;
   }
@@ -765,12 +817,7 @@ const WorkspaceDetailPage = () => {
     return <div>Không có dữ liệu workspace</div>;
   }
 
-  const totalTopicsCount = Array.isArray(workspace?.campaigns)
-    ? workspace.campaigns.reduce((sum, c) => {
-        if (Array.isArray(c.topicsList)) return sum + c.topicsList.length;
-        return sum + (c.topics || 0);
-      }, 0)
-    : 0;
+  // Đã thay thế bằng totalApprovedTopicsCount từ API
 
   const totalContentCount = Array.isArray(workspace?.campaigns)
     ? workspace.campaigns.reduce((sum, c) => {
@@ -787,8 +834,12 @@ const WorkspaceDetailPage = () => {
     : 0;
 
   // Helper: try to infer number of contents/posts for a topic coming from various shapes
+
   const getTopicContentCount = (topic) => {
     if (!topic || typeof topic !== "object") return 0;
+    if (topicPostCounts && topic.id && topicPostCounts[topic.id] != null) {
+      return topicPostCounts[topic.id];
+    }
     if (
       topicContentCounts &&
       topic.id &&
@@ -821,8 +872,6 @@ const WorkspaceDetailPage = () => {
     return 0;
   };
 
-  // removed duplicate hook (moved above)
-
   const stats = [
     {
       label: "Tổng chiến dịch",
@@ -832,7 +881,7 @@ const WorkspaceDetailPage = () => {
     },
     {
       label: "Tổng chủ đề",
-      value: totalTopicsCount,
+      value: totalApprovedTopicsCount,
       color: "purple",
       icon: <Folder size={24} />,
     },
@@ -1202,7 +1251,23 @@ const WorkspaceDetailPage = () => {
                   {selectedTopicForContent ? (
                     <TopicContentDetail
                       topic={selectedTopicForContent}
-                      onBack={() => setSelectedTopicForContent(null)}
+                      onBack={async () => {
+                        setSelectedTopicForContent(null);
+                        // Gọi lại API để cập nhật số bài viết cho topic vừa xem
+                        if (selectedTopicForContent?.id) {
+                          try {
+                            const count = await countPostsByTopic(
+                              selectedTopicForContent.id
+                            );
+                            setTopicPostCounts((prev) => ({
+                              ...prev,
+                              [selectedTopicForContent.id]: Number(count) || 0,
+                            }));
+                          } catch {
+                            // Nếu lỗi thì giữ nguyên số cũ
+                          }
+                        }
+                      }}
                     />
                   ) : !workspace || !Array.isArray(workspace.campaigns) ? (
                     <div className="text-center py-8 text-gray-500">

@@ -24,4 +24,8 @@ public interface ITopicRepository extends JpaRepository<Topic, Long> {
         )
         """)
     List<Topic> findActiveTopicsWithPosts(@Param("campaignId") Long campaignId);
+
+    long countByStatus(TopicStatus status);
+
+    long countByCampaignIdAndStatus(Long campaignId, TopicStatus status);
 }

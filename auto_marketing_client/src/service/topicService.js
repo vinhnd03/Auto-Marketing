@@ -1,26 +1,10 @@
 import axios from "axios";
-import { data } from 'react-router-dom';
-import api from "../context/api";
+import { data } from "react-router-dom";
 
 // Base URL for topic API
 const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}/api/v1`;
 // const BASE_URL = `/v1`;
 
-export const getTopicsByCampaignId = async (campaignId) => {
-  try {
-    // const resp = await axios.get(`${BASE_URL}/topics/campaignId`, {
-    const resp = await axios.get(`${BASE_URL}/topics/campaignId`, {
-      params: {campaignId},
-      withCredentials:true
-    })
-    console.log(resp.data);
-    
-    return resp.data;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-}
 // Configure axios with default timeout
 // const apiClient = axios.create({
 const apiClient = axios.create({
@@ -98,6 +82,21 @@ export async function getTopicsByCampaign(campaignId) {
   }
 }
 
+export const getTopicsByCampaignId = async (campaignId) => {
+  try {
+    const resp = await apiClient.get(`${BASE_URL}/topics/campaignId`, {
+      params: { campaignId },
+      withCredentials: true,
+    });
+    console.log(resp.data);
+
+    return resp.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
 /**
  * Get topics by campaign and status
  * @param {number} campaignId - Campaign ID
@@ -165,5 +164,18 @@ export async function deleteTopicsByCampaignAndStatus(campaignId, status) {
     await apiClient.delete(`/topics/campaign/${campaignId}/status/${status}`);
   } catch (error) {
     throw error;
+  }
+}
+
+// Đếm số topic APPROVED của một campaign
+export async function countApprovedTopicsByCampaign(campaignId) {
+  try {
+    const response = await apiClient.get(
+      `/topics/count/approved/campaign/${campaignId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error counting approved topics:", error);
+    return 0;
   }
 }

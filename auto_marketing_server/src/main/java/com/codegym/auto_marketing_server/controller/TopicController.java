@@ -7,20 +7,15 @@ import com.codegym.auto_marketing_server.enums.TopicStatus;
 import com.codegym.auto_marketing_server.service.ITopicService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/v1/topics")
@@ -30,39 +25,6 @@ import java.util.concurrent.CompletableFuture;
 public class TopicController {
 
     private final ITopicService topicService;
-
-//    @PostMapping("/generate")
-//    @Operation(
-//            summary = "Generate marketing topics using AI",
-//            description = "Generate multiple marketing topics for a campaign using AI. " +
-//                    "The AI will create relevant, engaging topics based on the campaign information.",
-//            responses = {
-//                    @ApiResponse(responseCode = "200", description = "Topics generated successfully",
-//                            content = @Content(schema = @Schema(implementation = TopicResponseDTO.class))),
-//                    @ApiResponse(responseCode = "400", description = "Invalid request data"),
-//                    @ApiResponse(responseCode = "404", description = "Campaign not found"),
-//                    @ApiResponse(responseCode = "500", description = "AI generation failed")
-//            }
-//    )
-//    public CompletableFuture<ResponseEntity<List<TopicResponseDTO>>> generateTopics(
-//            @Valid @RequestBody TopicGenerationRequestDTO request) {
-//
-//        log.info("🎯 Generating {} topics for campaign ID: {}",
-//                request.getNumberOfTopics(), request.getCampaignId());
-//
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        System.out.println(">>> Controller auth: " + auth);
-//
-//        return topicService.generateTopicsWithAI(request)
-//                .thenApply(topics -> {
-//                    log.info("✅ Successfully generated {} topics", topics.size());
-//                    return ResponseEntity.ok(topics);
-//                })
-//                .exceptionally(throwable -> {
-//                    log.error("❌ Failed to generate topics: {}", throwable.getMessage());
-//                    return ResponseEntity.internalServerError().build();
-//                });
-//    }
 
     @PostMapping("/generate")
     public ResponseEntity<List<TopicResponseDTO>> generateTopics(
@@ -174,5 +136,19 @@ public class TopicController {
             @RequestParam Long campaignId
     ) {
         return ResponseEntity.ok(topicService.getTopicsByCampaignId(campaignId));
+    }
+
+    @GetMapping("/count/approved")
+    public ResponseEntity<Long> countApprovedTopics() {
+        long count = topicService.countTopicsByStatus(TopicStatus.APPROVED);
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/count/approved/campaign/{campaignId}")
+    public ResponseEntity<Long> countApprovedTopicsByCampaign(
+            @PathVariable Long campaignId
+    ) {
+        long count = topicService.countTopicsByCampaignAndStatus(campaignId, TopicStatus.APPROVED);
+        return ResponseEntity.ok(count);
     }
 }

@@ -50,4 +50,8 @@ public interface IPostRepository extends JpaRepository<Post, Long> {
             @Param("campaignId") Long campaignId,
             @Param("topicId") Long topicId
     );
+
+    long countByTopicId(Long topicId);
+
+    long countByTopicIdAndStatus(Long topicId, PostStatus status);
 }

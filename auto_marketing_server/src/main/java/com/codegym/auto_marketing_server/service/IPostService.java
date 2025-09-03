@@ -27,4 +27,16 @@ public interface IPostService {
     List<PostResponseDTO> approveAndCleanPosts(Long topicId, List<Long> selectedPostIds);
 
     List<PostFilterDTO> getPostsByFilters(Long workspaceId, Long campaignId, Long topicId);
+
+    long countPostsByTopic(Long topicId);
+
+    long countPostsByTopicAndStatus(Long topicId, PostStatus status);
+
+    String generateImagePromptForPost(Long postId, String userInstructions);
+
+    String generateImageForPost(Long postId, String userInstructions);
+
+    List<String> generateImagesForPost(Long postId, String prompt, String style, int numImages);
+
+    void saveImagesForPost(Long postId, List<String> selectedImageUrls);
 }

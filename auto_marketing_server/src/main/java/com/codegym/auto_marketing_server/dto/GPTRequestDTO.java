@@ -10,8 +10,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GPTRequestDTO {
-    private String model = "gpt-4o";
+    private String model = "gpt-4.1";
     private List<GPTMessageDTO> messages;
-    private Integer max_tokens = 1000;
+    private Integer max_tokens = 32768;
     private Double temperature = 0.7;
 }

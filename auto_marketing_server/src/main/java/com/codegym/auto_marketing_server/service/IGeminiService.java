@@ -8,7 +8,7 @@ import com.codegym.auto_marketing_server.entity.Topic;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface IGPTService {
+public interface IGeminiService {
     CompletableFuture<String> generateTopicsFromCampaign(Campaign campaign,
                                                          Integer numberOfTopics,
                                                          String additionalInstructions,
@@ -26,5 +26,5 @@ public interface IGPTService {
 
     CompletableFuture<String> generateImagePromptFromContent(String content);
 
-    CompletableFuture<GPTResponseDTO> callGPTAPI(GPTRequestDTO request);
+    CompletableFuture<GPTResponseDTO> callGeminiAPI(GPTRequestDTO request);
 }

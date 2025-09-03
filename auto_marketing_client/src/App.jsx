@@ -1,3 +1,4 @@
+import { NotificationProvider } from "./context/NotificationContext";
 import {
   BrowserRouter as Router,
   Routes,
@@ -73,9 +74,11 @@ import MarketingNewsletterPage from "./pages/admin/MarketingNewsletterPage";
 import MarketingNotificationsPage from "./pages/admin/MarketingNotificationsPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
+import AIGeneratedPostsPage from "./pages/ai/AIGeneratedPostsPage";
 
 import GlobalScrollToTop from "./components/ui/GlobalScrollToTop";
 import EmailVerificationPage from "./pages/auth/EmailVerificationPage";
+import AIGeneratedPostDetailPage from "./pages/ai/AIGeneratedPostDetailPage";
 
 // Component để scroll to top khi navigate
 const ScrollToTop = () => {
@@ -136,7 +139,7 @@ function App() {
   if (loading) return <Preloader />;
 
   return (
-    <>
+    <NotificationProvider>
       <AxiosInterceptor />
       <ScrollToTop />
       <Routes>
@@ -248,7 +251,6 @@ function App() {
                     </GuestRoute>
                   }
                 />
-                <Route path="/verification" element={<EmailVerificationPage />}/>
                 <Route path="/oauth2/success" element={<OAuth2Success />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
@@ -310,6 +312,22 @@ function App() {
                   }
                 />
                 <Route
+                  path="/ai-generated-posts"
+                  element={
+                    <ProtectedRoute>
+                      <AIGeneratedPostsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ai-generated-posts/:id"
+                  element={
+                    <ProtectedRoute>
+                      <AIGeneratedPostDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/*"
                   element={<Navigate to="/not-found" replace />}
                 />
@@ -348,7 +366,7 @@ function App() {
           },
         }}
       />
-    </>
+    </NotificationProvider>
   );
 }
 
