@@ -14,23 +14,19 @@ import { useAuth } from "../../hooks/useAuth";
 import toast from "react-hot-toast";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import authService from "../../service/authService";
+import zxcvbn from "zxcvbn";
+import PasswordStrength from "./PasswordStrength";
 
 // Validation schema
 const registerSchema = Yup.object({
-  lastName: Yup.string()
-    .min(2, "Họ phải có ít nhất 2 ký tự")
+  name: Yup.string()
+    .min(2, "Họ phải có ít nhất 5 ký tự")
     .max(50, "Họ không được quá 50 ký tự")
-    .required("Vui lòng nhập họ"),
-  firstName: Yup.string()
-    .min(2, "Tên phải có ít nhất 2 ký tự")
-    .max(50, "Tên không được quá 50 ký tự")
     .required("Vui lòng nhập tên"),
   email: Yup.string()
     .email("Email không hợp lệ")
     .required("Vui lòng nhập email"),
-  phone: Yup.string()
-    .matches(/^\d{10,11}$/, "Số điện thoại phải có 10-11 chữ số")
-    .nullable(),
   password: Yup.string()
     .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
     .max(100, "Mật khẩu không được quá 100 ký tự")
@@ -45,43 +41,51 @@ const registerSchema = Yup.object({
   agreeToTerms: Yup.boolean()
     .oneOf([true], "Bạn phải đồng ý với điều khoản sử dụng")
     .required("Bạn phải đồng ý với điều khoản sử dụng"),
-  subscribeNewsletter: Yup.boolean(),
 });
 
 const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { register } = useAuth();
+  // const { register } = useAuth();
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: "",
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
 
   const initialValues = {
-    lastName: "",
-    firstName: "",
+    name: "",
     email: "",
     phone: "",
     password: "",
     confirmPassword: "",
     agreeToTerms: false,
-    subscribeNewsletter: false,
   };
 
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
     try {
       const userData = {
-        lastName: values.lastName,
-        firstName: values.firstName,
+        name: values.name,
         email: values.email,
-        phone: values.phone,
         password: values.password,
-        subscribeNewsletter: values.subscribeNewsletter,
       };
 
-      const result = await register(userData);
+      const result = await authService.register(userData);
       if (result.success) {
-        toast.success("Đăng ký thành công!");
-        navigate("/workspace");
+        toast.dismiss();
+        toast.success("Kiểm tra email của bạn để xác nhận đăng ký", {
+          duration: 3000,
+        });
+        navigate("/login");
       } else {
-        toast.error(result.error || "Đăng ký thất bại");
+        if (result.error.includes("Email")) {
+          setFieldError("email", result.error);
+        } else {
+          toast.error(result.error || "Đăng ký thất bại");
+        }
       }
     } catch (error) {
       console.error("Registration error:", error);
@@ -125,64 +129,37 @@ const RegisterPage = () => {
             validationSchema={registerSchema}
             onSubmit={handleSubmit}
           >
-            {({ isSubmitting, errors, touched }) => (
+            {({ isSubmitting, errors, touched, values }) => (
               <Form className="space-y-6">
-                {/* Name Fields */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="lastName"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Họ
-                    </label>
-                    <div className="relative">
-                      <User
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                        size={20}
-                      />
-                      <Field
-                        id="lastName"
-                        name="lastName"
-                        type="text"
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.lastName && touched.lastName
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        }`}
-                        placeholder="Họ"
-                      />
-                    </div>
-                    <ErrorMessage
-                      name="lastName"
-                      component="div"
-                      className="mt-1 text-sm text-red-600"
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Họ và tên
+                  </label>
+                  <div className="relative">
+                    <User
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={20}
                     />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="firstName"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Tên
-                    </label>
                     <Field
-                      id="firstName"
-                      name="firstName"
+                      id="name"
+                      name="name"
                       type="text"
-                      className={`w-full pl-4 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.firstName && touched.firstName
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        errors.name && touched.name
                           ? "border-red-500"
                           : "border-gray-300"
                       }`}
-                      placeholder="Tên"
-                    />
-                    <ErrorMessage
-                      name="firstName"
-                      component="div"
-                      className="mt-1 text-sm text-red-600"
+                      placeholder="Nhập tên của bạn"
                     />
                   </div>
+                  <ErrorMessage
+                    name="name"
+                    component="div"
+                    className="mt-1 text-sm text-red-600"
+                  />
                 </div>
 
                 {/* Email Field */}
@@ -216,39 +193,6 @@ const RegisterPage = () => {
                     className="mt-1 text-sm text-red-600"
                   />
                 </div>
-
-                {/* Phone Field */}
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Số điện thoại (tùy chọn)
-                  </label>
-                  <div className="relative">
-                    <Phone
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                      size={20}
-                    />
-                    <Field
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.phone && touched.phone
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="Nhập số điện thoại"
-                    />
-                  </div>
-                  <ErrorMessage
-                    name="phone"
-                    component="div"
-                    className="mt-1 text-sm text-red-600"
-                  />
-                </div>
-
                 {/* Password Field */}
                 <div>
                   <label
@@ -271,8 +215,9 @@ const RegisterPage = () => {
                           ? "border-red-500"
                           : "border-gray-300"
                       }`}
-                      placeholder="Tạo mật khẩu mạnh"
+                      placeholder="Nhập mật khẩu"
                     />
+                    {/* Strength bar */}
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
@@ -281,11 +226,13 @@ const RegisterPage = () => {
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
-                  <ErrorMessage
+
+                  <PasswordStrength password={values.password} message={touched.password && errors.password ? errors.password : null} />
+                  {/* <ErrorMessage
                     name="password"
                     component="div"
                     className="mt-1 text-sm text-red-600"
-                  />
+                  /> */}
                 </div>
 
                 {/* Confirm Password Field */}

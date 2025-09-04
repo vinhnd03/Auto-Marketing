@@ -1,137 +1,213 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import isoWeek from "dayjs/plugin/isoWeek";
 import { Dialog } from "@headlessui/react";
+import toast from "react-hot-toast";
+import { createSchedule } from "../../service/publish/scheduleManagerService";
+import { useAuth } from "../../context/AuthContext";
+import { useParams } from "react-router-dom";
+import campaignService from "../../service/campaignService";
+import { getTopicsByCampaignId } from "../../service/topicService";
+import { getPostsByFilter } from "../../service/postService";
 
 dayjs.locale("vi");
 dayjs.extend(isoWeek);
 
 const hours = Array.from({ length: 24 }, (_, i) => i);
 
-export default function SchedulePostCalendar({
-  confirmedPosts = [],
-  availableContents = [],
-  onSubmit
-}) {
-  const [selectedContentId, setSelectedContentId] = useState("");
+export default function SchedulePostCalendar() {
+  const { user } = useAuth();
+  const { workspaceId } = useParams();
+  const [campaigns, setCampaigns] = useState([]);
+  const [topics, setTopics] = useState([]);
+  const [selectedCampaign, setSelectedCampaign] = useState("");
+  const [selectedTopic, setSelectedTopic] = useState("");
+  const [availableContents, setAvailableContents] = useState([]);
+  const [userPages, setUserPages] = useState([]);
+  const [posts, setPosts] = useState([]);
   const [weekStart, setWeekStart] = useState(dayjs().startOf("isoWeek"));
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState(null);
-  const [minute, setMinute] = useState("00");
+  const [selectedContentId, setSelectedContentId] = useState("");
+  const [selectedFanpageIds, setSelectedFanpageIds] = useState([]);
 
   const daysOfWeek = Array.from({ length: 7 }, (_, i) =>
     weekStart.add(i, "day")
   );
   const now = dayjs();
 
-  // Map confirmedPosts -> posts state
+  // --- Load Campaigns theo workspace ---
   useEffect(() => {
-    const mapped = confirmedPosts.map((p) => ({
-      ...p,
-      time: p.time ? dayjs(p.time) : null,
-    }));
-    setPosts(mapped);
-  }, [confirmedPosts]);
+    if (workspaceId) {
+      campaignService
+        .findCampaignByWorkspaceId(workspaceId)
+        .then(setCampaigns)
+        .catch((err) => console.log("Lỗi tải campaigns: " + err.message));
+    }
+  }, [workspaceId]);
 
-  const isPastTime = (day, hour) => {
-    const cellTime = day.hour(hour).minute(0);
-    return cellTime.isBefore(now.subtract(5, "minute"));
+  // --- Load Topics khi chọn campaign ---
+  useEffect(() => {
+    if (selectedCampaign) {
+      getTopicsByCampaignId(selectedCampaign)
+        .then((data) => {
+          setTopics(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => toast.error("Lỗi tải topics: " + err.message));
+    } else {
+      setTopics([]);
+      setSelectedTopic("");
+    }
+  }, [selectedCampaign]);
+
+  // --- Load Posts khi chọn campaign/topic ---
+  useEffect(() => {
+    if (!workspaceId || !selectedCampaign || !selectedTopic) {
+      setAvailableContents([]);
+      return;
+    }
+    getPostsByFilter(workspaceId, selectedCampaign, selectedTopic)
+      .then((data) => {
+        const array = Array.isArray(data) ? data : [];
+        setAvailableContents(array.map((p) => ({ ...p, id: p.id.toString() })));
+      })
+      .catch((err) => toast.error("Lỗi tải bài viết: " + err.message));
+  }, [workspaceId, selectedCampaign, selectedTopic]);
+
+  // --- Load Fanpages ---
+  useEffect(() => {
+    if (!user) return;
+    axios
+      .get(`http://localhost:8080/api/fanpages?userId=${user.id}`, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        const data = Array.isArray(res.data) ? res.data : [];
+        setUserPages(data);
+      })
+      .catch((err) => console.log("Lỗi tải fanpage: " + err.message));
+  }, [user]);
+
+  // ✅ Check giờ còn hợp lệ không
+  const isHourAvailable = (day, hour) => {
+    return day.clone().hour(hour).endOf("hour").isAfter(now.add(5, "minute"));
   };
 
   const openScheduleModal = (day, hour) => {
-    if (isPastTime(day, hour)) {
-      alert("Không thể đặt lịch vào thời điểm quá khứ hoặc trễ hơn 5 phút hiện tại");
+    if (!isHourAvailable(day, hour)) {
+      toast.error("Giờ này không còn phút hợp lệ để đặt lịch");
       return;
     }
-    setSelectedTime(day.hour(hour));
-    setMinute("00");
+    const newTime = day.hour(hour).minute(0).second(0);
+    setSelectedTime(newTime);
     setSelectedContentId("");
+    setSelectedFanpageIds([]);
     setIsModalOpen(true);
   };
 
-  // State giữ posts
-const [posts, setPosts] = useState([]);
-
-// State tạm giữ posts để gửi ra ngoài
-const [pendingPosts, setPendingPosts] = useState(null);
-
-// Khi posts thay đổi, gửi ra ngoài
-useEffect(() => {
-  if (pendingPosts) {
-    onSubmit && onSubmit(
-      pendingPosts.map(p => ({
-        id: p.id,
-        title: p.title,
-        content: p.content,
-        time: p.time ? p.time.format("YYYY-MM-DD HH:mm") : null
-      }))
+  const savePost = async () => {
+    if (!selectedContentId) {
+      toast.error("Vui lòng chọn nội dung bài viết");
+      return;
+    }
+    if (!selectedFanpageIds.length) {
+      toast.error("Vui lòng chọn ít nhất 1 fanpage để đăng");
+      return;
+    }
+    const chosenContent = availableContents.find(
+      (c) => c.id.toString() === selectedContentId
     );
-    setPendingPosts(null); // reset
-  }
-}, [pendingPosts, onSubmit]);
+    if (!chosenContent) {
+      toast.error("Bài viết chưa hợp lệ hoặc đã bị xóa");
+      return;
+    }
+    if (!selectedTime || selectedTime.isBefore(now.add(1, "minute"))) {
+      toast.error("Không thể đặt lịch trong quá khứ hoặc sớm hơn 1 phút hiện tại");
+      return;
+    }
 
-// Trong hàm lưu bài post mới
-const savePost = () => {
-  if (!selectedContentId) {
-    alert("Vui lòng chọn nội dung bài viết");
-    return;
-  }
-  const chosenContent = availableContents.find(c => c.id === selectedContentId);
-  if (!chosenContent) return;
+    const payload = {
+      workspaceId,
+      postId: chosenContent.id,
+      title: chosenContent.title,
+      content: chosenContent.content,
+      hashtag: chosenContent.hashtag || "",
+      tone: chosenContent.tone || "",
+      contentType: chosenContent.contentType || "TEXT",
+      targetAudience: chosenContent.targetAudience || 1,
+      medias: [],
+      fanpageIds: selectedFanpageIds.map((id) => parseInt(id)),
+      scheduledTime: selectedTime.format("YYYY-MM-DDTHH:mm:ss"),
+    };
 
-  const time = selectedTime.minute(parseInt(minute, 10));
-
-  const newPost = {
-    id: chosenContent.id,
-    title: chosenContent.title,
-    content: chosenContent.content,
-    time
+    try {
+      await createSchedule(payload);
+      await fetchSchedules(workspaceId);
+      setIsModalOpen(false);
+      toast.success("Đặt lịch thành công!");
+    } catch (err) {
+      console.error(err);
+      toast.error(
+        "Đặt lịch thất bại: " + (err.response?.data?.message || err.message)
+      );
+    }
   };
 
-  setPosts(prev => {
-    const updated = [...prev, newPost];
-    setPendingPosts(updated);  // Lưu vào biến pending để useEffect gọi onSubmit
-    return updated;
-  });
+  const fetchSchedules = async (wid) => {
+    if (!wid) return;
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/schedules/published?workspaceId=${wid}`,
+        { withCredentials: true }
+      );
+      const dataArray = Array.isArray(res.data) ? res.data : [];
+      const loadedPosts = dataArray.map((p) => ({
+        id: p.id,
+        title: p.post?.title || p.post?.content || "Không có tiêu đề",
+        content: p.post?.content,
+        hashtag: p.post?.hashtag || "",
+        medias: p.post?.medias || [],
+        time: p.scheduledTime ? dayjs(p.scheduledTime) : null,
+        fanpageIds: p.fanpageIds || [],
+        status: p.status,
+      }));
+      setPosts(loadedPosts);
+    } catch (err) {
+      console.log("Lỗi tải lịch: " + err.message);
+    }
+  };
 
-  setIsModalOpen(false);
-};
-
+  useEffect(() => {
+    if (workspaceId) {
+      fetchSchedules(workspaceId);
+    }
+  }, [workspaceId]);
 
   const renderPosts = (day, hour) => {
     const postsAtTime = posts.filter(
       (p) =>
         p.time &&
-        p.time.format("YYYY-MM-DD-HH") ===
-          day.hour(hour).format("YYYY-MM-DD-HH")
+        p.time.isValid() &&
+        p.time.hour() === hour &&
+        p.time.isSame(day, "day")
     );
-    return postsAtTime.map((post, index) => (
+    return postsAtTime.map((post, idx) => (
       <div
-        key={index}
-        className="bg-blue-50 border-l-4 border-blue-500 p-1 mt-1 rounded"
+        key={idx}
+        className="bg-blue-50 border-l-4 border-blue-500 p-1 mt-1 rounded overflow-hidden"
       >
         <p className="text-xs font-medium">{post.time.format("HH:mm")}</p>
-        <p className="text-xs text-gray-600 truncate">{post.title || post.content}</p>
+        <p className="text-xs text-gray-600 truncate">{post.title}</p>
       </div>
     ));
-  };
-
-  const getCellHeight = (day, hour) => {
-    const count = posts.filter(
-      (p) =>
-        p.time &&
-        p.time.format("YYYY-MM-DD-HH") ===
-          day.hour(hour).format("YYYY-MM-DD-HH")
-    ).length;
-    return count > 0 ? 48 * count : 80;
   };
 
   return (
     <div className="p-4">
       {/* Thanh điều hướng tuần */}
-      <div className="flex items-center justify-center gap-4 mb-2">
+      <div className="flex items-center justify-center gap-4 mb-2 flex-wrap">
         <button
           onClick={() => setWeekStart((prev) => prev.subtract(7, "day"))}
           className="px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100"
@@ -150,44 +226,51 @@ const savePost = () => {
       </div>
 
       {/* Bảng lịch */}
-      <div className="grid" style={{ gridTemplateColumns: "80px repeat(7, 1fr)" }}>
-        <div></div>
-        {daysOfWeek.map((day, idx) => (
-          <div
-            key={idx}
-            className={`text-center py-2 font-medium ${
-              day.isSame(dayjs(), "day") ? "text-purple-600" : ""
-            }`}
-          >
-            {day.format("dddd DD/MM")}
-          </div>
-        ))}
-
-        {hours.map((hour) => (
-          <React.Fragment key={hour}>
-            <div className="text-sm text-right pr-2 py-2 border-t border-gray-200">
-              {hour.toString().padStart(2, "0")}:00
+      <div className="overflow-x-auto">
+        <div
+          className="grid min-w-[700px]"
+          style={{ gridTemplateColumns: "80px repeat(7, minmax(0, 1fr))" }}
+        >
+          <div></div>
+          {daysOfWeek.map((day, idx) => (
+            <div
+              key={idx}
+              className={`text-center py-2 font-medium text-sm truncate ${
+                day.isSame(dayjs(), "day") ? "text-purple-600" : ""
+              }`}
+            >
+              {day.format("dddd DD/MM")}
             </div>
-            {daysOfWeek.map((day, idx) => (
-              <div
-                key={idx}
-                className={`p-1 border-t border-l border-gray-200 cursor-pointer hover:bg-gray-50 relative ${
-                  isPastTime(day, hour)
-                    ? "bg-gray-100 cursor-not-allowed"
-                    : "bg-white"
-                }`}
-                style={{ height: getCellHeight(day, hour) }}
-                onClick={() => openScheduleModal(day, hour)}
-              >
-                {renderPosts(day, hour)}
+          ))}
+          {hours.map((hour) => (
+            <React.Fragment key={hour}>
+              <div className="text-sm text-right pr-2 py-2 border-t border-gray-200">
+                {hour.toString().padStart(2, "0")}:00
               </div>
-            ))}
-          </React.Fragment>
-        ))}
+              {daysOfWeek.map((day, idx) => (
+                <div
+                  key={idx}
+                  className={`p-1 border-t border-l border-gray-200 cursor-pointer hover:bg-gray-50 relative flex flex-col max-h-32 overflow-y-auto ${
+                    isHourAvailable(day, hour)
+                      ? "bg-white"
+                      : "bg-gray-100 cursor-not-allowed"
+                  }`}
+                  onClick={() => openScheduleModal(day, hour)}
+                >
+                  {renderPosts(day, hour)}
+                </div>
+              ))}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
 
-      {/* Modal */}
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} className="relative z-50">
+      {/* Modal chọn nội dung */}
+      <Dialog
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        className="relative z-50"
+      >
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
@@ -195,43 +278,106 @@ const savePost = () => {
               Chọn nội dung để đăng
             </Dialog.Title>
 
-            {/* Chọn giờ */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Thời gian</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={selectedTime ? selectedTime.format("dddd DD/MM HH") : ""}
-                  className="border rounded px-2 py-1 text-sm w-full"
-                />
-                <select
-                  value={minute}
-                  onChange={(e) => setMinute(e.target.value)}
-                  className="border rounded px-2 py-1 text-sm"
-                >
-                  {["00", "15", "30", "45"].map((m) => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-              </div>
+            {/* Chọn Campaign */}
+            <div className="mb-2">
+              <label className="block text-sm font-medium mb-1">
+                Chọn Campaign
+              </label>
+              <select
+                value={selectedCampaign}
+                onChange={(e) => setSelectedCampaign(e.target.value)}
+                className="border rounded px-2 py-1 text-sm w-full"
+              >
+                <option value="">-- Chọn Campaign --</option>
+                {campaigns.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Chọn content */}
+            {/* Chọn Topic */}
+            <div className="mb-2">
+              <label className="block text-sm font-medium mb-1">
+                Chọn Topic
+              </label>
+              <select
+                value={selectedTopic}
+                onChange={(e) => setSelectedTopic(e.target.value)}
+                className={`border rounded px-2 py-1 text-sm w-full ${
+                  !selectedCampaign ? "bg-gray-100 cursor-not-allowed" : ""
+                }`}
+                disabled={!selectedCampaign}
+              >
+                <option value="">-- Chọn topic --</option>
+                {topics.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Chọn Post */}
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Chọn nội dung</label>
+              <label className="block text-sm font-medium mb-1">
+                Chọn bài viết
+              </label>
               <select
                 value={selectedContentId}
                 onChange={(e) => setSelectedContentId(e.target.value)}
-                className="border rounded px-2 py-1 text-sm w-full"
+                className={`border rounded px-2 py-1 text-sm w-full ${
+                  !selectedTopic ? "bg-gray-100 cursor-not-allowed" : ""
+                }`}
+                disabled={!selectedTopic}
               >
                 <option value="">-- Chọn bài viết --</option>
                 {availableContents.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.title || c.content.slice(0, 30) + "..."}
+                    {c.title}
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Thời gian */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">Thời gian</label>
+              <input
+                type="datetime-local"
+                value={selectedTime ? selectedTime.format("YYYY-MM-DDTHH:mm") : ""}
+                min={dayjs().add(1, "minute").format("YYYY-MM-DDTHH:mm")}
+                onChange={(e) => setSelectedTime(dayjs(e.target.value))}
+                className="border rounded px-2 py-1 text-sm w-full"
+              />
+            </div>
+
+            {/* Chọn fanpage */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">
+                Chọn fanpage
+              </label>
+              <div className="flex flex-col max-h-40 overflow-y-auto border rounded px-2 py-1">
+                {userPages.map((fp) => (
+                  <label key={fp.id} className="flex items-center gap-2 mb-1">
+                    <input
+                      type="checkbox"
+                      value={fp.id}
+                      checked={selectedFanpageIds.includes(fp.id.toString())}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setSelectedFanpageIds((prev) =>
+                          prev.includes(value)
+                            ? prev.filter((id) => id !== value)
+                            : [...prev, value]
+                        );
+                      }}
+                    />
+                    <span>{fp.pageName}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div className="flex justify-end gap-2">

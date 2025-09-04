@@ -20,7 +20,7 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">A</span>
+                <span className="text-white font-bold text-sm">AM</span>
               </div>
               <h3 className="text-xl font-bold text-blue-600">AutoMarketing</h3>
             </div>
@@ -124,26 +124,6 @@ export default function Footer() {
                     295 Nguyễn Tất Thành, Thanh Bình, Hải Châu, Đà Nẵng
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Newsletter */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-              <h5 className="font-semibold mb-2 text-gray-900 text-sm">
-                📧 Đăng ký nhận tin
-              </h5>
-              <p className="text-gray-600 text-xs mb-3">
-                Nhận thông báo về tính năng mới và ưu đãi đặc biệt
-              </p>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="Email của bạn"
-                  className="flex-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded text-gray-900 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
-                />
-                <button className="px-3 py-2 bg-blue-600 rounded hover:bg-blue-700 transition-colors flex items-center justify-center text-white">
-                  <ArrowRight className="w-4 h-4" />
-                </button>
               </div>
             </div>
           </div>

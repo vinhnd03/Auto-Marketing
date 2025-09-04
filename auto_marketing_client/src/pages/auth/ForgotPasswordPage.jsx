@@ -2,33 +2,41 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import sendEmail from "../../service/mailService";
+import { ErrorMessage, Field, Form, Formik } from "formik";
+import * as Yup from "yup";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!email) {
-      toast.error("Vui lòng nhập email");
-      return;
-    }
-
-    setLoading(true);
-
+  const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setEmailSent(true);
-      toast.success("Email reset mật khẩu đã được gửi!");
-    } catch (error) {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+      const success = await sendEmail(values.email);
+      if (success) {
+        setEmail(values.email); // chỉ lưu để hiển thị
+        setEmailSent(true);
+        toast.dismiss();
+        toast.success("Đã gửi thành công, vui lòng kiểm tra Mail của bạn.", {
+          duration: 1500,
+        });
+      } else {
+        setFieldError("email", "Email chưa được đăng ký");
+        toast.error("Email chưa được đăng ký.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Có lỗi xảy ra khi gửi email. Vui lòng thử lại.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
+
+  const emailValidation = Yup.object({
+    email: Yup.string()
+      .required("Vui lòng nhập email của bạn")
+      .email("Email không đúng định dạng"),
+  });
 
   if (emailSent) {
     return (
@@ -135,49 +143,66 @@ const ForgotPasswordPage = () => {
 
         {/* Reset Form */}
         <div className="bg-white rounded-xl shadow-lg p-8">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Email Field */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Email
-              </label>
-              <div className="relative">
-                <Mail
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={20}
-                />
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Nhập email của bạn"
-                />
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Đang gửi email...
+          <Formik
+            onSubmit={handleSubmit}
+            initialValues={{ email: "" }}
+            validationSchema={emailValidation}
+          >
+            {({ isSubmitting, errors, touched }) => (
+              <Form className="space-y-6">
+                {/* Email Field */}
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Email
+                  </label>
+                  <div className="relative">
+                    <Mail
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={20}
+                    />
+                    <Field
+                      id="email"
+                      name="email"
+                      type="email"
+                      // value={value.email}
+                      // onChange={(e) => setEmail(e.target.value)}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent 
+                        ${
+                        errors.email && touched.email
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="Nhập email của bạn"
+                    />
+                  </div>
+                  <ErrorMessage
+                    name="email"
+                    component="div"
+                    className="mt-1 text-sm text-red-600"
+                  />
                 </div>
-              ) : (
-                "Gửi email reset mật khẩu"
-              )}
-            </button>
-          </form>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Đang gửi email...
+                    </div>
+                  ) : (
+                    "Gửi email reset mật khẩu"
+                  )}
+                </button>
+              </Form>
+            )}
+          </Formik>
 
           {/* Help Text */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">

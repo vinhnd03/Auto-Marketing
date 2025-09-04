@@ -1,5 +1,6 @@
 package com.codegym.auto_marketing_server.entity;
 
+import com.codegym.auto_marketing_server.enums.TokenType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,7 +17,10 @@ public class UserToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String tokenHash;
-    private LocalDateTime expires_at;
+    private LocalDateTime expiresAt;
+    private Boolean status;
+    @Enumerated(EnumType.STRING)
+    private TokenType tokenType;
 
     //User
     @ManyToOne

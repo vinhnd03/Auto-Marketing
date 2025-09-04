@@ -47,7 +47,7 @@ const PrivacyPage = () => {
             </h2>
             <div className="text-gray-700 space-y-4">
               <p>
-                Tại <strong>MarketingAuto</strong>, chúng tôi cam kết bảo vệ
+                Tại <strong>AutoMarketing</strong>, chúng tôi cam kết bảo vệ
                 quyền riêng tư và thông tin cá nhân của bạn. Chính sách này giải
                 thích cách chúng tôi thu thập, sử dụng, và bảo vệ dữ liệu của
                 bạn.
@@ -108,7 +108,7 @@ const PrivacyPage = () => {
             <div className="text-gray-700 space-y-4">
               <p>Chúng tôi sử dụng thông tin được thu thập để:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Cung cấp và vận hành dịch vụ MarketingAuto</li>
+                <li>Cung cấp và vận hành dịch vụ AutoMarketing</li>
                 <li>Xử lý thanh toán và quản lý tài khoản</li>
                 <li>Gửi thông báo quan trọng về dịch vụ</li>
                 <li>Cung cấp hỗ trợ kỹ thuật và khách hàng</li>
@@ -148,7 +148,7 @@ const PrivacyPage = () => {
                 </li>
                 <li>
                   <strong>Bảo vệ quyền lợi:</strong> Để bảo vệ an toàn và quyền
-                  lợi của MarketingAuto và người dùng
+                  lợi của AutoMarketing và người dùng
                 </li>
               </ul>
             </div>
@@ -224,7 +224,7 @@ const PrivacyPage = () => {
                 email:
                 <span className="font-medium text-blue-600">
                   {" "}
-                  privacy@marketingauto.vn
+                  privacy@AutoMarketing.vn
                 </span>
               </p>
             </div>
@@ -257,37 +257,14 @@ const PrivacyPage = () => {
             </div>
           </section>
 
-          {/* International Transfers */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              8. Chuyển giao dữ liệu quốc tế
-            </h2>
-            <div className="text-gray-700 space-y-4">
-              <p>
-                Dữ liệu của bạn được lưu trữ chủ yếu tại Việt Nam. Trong một số
-                trường hợp, chúng tôi có thể chuyển dữ liệu đến các quốc gia
-                khác để:
-              </p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Sử dụng dịch vụ cloud computing an toàn</li>
-                <li>Cung cấp hỗ trợ kỹ thuật 24/7</li>
-                <li>Sao lưu dữ liệu để đảm bảo an toàn</li>
-              </ul>
-              <p>
-                Mọi chuyển giao đều tuân thủ các tiêu chuẩn bảo mật quốc tế và
-                các quy định bảo vệ dữ liệu hiện hành.
-              </p>
-            </div>
-          </section>
-
           {/* Children's Privacy */}
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              9. Quyền riêng tư trẻ em
+              8. Quyền riêng tư trẻ em
             </h2>
             <div className="text-gray-700 space-y-4">
               <p>
-                Dịch vụ MarketingAuto không dành cho trẻ em dưới 16 tuổi. Chúng
+                Dịch vụ AutoMarketing không dành cho trẻ em dưới 16 tuổi. Chúng
                 tôi không cố ý thu thập thông tin cá nhân từ trẻ em dưới 16
                 tuổi.
               </p>
@@ -298,27 +275,11 @@ const PrivacyPage = () => {
             </div>
           </section>
 
-          {/* Changes to Policy */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              10. Thay đổi chính sách
-            </h2>
-            <div className="text-gray-700 space-y-4">
-              <p>
-                Chúng tôi có thể cập nhật chính sách bảo mật này định kỳ để phản
-                ánh các thay đổi trong hoạt động kinh doanh và yêu cầu pháp lý.
-              </p>
-              <p>
-                Các thay đổi quan trọng sẽ được thông báo qua email hoặc thông
-                báo trên trang web ít nhất 30 ngày trước khi có hiệu lực.
-              </p>
-            </div>
-          </section>
 
           {/* Contact */}
           <section className="bg-green-50 rounded-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              11. Liên hệ về bảo mật
+              9. Liên hệ về bảo mật
             </h2>
             <div className="text-gray-700 space-y-2">
               <p>
@@ -327,17 +288,17 @@ const PrivacyPage = () => {
               </p>
               <ul className="space-y-1">
                 <li>
-                  <strong>Email bảo mật:</strong> privacy@marketingauto.vn
+                  <strong>Email bảo mật:</strong> privacy@AutoMarketing.vn
                 </li>
                 <li>
                   <strong>Điện thoại:</strong> 1900 1234 (máy lẻ 2)
                 </li>
                 <li>
-                  <strong>Địa chỉ:</strong> 123 Đường ABC, Quận 1, TP.HCM
+                  <strong>Địa chỉ:</strong> 295 Nguyễn Tất Thành, Quận Thanh Khê, Tp Đà Nẵng
                 </li>
                 <li>
                   <strong>DPO (Data Protection Officer):</strong>{" "}
-                  dpo@marketingauto.vn
+                  dpo@AutoMarketing.vn
                 </li>
               </ul>
             </div>
