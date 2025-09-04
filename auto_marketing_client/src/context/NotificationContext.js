@@ -1,25 +1,44 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useAuth } from "./AuthContext"; // Đảm bảo có useAuth để lấy user
 
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
-  // Lấy lại thông báo từ localStorage khi khởi tạo
-  const NOTI_KEY = "am_notifications";
+  const { user } = useAuth(); // Nếu chưa có, truyền user qua prop cũng được
+
+  const getNotiKey = (user) =>
+    user
+      ? `am_notifications_${user.id || user.email}`
+      : "am_notifications_anonymous";
+
+  // Khi user đổi, load lại notification đúng user
   const [notifications, setNotifications] = useState(() => {
     try {
-      const saved = localStorage.getItem(NOTI_KEY);
+      const saved = localStorage.getItem("am_notifications_anonymous");
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
 
-  // Lưu vào localStorage mỗi khi notifications thay đổi
   useEffect(() => {
+    // Load lại khi user đổi
+    const key = getNotiKey(user);
     try {
-      localStorage.setItem(NOTI_KEY, JSON.stringify(notifications));
+      const saved = localStorage.getItem(key);
+      setNotifications(saved ? JSON.parse(saved) : []);
+    } catch {
+      setNotifications([]);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    // Lưu lại mỗi khi notifications đổi
+    const key = getNotiKey(user);
+    try {
+      localStorage.setItem(key, JSON.stringify(notifications));
     } catch {}
-  }, [notifications]);
+  }, [notifications, user]);
 
   const addNotification = (notification) => {
     setNotifications((prev) => [notification, ...prev]);
@@ -27,6 +46,9 @@ export const NotificationProvider = ({ children }) => {
 
   const clearNotifications = () => {
     setNotifications([]);
+    // Xóa luôn localStorage cho user hiện tại
+    const key = getNotiKey(user);
+    localStorage.setItem(key, JSON.stringify([]));
   };
 
   return (

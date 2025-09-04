@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { countApprovedTopicsByCampaign } from "../../service/topicService";
-import { getPostsByTopic, countPostsByTopic } from "../../service/postService";
+import { getPostsByTopic, countPostsByTopic, countApprovedPostsByWorkspace } from "../../service/postService";
 import {
   generateTopicsWithAI,
   approveTopic,
@@ -784,6 +784,20 @@ const WorkspaceDetailPage = () => {
     fetchTotalApprovedTopics();
   }, [workspace]);
 
+  // State cho tổng số bài post APPROVED
+  const [approvedPostCount, setApprovedPostCount] = useState(0);
+  useEffect(() => {
+    async function fetchApprovedPostCount() {
+      try {
+        const count = await countApprovedPostsByWorkspace(workspaceId);
+        setApprovedPostCount(count);
+      } catch (err) {
+        setApprovedPostCount(0);
+      }
+    }
+    if (workspaceId) fetchApprovedPostCount();
+  }, [workspaceId]);
+
   // Thêm effect để fetch số lượng bài viết cho các topic đang hiển thị
   useEffect(() => {
     if (activeTab !== "topics" || !workspace?.campaigns) return;
@@ -887,7 +901,7 @@ const WorkspaceDetailPage = () => {
     },
     {
       label: "Tổng content",
-      value: totalContentCount,
+      value: approvedPostCount,
       color: "orange",
       icon: <BarChart3 size={24} />,
     },

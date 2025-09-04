@@ -174,6 +174,32 @@ const AIContentGenerator = ({
         contentSettings.postCount === -1
           ? contentSettings.customPostCount
           : contentSettings.postCount;
+
+      Swal.fire({
+        icon: "success",
+        title: "Đã tạo nội dung thành công!",
+        html: `
+    <div style="font-size:16px;margin-top:8px;">
+      Đã tạo thành công <b>${postCountDisplay}</b> bài viết cho chủ đề "<b>${
+          selectedTopic?.title || selectedTopic?.name || ""
+        }</b>"!<br/><br/>
+      <span style="color:#16a34a;font-weight:bold;">
+        👉 Hãy bấm vào nút 
+        <span style="background:#16a34a;color:white;padding:2px 10px;border-radius:6px;display:inline-block;">Xem nội dung đã tạo</span>
+        để xem các bài viết chi tiết!
+      </span>
+    </div>
+  `,
+        confirmButtonColor: "#16a34a",
+        confirmButtonText: "Đã hiểu",
+        allowOutsideClick: true,
+        backdrop: true,
+        didOpen: () => {
+          document.querySelector(".swal2-container").style.zIndex = "999999";
+        },
+      });
+
+      // Nếu muốn add notification và play sound thì vẫn giữ
       addNotification &&
         addNotification({
           type: "success",

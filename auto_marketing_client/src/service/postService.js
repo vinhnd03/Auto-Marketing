@@ -135,6 +135,16 @@ export const updatePostV2 = (postId, payload, isMultipart = false) => {
       withCredentials: true,
     }).then(res => res.data);
   }
-};
+}
+
+// Đếm tổng số bài viết APPROVED của một workspace
+export async function countApprovedPostsByWorkspace(workspaceId) {
+  try {
+    const response = await apiClient.get(`/posts/workspace/${workspaceId}/count/approved`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
 
 
