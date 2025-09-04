@@ -68,7 +68,8 @@ const getStatuses = async () => {
 
 const getStatusMap = async () => {
   try {
-    const res = await axios.get(`${URL}/status-map`, { withCredentials: true });
+    // const res = await axios.get(`${URL}/status-map`, { withCredentials: true });
+    const res = await api.get(`${URL}/status-map`, { withCredentials: true });
     return res.data;
   } catch (error) {
     console.error("Lỗi khi lấy trạng thái:", error);

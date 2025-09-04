@@ -144,7 +144,7 @@ function ListUserByDate() {
         }`}
       >
         <div className="p-4 sm:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             {/* Lọc theo ngày tạo */}
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700">
@@ -176,7 +176,7 @@ function ListUserByDate() {
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 items-stretch sm:items-end sm:col-span-2 lg:col-span-1">
+            <div className="flex content-center sm:flex-row gap-3 sm:gap-2 mt-6 sm:col-span-2 lg:col-span-1">
               <button
                 onClick={() => {
                   if (handleValid()) {
@@ -185,7 +185,7 @@ function ListUserByDate() {
                     setShowMobileFilter(false);
                   }
                 }}
-                className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+                className="w-full h-12 sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
               >
                 <Search size={16} />
                 <span>Tìm kiếm</span>
@@ -195,7 +195,7 @@ function ListUserByDate() {
                   clearFilter();
                   setShowMobileFilter(false);
                 }}
-                className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium text-sm shadow-sm hover:shadow-md"
+                className="w-full h-12 sm:w-auto px-4 py-3 sm:py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium text-sm shadow-sm hover:shadow-md"
               >
                 Xóa bộ lọc
               </button>
