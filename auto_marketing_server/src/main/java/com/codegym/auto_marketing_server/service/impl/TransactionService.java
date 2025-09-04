@@ -1,32 +1,27 @@
 package com.codegym.auto_marketing_server.service.impl;
 
+import com.codegym.auto_marketing_server.dto.PackageDTO;
+import com.codegym.auto_marketing_server.dto.PackageStatsResponseDTO;
+import com.codegym.auto_marketing_server.dto.RevenueDTO;
+import com.codegym.auto_marketing_server.dto.RevenueStatsResponseDTO;
 import com.codegym.auto_marketing_server.entity.Plan;
 import com.codegym.auto_marketing_server.entity.Subscription;
 import com.codegym.auto_marketing_server.entity.Transaction;
 import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.enums.PaymentStatus;
-import com.codegym.auto_marketing_server.dto.PackageDTO;
-import com.codegym.auto_marketing_server.dto.PackageStatsResponseDTO;
-import com.codegym.auto_marketing_server.dto.RevenueDTO;
-import com.codegym.auto_marketing_server.dto.RevenueStatsResponseDTO;
 import com.codegym.auto_marketing_server.repository.ITransactionRepository;
-
 import com.codegym.auto_marketing_server.service.IPlanService;
-import com.codegym.auto_marketing_server.service.ISubscriptionService;
 import com.codegym.auto_marketing_server.service.ITransactionService;
 import com.codegym.auto_marketing_server.service.IUserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 import java.math.BigDecimal;
 import java.time.*;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -168,7 +163,6 @@ public class TransactionService implements ITransactionService {
 
     private final IUserService userService;
     private final IPlanService planService;
-    private final ISubscriptionService subscriptionService;
     private final SubscriptionManagementService subscriptionManagementService;
 
     @Transactional
@@ -219,5 +213,10 @@ public class TransactionService implements ITransactionService {
     @Override
     public String getMostPopularPackage() {
         return transactionRepository.getMostPopularPackage();
+    }
+
+    @Override
+    public Page<Transaction> findAllTransactionByEmail(String email, String filterPlan, Pageable pageable) {
+        return transactionRepository.findAllTransactionByEmail(email,filterPlan,pageable);
     }
 }

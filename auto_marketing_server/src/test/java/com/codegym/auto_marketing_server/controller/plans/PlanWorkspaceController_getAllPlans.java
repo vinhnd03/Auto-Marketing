@@ -3,6 +3,8 @@ package com.codegym.auto_marketing_server.controller.plans;
 import com.codegym.auto_marketing_server.controller.plan.PlanController;
 import com.codegym.auto_marketing_server.entity.Plan;
 import com.codegym.auto_marketing_server.service.IPlanService;
+import com.codegym.auto_marketing_server.service.ISubscriptionService;
+import com.codegym.auto_marketing_server.service.ITransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -22,7 +24,10 @@ public class PlanWorkspaceController_getAllPlans {
     @BeforeEach
     void setUp() {
         planService = Mockito.mock(IPlanService.class);
-        planController = new PlanController(planService);
+        ISubscriptionService subscriptionService = Mockito.mock(ISubscriptionService.class);
+        ITransactionService transactionService = Mockito.mock(ITransactionService.class);
+
+        planController = new PlanController(planService, subscriptionService, transactionService);
     }
 
     @Test

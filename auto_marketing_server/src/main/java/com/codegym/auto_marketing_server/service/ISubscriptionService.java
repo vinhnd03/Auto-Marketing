@@ -31,8 +31,7 @@ public interface ISubscriptionService {
     List<Subscription> findPendingByUserIdOrderByLevel( Long userId);
 
     Integer findMaxWorkspaceByCurrenSubscription( Long id);
-    int countSubscriptionByPlantName(String planName, Long userId);
 
-    int countSubscriptionByPlantName(@Param("planName") String planName,Long userId);
+    int countSubscriptionByPlantName(String planName, Long userId);
 
 }

@@ -52,8 +52,8 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/social/connect/facebook/callback",
-                                "/api/v1/plans", "/api/payment/vn-pay-callback").permitAll()
-                        .requestMatchers("/api/user/**", "/api/schedules/**", "/api/v1/**").hasAnyAuthority("USER", "ADMIN")
+                                "/api/v1/plans/**", "/api/payment/vn-pay-callback").permitAll()
+                        .requestMatchers("/api/user/**", "/api/schedules/**", "/api/v1/**","api/transactions").hasAnyAuthority("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
