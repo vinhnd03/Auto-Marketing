@@ -1,10 +1,10 @@
-import React, {useEffect, useState} from "react";
-import {toast} from "react-hot-toast";
-import {Shield} from "lucide-react";
-import {useAuth} from "../../context/AuthContext"
+import React, { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+import { Shield } from "lucide-react";
+import { useAuth } from "../../context/AuthContext"
 import PaymentResultModal from "./PaymentResultComponent";
-import {useLocation, useNavigate} from "react-router-dom";
-import {createPayment, fetchPlans, getMostPopularPlan, subscribeTrial} from "../../service/pricingService";
+import { useLocation, useNavigate } from "react-router-dom";
+import { createPayment, fetchPlans, getMostPopularPlan, subscribeTrial } from "../../service/pricingService";
 // tách riêng modal
 
 const TransactionSuccess = () => {
@@ -12,7 +12,7 @@ const TransactionSuccess = () => {
     const [loadingId, setLoadingId] = useState(null);
     const [paymentResult, setPaymentResult] = useState(null);
 
-    const {user} = useAuth(); // lấy thông tin user hiện tại
+    const { user } = useAuth(); // lấy thông tin user hiện tại
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -28,7 +28,7 @@ const TransactionSuccess = () => {
             setMostPopularPlan(newMostPopularPlan);
         }
         fetMostPopularPlan();
-    },[])
+    }, [])
     // Fetch plans
     useEffect(() => {
         const loadPlans = async () => {
@@ -88,7 +88,7 @@ const TransactionSuccess = () => {
                 toast.success(msg || "Đã kích hoạt gói FREE");
             } else {
                 // Paid
-                const {paymentUrl} = await createPayment(plan, user.id);
+                const { paymentUrl } = await createPayment(plan, user.id);
                 if (paymentUrl) {
                     window.location.href = paymentUrl;
                 } else {
@@ -124,7 +124,7 @@ const TransactionSuccess = () => {
                 <div className="container mx-auto px-6 text-center max-w-4xl">
                     <div
                         className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                        <Shield className="w-4 h-4"/>
+                        <Shield className="w-4 h-4" />
                         Tiết kiệm đến 80% thời gian quản lý
                     </div>
 
@@ -216,23 +216,36 @@ const TransactionSuccess = () => {
                                                 {plan?.maxSocialAccount}
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => handleBuy(plan)}
-                                            disabled={loadingId === plan?.id}
-                                            className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 ${getButtonStyles(
-                                                plan
-                                            )} disabled:opacity-60 disabled:cursor-not-allowed`}
-                                        >
-                                            {loadingId === plan?.id ? (
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <div
-                                                        className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                                                    Đang xử lý...
-                                                </div>
+                                        {plan?.price > 0 ?
+                                            (
+                                                <button
+                                                    onClick={() => handleBuy(plan)}
+                                                    disabled={loadingId === plan?.id}
+                                                    className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 ${getButtonStyles(
+                                                        plan
+                                                    )} disabled:opacity-60 disabled:cursor-not-allowed`}
+                                                >
+                                                    {loadingId === plan?.id ? (
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <div
+                                                                className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                                            Đang xử lý...
+                                                        </div>
+                                                    ) : (
+                                                        `Chọn gói ${plan?.name}`
+                                                    )}
+                                                </button>
                                             ) : (
-                                                `Chọn gói ${plan?.name}`
-                                            )}
-                                        </button>
+                                                <button
+                                                    disabled
+                                                    className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 ${getButtonStyles(
+                                                        plan
+                                                    )} disabled:opacity-60 disabled:cursor-not-allowed`}
+                                                >
+                                                    Đã sử dụng
+                                                </button>
+                                            )
+                                        }
                                     </div>
                                 ))}
                             </div>
@@ -243,7 +256,7 @@ const TransactionSuccess = () => {
 
             {/* Modal kết quả thanh toán */}
             {paymentResult && (
-                <PaymentResultModal result={paymentResult} onClose={handleCloseResult}/>
+                <PaymentResultModal result={paymentResult} onClose={handleCloseResult} />
             )}
         </div>
     );
