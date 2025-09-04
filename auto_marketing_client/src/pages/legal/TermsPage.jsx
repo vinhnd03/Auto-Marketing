@@ -88,46 +88,11 @@ const TermsPage = () => {
             </div>
           </section>
 
-          {/* Payment Terms */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              4. Điều khoản thanh toán
-            </h2>
-            <div className="text-gray-700 space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Gói dịch vụ</h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>
-                  <strong>Gói miễn phí:</strong> 14 ngày dùng thử với đầy đủ
-                  tính năng
-                </li>
-                <li>
-                  <strong>Gói cơ bản:</strong> 299,000 VNĐ/tháng
-                </li>
-                <li>
-                  <strong>Gói chuyên nghiệp:</strong> 599,000 VNĐ/tháng
-                </li>
-                <li>
-                  <strong>Gói doanh nghiệp:</strong> Liên hệ để được báo giá
-                </li>
-              </ul>
-
-              <h3 className="text-lg font-medium text-gray-900 mt-6">
-                Chính sách hoàn tiền
-              </h3>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Hoàn tiền 100% trong 7 ngày đầu nếu không hài lòng</li>
-                <li>
-                  Hoàn tiền theo tỷ lệ cho thời gian chưa sử dụng khi hủy gói
-                </li>
-                <li>Không hoàn tiền cho các dịch vụ tùy chỉnh đã hoàn thành</li>
-              </ul>
-            </div>
-          </section>
-
+        
           {/* Privacy and Data */}
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              5. Bảo mật và dữ liệu
+              4. Bảo mật và dữ liệu
             </h2>
             <div className="text-gray-700 space-y-4">
               <p>
@@ -155,7 +120,7 @@ const TermsPage = () => {
           {/* Limitation of Liability */}
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              6. Giới hạn trách nhiệm
+              5. Giới hạn trách nhiệm
             </h2>
             <div className="text-gray-700 space-y-4">
               <p>AutoMarketing không chịu trách nhiệm cho:</p>
@@ -176,7 +141,7 @@ const TermsPage = () => {
           {/* Termination */}
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              7. Chấm dứt dịch vụ
+              6. Chấm dứt dịch vụ
             </h2>
             <div className="text-gray-700 space-y-4">
               <p>
@@ -197,7 +162,7 @@ const TermsPage = () => {
           {/* Changes to Terms */}
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              8. Thay đổi điều khoản
+              7. Thay đổi điều khoản
             </h2>
             <div className="text-gray-700 space-y-4">
               <p>
@@ -215,7 +180,7 @@ const TermsPage = () => {
           {/* Contact */}
           <section className="bg-blue-50 rounded-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              9. Liên hệ
+              8. Liên hệ
             </h2>
             <div className="text-gray-700 space-y-2">
               <p>
@@ -230,7 +195,7 @@ const TermsPage = () => {
                   <strong>Điện thoại:</strong> 1900 1234
                 </li>
                 <li>
-                  <strong>Địa chỉ:</strong> 123 Đường ABC, Quận 1, TP.HCM
+                  <strong>Địa chỉ:</strong> 295 Nguyễn Tất Thành, quận Thanh Khê, TP Đà Nẵng
                 </li>
               </ul>
             </div>

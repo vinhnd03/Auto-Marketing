@@ -154,125 +154,49 @@ export default function Home() {
         data-aos="fade-up"
       >
         <div className="container mx-auto px-6 text-center max-w-6xl">
-          <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <span>�</span>
-            Kết quả ấn tượng từ khách hàng
-          </div>
-
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Những con số thành công
+              Tính năng nổi bật
             </span>
           </h2>
-
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-16">
-            Hàng nghìn doanh nghiệp đã tin tưởng và đạt được kết quả vượt mong
-            đợi với AutoMarketing
+            AutoMarketing cung cấp những công cụ thông minh giúp doanh nghiệp
+            tiết kiệm thời gian, tối ưu hiệu quả và mở rộng khách hàng nhanh
+            chóng.
           </p>
 
-          {/* Statistics Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
-            {[
-              { number: "2,500+", label: "Doanh nghiệp tin tưởng", icon: "🏢" },
-              { number: "85%", label: "Tăng trưởng doanh thu", icon: "📊" },
-              { number: "12M+", label: "Khách hàng tiếp cận", icon: "👥" },
-              { number: "95%", label: "Hài lòng với dịch vụ", icon: "⭐" },
-            ].map((stat, index) => (
-              <div
-                key={index}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <div className="text-3xl mb-3">{stat.icon}</div>
-                <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">
-                  {stat.number}
-                </div>
-                <div className="text-gray-600 text-sm font-medium">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Customer Testimonials */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Feature Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
             {[
               {
-                name: "Nguyễn Văn A",
-                company: "CEO - TechViet Solutions",
-                avatar: "👨‍💼",
-                rating: 5,
-                content:
-                  "AutoMarketing đã giúp chúng tôi tăng 300% khách hàng mới chỉ trong 6 tháng. Tính năng AI tạo content thực sự tuyệt vời!",
+                title: "Tự động đăng bài",
+                desc: "Bạn có thể lên lịch đăng bài trên nhiều nền tảng (Facebook, Instagram, LinkedIn, v.v...) chỉ với vài cú click. Hệ thống đảm bảo nội dung được xuất bản đúng thời điểm vàng, giúp tăng tương tác tự nhiên.",
+                icon: "⚡",
               },
               {
-                name: "Trần Thị B",
-                company: "Founder - BeautyShop Online",
-                avatar: "👩‍💼",
-                rating: 5,
-                content:
-                  "Từ khi dùng AutoMarketing, tôi tiết kiệm được 5 giờ mỗi ngày cho việc đăng bài và chăm sóc khách hàng. ROI tăng 250%!",
+                title: "AI tạo nội dung",
+                desc: "Trí tuệ nhân tạo gợi ý nội dung sáng tạo, tiêu đề hấp dẫn và hashtag phù hợp với ngành của bạn. Bạn chỉ cần chỉnh sửa nhẹ, tiết kiệm hàng giờ đồng hồ mỗi tuần cho việc viết content.",
+                icon: "🤖",
               },
               {
-                name: "Lê Minh C",
-                company: "Marketing Director - FoodChain",
-                avatar: "👨‍🍳",
-                rating: 5,
-                content:
-                  "Báo cáo phân tích chi tiết giúp chúng tôi hiểu rõ khách hàng hơn. Doanh thu từ digital marketing tăng 400% năm ngoái.",
+                title: "Báo cáo chi tiết",
+                desc: "Theo dõi hiệu quả chiến dịch với báo cáo trực quan: lượt tiếp cận. Nhờ đó, bạn dễ dàng đưa ra quyết định tối ưu ngân sách marketing.",
+                icon: "📊",
               },
-            ].map((testimonial, index) => (
+            ].map((feature, i) => (
               <div
-                key={index}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-left"
+                key={i}
+                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-left"
               >
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <span key={i} className="text-yellow-400 text-lg">
-                      ⭐
-                    </span>
-                  ))}
-                </div>
-
-                <p className="text-gray-700 mb-6 italic leading-relaxed">
-                  "{testimonial.content}"
+                <div className="text-3xl mb-3">{feature.icon}</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {feature.desc}
                 </p>
-
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-2xl">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {testimonial.company}
-                    </div>
-                  </div>
-                </div>
               </div>
             ))}
-          </div>
-
-          {/* Call to action */}
-          <div className="mt-16 text-center">
-            <p className="text-gray-600 mb-6">
-              Bạn cũng muốn đạt được kết quả tương tự?
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="/pricing"
-                className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg"
-              >
-                🚀 Xem gói dịch vụ
-              </a>
-              <a
-                href="/contact"
-                className="inline-flex items-center gap-2 px-8 py-3 bg-white border-2 border-blue-500 text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-300"
-              >
-                💬 Tư vấn miễn phí
-              </a>
-            </div>
           </div>
         </div>
       </section>

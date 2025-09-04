@@ -44,7 +44,7 @@ export default function FAQPage() {
         {
           question: "Làm thế nào để tạo chiến dịch email marketing đầu tiên?",
           answer:
-            "Truy cập Dashboard > Campaigns > Create New. Chọn template hoặc tạo từ đầu, thiết lập audience, lên lịch gửi và theo dõi kết quả. Chúng tôi có wizard hướng dẫn từng bước cho người mới.",
+            "Truy cập Bảng điều khiển > Chiến dịch > Tạo mới chiến dịch. Chọn template hoặc tạo từ đầu, thiết lập audience, lên lịch gửi và theo dõi kết quả. Chúng tôi có wizard hướng dẫn từng bước cho người mới.",
         },
         {
           question: "AI content generator hoạt động như thế nào?",
@@ -58,26 +58,26 @@ export default function FAQPage() {
         },
       ],
     },
-    {
-      category: "Bảo mật & Dữ liệu",
-      faqs: [
-        {
-          question: "Dữ liệu của tôi có được bảo mật không?",
-          answer:
-            "Tuyệt đối! Chúng tôi sử dụng mã hóa SSL 256-bit, lưu trữ trên AWS với backup 3 lần/ngày. Tuân thủ GDPR và các tiêu chuẩn bảo mật quốc tế. Dữ liệu chỉ bạn mới truy cập được.",
-        },
-        {
-          question: "Dữ liệu được lưu trữ ở đâu?",
-          answer:
-            "Server chính tại Singapore với backup tại Nhật Bản. Đảm bảo tốc độ tốt nhất cho khu vực Đông Nam Á và uptime 99.9%. Dữ liệu không bao giờ rời khỏi khu vực APAC.",
-        },
-        {
-          question: "Tôi có thể xuất dữ liệu khi hủy tài khoản không?",
-          answer:
-            "Có, bạn có thể export toàn bộ dữ liệu (contacts, campaigns, reports) ở format CSV, Excel hoặc JSON bất cứ lúc nào. Sau khi hủy, dữ liệu sẽ được giữ lại 30 ngày để recovery.",
-        },
-      ],
-    },
+    // {
+    //   category: "Bảo mật & Dữ liệu",
+    //   faqs: [
+    //     // {
+    //     //   question: "Dữ liệu của tôi có được bảo mật không?",
+    //     //   answer:
+    //     //     "Tuyệt đối! Chúng tôi sử dụng mã hóa SSL 256-bit, lưu trữ trên AWS với backup 3 lần/ngày. Tuân thủ GDPR và các tiêu chuẩn bảo mật quốc tế. Dữ liệu chỉ bạn mới truy cập được.",
+    //     // },
+    //     {
+    //       question: "Dữ liệu được lưu trữ ở đâu?",
+    //       answer:
+    //         "Server chính tại Singapore với backup tại Nhật Bản. Đảm bảo tốc độ tốt nhất cho khu vực Đông Nam Á và uptime 99.9%. Dữ liệu không bao giờ rời khỏi khu vực APAC.",
+    //     },
+    //     {
+    //       question: "Tôi có thể xuất dữ liệu khi hủy tài khoản không?",
+    //       answer:
+    //         "Có, bạn có thể export toàn bộ dữ liệu (contacts, campaigns, reports) ở format CSV, Excel hoặc JSON bất cứ lúc nào. Sau khi hủy, dữ liệu sẽ được giữ lại 30 ngày để recovery.",
+    //     },
+    //   ],
+    // },
     {
       category: "Hỗ trợ & Đào tạo",
       faqs: [

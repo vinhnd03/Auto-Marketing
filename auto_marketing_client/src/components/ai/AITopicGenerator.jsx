@@ -76,9 +76,9 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
         10,
         "",
         "",
-        "",
         workspaceId
       );
+      console.log("workspaceId", workspaceId);
       setCampaigns(campaignsData.content);
     } catch (err) {
       console.error("Error fetching campaigns:", err);

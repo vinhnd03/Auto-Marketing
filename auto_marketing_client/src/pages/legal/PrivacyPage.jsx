@@ -257,33 +257,10 @@ const PrivacyPage = () => {
             </div>
           </section>
 
-          {/* International Transfers */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              8. Chuyển giao dữ liệu quốc tế
-            </h2>
-            <div className="text-gray-700 space-y-4">
-              <p>
-                Dữ liệu của bạn được lưu trữ chủ yếu tại Việt Nam. Trong một số
-                trường hợp, chúng tôi có thể chuyển dữ liệu đến các quốc gia
-                khác để:
-              </p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Sử dụng dịch vụ cloud computing an toàn</li>
-                <li>Cung cấp hỗ trợ kỹ thuật 24/7</li>
-                <li>Sao lưu dữ liệu để đảm bảo an toàn</li>
-              </ul>
-              <p>
-                Mọi chuyển giao đều tuân thủ các tiêu chuẩn bảo mật quốc tế và
-                các quy định bảo vệ dữ liệu hiện hành.
-              </p>
-            </div>
-          </section>
-
           {/* Children's Privacy */}
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              9. Quyền riêng tư trẻ em
+              8. Quyền riêng tư trẻ em
             </h2>
             <div className="text-gray-700 space-y-4">
               <p>
@@ -298,27 +275,11 @@ const PrivacyPage = () => {
             </div>
           </section>
 
-          {/* Changes to Policy */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              10. Thay đổi chính sách
-            </h2>
-            <div className="text-gray-700 space-y-4">
-              <p>
-                Chúng tôi có thể cập nhật chính sách bảo mật này định kỳ để phản
-                ánh các thay đổi trong hoạt động kinh doanh và yêu cầu pháp lý.
-              </p>
-              <p>
-                Các thay đổi quan trọng sẽ được thông báo qua email hoặc thông
-                báo trên trang web ít nhất 30 ngày trước khi có hiệu lực.
-              </p>
-            </div>
-          </section>
 
           {/* Contact */}
           <section className="bg-green-50 rounded-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              11. Liên hệ về bảo mật
+              9. Liên hệ về bảo mật
             </h2>
             <div className="text-gray-700 space-y-2">
               <p>
@@ -333,7 +294,7 @@ const PrivacyPage = () => {
                   <strong>Điện thoại:</strong> 1900 1234 (máy lẻ 2)
                 </li>
                 <li>
-                  <strong>Địa chỉ:</strong> 123 Đường ABC, Quận 1, TP.HCM
+                  <strong>Địa chỉ:</strong> 295 Nguyễn Tất Thành, Quận Thanh Khê, Tp Đà Nẵng
                 </li>
                 <li>
                   <strong>DPO (Data Protection Officer):</strong>{" "}

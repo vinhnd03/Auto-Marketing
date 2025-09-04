@@ -5,7 +5,6 @@ import CreateCampaignForm from "../campaign/CreateCampaignForm";
 import DeleteConfirmationModal from "../ui/DeleteConfirmationModal";
 import EditCampaignForm from "../campaign/EditCampaignForm";
 import DetailCampaign from "../campaign/DetailCampaign";
-import campaignService from "../../service/campaignService";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -17,7 +16,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [totalRecords, setTotalRecords] = useState(0);
   const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  // const [endDate, setEndDate] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [campaignToDelete, setCampaignToDelete] = useState(null);
@@ -31,7 +30,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
   const { user } = useAuth();
   const fetchCountCampaign = async () => {
     try {
-      const campaignNumber = await campaignService.countCampaign(user.id);
+      const campaignNumber = await CampaignService.countCampaign(user.id);
       setTotalCampaign(campaignNumber);
       if (onTotalCampaignChange) {
         onTotalCampaignChange(campaignNumber); // truyền ra ngoài
@@ -50,9 +49,10 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
       recordsPerPage,
       searchTerm,
       startDate,
-      endDate,
+      // endDate,
       workspaceId
     );
+    console.log("wsId", workspaceId);
     setCampaignList(content);
     setTotalRecords(totalElements);
     setIsLoading(false);
@@ -62,29 +62,13 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
   useEffect(() => {
     fetchData();
     fetchCountCampaign();
-  }, [currentPage, recordsPerPage, searchTerm, startDate, endDate]);
+  }, [currentPage, recordsPerPage, searchTerm, startDate, workspaceId]);
 
   const processedCampaigns = campaignList.filter((campaign) =>
     campaign.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalPages = Math.ceil(totalRecords / recordsPerPage);
-
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      "Sắp bắt đầu": { bg: "bg-yellow-100", text: "text-yellow-800" },
-      "Đang hoạt động": { bg: "bg-green-100", text: "text-green-800" },
-      "Đã kết thúc": { bg: "bg-gray-100", text: "text-gray-800" },
-    };
-    const config = statusConfig[status] || statusConfig["Sắp bắt đầu"];
-    return (
-      <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}
-      >
-        {status}
-      </span>
-    );
-  };
 
   const handleCreateCampaign = async (newCampaign) => {
     try {
@@ -96,11 +80,11 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
 
       setCurrentPage(1);
       const { content, totalElements } = await CampaignService.findAllCampaign(
-        0, // pageIndex = 0
+        0, 
         recordsPerPage,
         searchTerm,
         startDate,
-        endDate,
+        // endDate,
         workspaceId
       );
       setCampaignList(content);
@@ -154,7 +138,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
         recordsPerPage,
         searchTerm,
         startDate,
-        endDate,
+        // endDate,
         workspaceId
       );
       setCampaignList(content);
@@ -174,6 +158,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
 
   const handleUpdateCampaign = async (values) => {
     if (!campaignToEdit?.id) return;
+    console.log("Dữ liệu cập nhật campaign", values.status);
 
     try {
       setIsLoading(true);
@@ -190,7 +175,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
         recordsPerPage,
         searchTerm,
         startDate,
-        endDate,
+        // endDate,
         workspaceId
       );
       setCampaignList(content);
@@ -209,6 +194,25 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
       setIsLoading(false);
     }
   };
+  const statusMap = {
+    draft: { label: "Bản nháp", className: "bg-gray-200 text-gray-800" },
+    active: {
+      label: "Đang hoạt động",
+      className: "bg-green-200 text-green-800",
+    },
+    completed: { label: "Hoàn thành", className: "bg-blue-200 text-blue-800" },
+    paused: { label: "Tạm dừng", className: "bg-yellow-200 text-yellow-800" },
+  };
+
+  function renderStatusBadge(status) {
+    const s = statusMap[status?.toLowerCase()] || {
+      label: status,
+      className: "",
+    };
+    return (
+      <span className={`px-3 py-1 rounded-full ${s.className}`}>{s.label}</span>
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen p-4 sm:p-8 rounded-xl shadow-inner font-sans antialiased text-gray-900">
@@ -271,7 +275,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                       className="px-4 py-3 border rounded-xl shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                     />
                   </div>
-                  <div className="flex flex-col w-full">
+                  {/* <div className="flex flex-col w-full">
                     <label className="text-xs text-gray-500 mb-1">
                       Đến ngày
                     </label>
@@ -281,7 +285,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                       onChange={(e) => setEndDate(e.target.value)}
                       className="px-4 py-3 border rounded-xl shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                     />
-                  </div>
+                  </div> */}
 
                   <div className="flex flex-col w-full">
                     <label className="text-xs text-gray-500 mb-1">
@@ -321,9 +325,9 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                           Từ ngày
                         </th>
 
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        {/* <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                           Đến ngày
-                        </th>
+                        </th> */}
 
                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
                           Trạng thái
@@ -400,13 +404,13 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                                 "vi-VN"
                               )}
                             </td>
-                            <td className="px-6 py-5 text-base text-gray-600">
+                            {/* <td className="px-6 py-5 text-base text-gray-600">
                               {new Date(campaign.endDate).toLocaleDateString(
                                 "vi-VN"
                               )}
-                            </td>
+                            </td> */}
                             <td className="px-6 py-5">
-                              {getStatusBadge(campaign.status)}
+                              {renderStatusBadge(campaign.status)}
                             </td>
                             <td className="px-6 py-5 text-base font-medium">
                               <div className="flex items-center gap-2">

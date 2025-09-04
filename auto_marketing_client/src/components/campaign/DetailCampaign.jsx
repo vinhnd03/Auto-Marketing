@@ -70,13 +70,10 @@ const DetailCampaign = ({ campaign, onClose }) => {
             <strong>Bắt đầu:</strong> {formatDate(campaign.startDate)}
           </p>
           <p>
-            <strong>Kết thúc:</strong> {formatDate(campaign.endDate)}
-          </p>
-          <p>
             <strong>Trạng thái:</strong> {getStatusBadge(campaign.status)}
           </p>
 
-          <p className="col-span-2">
+          <p>
             <strong>Workspace:</strong> {campaign.workspace?.name || "—"}
           </p>
         </div>

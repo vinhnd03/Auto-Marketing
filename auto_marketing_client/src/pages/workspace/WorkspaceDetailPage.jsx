@@ -95,10 +95,10 @@ const WorkspaceDetailPage = () => {
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
+        console.log("abc:", workspaceId);
         const campaignsData = await campaignService.findAllCampaign(
           0,
           10,
-          "",
           "",
           "",
           workspaceId
@@ -665,7 +665,7 @@ const WorkspaceDetailPage = () => {
       // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
       const campaignsData =
         wsData.campaigns ??
-        (await campaignService.findAllCampaign(0, 10, "", "", "", workspaceId))
+        (await campaignService.findAllCampaign(0, 10, "", "", workspaceId))
           .content;
       // 3. Với mỗi campaign => lấy topics
       const campaignsWithTopics = await Promise.all(
