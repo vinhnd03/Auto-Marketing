@@ -4,6 +4,7 @@ import { Wand2 } from "lucide-react";
 import { getApprovedPostsByTopic } from "../../service/postService";
 import dayjs from "dayjs";
 import ImageGenModal from "../../components/modal/ImageGenModal";
+import EditPostModal from "./EditPostModal";
 
 const TopicContentDetail = ({ topic, onBack }) => {
   // Khi quay lại danh sách content, nếu content vừa xem là mới thì bỏ badge 'Mới'
@@ -22,6 +23,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
   const [selectedContent, setSelectedContent] = useState(null);
   const [hasGeneratedResults, setHasGeneratedResults] = useState(false);
   const [zoomedImage, setZoomedImage] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Kiểm tra localStorage khi mount để xác định trạng thái nút
   useEffect(() => {
@@ -194,6 +196,22 @@ const TopicContentDetail = ({ topic, onBack }) => {
           postId={selectedContent.id}
         />
       )}
+      {selectedContent && (
+        <EditPostModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          post={selectedContent}
+          topicId={topic.id}
+          onUpdated={(updated) => {
+            // Cập nhật lại danh sách
+            setContents((prev) =>
+              prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c))
+            );
+            setSelectedContent(updated);
+          }}
+        />
+      )}
+
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2 break-words">
           {topic.title || topic.name}
@@ -228,6 +246,19 @@ const TopicContentDetail = ({ topic, onBack }) => {
                   onClick={() => handleGenerateImage(selectedContent)}
                 >
                   Generate hình ảnh
+                </button>
+                <button
+                  className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg font-semibold hover:bg-yellow-200"
+                  onClick={() => {
+                    console.log(
+                      "👉 selectedContent khi mở edit:",
+                      selectedContent
+                    );
+
+                    setShowEditModal(true);
+                  }}
+                >
+                  ✏️ Chỉnh sửa
                 </button>
               </div>
               <span className="text-xs text-gray-500 sm:ml-4">

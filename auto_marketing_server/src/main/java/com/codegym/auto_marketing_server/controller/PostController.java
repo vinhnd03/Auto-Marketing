@@ -1,19 +1,19 @@
 package com.codegym.auto_marketing_server.controller;
 
-import com.codegym.auto_marketing_server.dto.ContentGenerationRequestDTO;
-import com.codegym.auto_marketing_server.dto.ImageGenerationRequestDTO;
-import com.codegym.auto_marketing_server.dto.PostFilterDTO;
-import com.codegym.auto_marketing_server.dto.PostResponseDTO;
+import com.codegym.auto_marketing_server.dto.*;
 import com.codegym.auto_marketing_server.enums.PostStatus;
 import com.codegym.auto_marketing_server.service.IPostService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,6 +25,7 @@ import java.util.List;
 public class PostController {
 
     private final IPostService postService;
+    private final ObjectMapper objectMapper;
 
     @PostMapping("/generate")
     public ResponseEntity<List<PostResponseDTO>> generateContent(@Valid @RequestBody ContentGenerationRequestDTO request) {
@@ -112,4 +113,22 @@ public class PostController {
         postService.saveImagesForPost(postId, selectedImageUrls);
         return ResponseEntity.ok().build();
     }
+
+    // Update JSON (chỉ nội dung, hashtag, topic, không upload file)
+    @PutMapping(value = "/{postId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PostResponseDTO> updatePostJsonV2(
+            @PathVariable Long postId,
+            @RequestBody PostUpdateDTO requestDto) throws Exception {
+        return ResponseEntity.ok(postService.updatePostV2(postId, requestDto, null));
+    }
+
+    // Update Multipart (có upload file)
+    @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<PostResponseDTO> updatePostMultipartV2(
+            @PathVariable Long postId,
+            @RequestPart("data") PostUpdateDTO requestDto,
+            @RequestPart(value = "files", required = false) MultipartFile[] files) throws Exception {
+        return ResponseEntity.ok(postService.updatePostV2(postId, requestDto, files));
+    }
+
 }

@@ -111,9 +111,6 @@ public class ScheduledPostController {
         }
     }
 
-
-
-
     // 5. Xóa ScheduledPost
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteScheduledPost(@PathVariable Long id) {

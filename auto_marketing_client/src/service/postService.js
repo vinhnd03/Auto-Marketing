@@ -121,3 +121,20 @@ export async function saveImagesForPost(postId, selectedImageUrls) {
     throw error;
   }
 }
+
+export const updatePostV2 = (postId, payload, isMultipart = false) => {
+  if (isMultipart) {
+    // multipart -> không set Content-Type thủ công
+    return axios.put(`${BASE_URL}/posts/${postId}`, payload, {
+      withCredentials: true,
+    }).then(res => res.data);
+  } else {
+    // json
+    return axios.put(`${BASE_URL}/posts/${postId}`, payload, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    }).then(res => res.data);
+  }
+};
+
+

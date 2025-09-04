@@ -3,8 +3,10 @@ package com.codegym.auto_marketing_server.service;
 import com.codegym.auto_marketing_server.dto.ContentGenerationRequestDTO;
 import com.codegym.auto_marketing_server.dto.PostFilterDTO;
 import com.codegym.auto_marketing_server.dto.PostResponseDTO;
+import com.codegym.auto_marketing_server.dto.PostUpdateDTO;
 import com.codegym.auto_marketing_server.entity.Post;
 import com.codegym.auto_marketing_server.enums.PostStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -39,4 +41,5 @@ public interface IPostService {
     List<String> generateImagesForPost(Long postId, String prompt, String style, int numImages);
 
     void saveImagesForPost(Long postId, List<String> selectedImageUrls);
+    PostResponseDTO updatePostV2(Long postId, PostUpdateDTO requestDto, MultipartFile[] files) throws Exception;
 }
