@@ -10,7 +10,8 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
     // Lấy status từ service
     const fetchStatus = async () => {
       try {
-        const result = await CampaignService.getStatuses(); // giả sử service có hàm này
+        const result = await CampaignService.getStatusMap(); // giả sử service có hàm này
+        console.log("statuses", result);
         setStatusOptions(result);
       } catch (err) {
         console.error("Không lấy được trạng thái:", err);
@@ -31,12 +32,12 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
 
     startDate: Yup.date().required("Vui lòng chọn ngày bắt đầu"),
 
-    endDate: Yup.date()
-      .required("Vui lòng chọn ngày kết thúc")
-      .min(
-        Yup.ref("startDate"),
-        "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu"
-      ),
+    // endDate: Yup.date()
+    //   .required("Vui lòng chọn ngày kết thúc")
+    //   .min(
+    //     Yup.ref("startDate"),
+    //     "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu"
+    //   ),
 
     status: Yup.string().required("Vui lòng chọn trạng thái"),
   });
@@ -47,7 +48,7 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
         name: initialData.name || "",
         description: initialData.description || "",
         startDate: initialData.startDate || "",
-        endDate: initialData.endDate || "",
+        // endDate: initialData.endDate || "",
         status: initialData.status || "",
       }}
       validationSchema={validationSchema}
@@ -63,7 +64,7 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
               name: payload.name || values.name,
               description: payload.description || values.description,
               startDate: payload.startDate || values.startDate,
-              endDate: payload.endDate || values.endDate,
+              // endDate: payload.endDate || values.endDate,
               status: "active",
               type: payload.type,
               budget: payload.budget,
@@ -154,7 +155,7 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
                 className="text-red-500 text-sm mt-1"
               />
             </div>
-            <div>
+            {/* <div>
               <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
                 <Calendar size={16} className="mr-2 text-blue-500" />
                 Ngày kết thúc
@@ -169,7 +170,7 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
                 component="div"
                 className="text-red-500 text-sm mt-1"
               />
-            </div>
+            </div> */}
           </div>
 
           {/* Status */}
@@ -185,8 +186,8 @@ export default function EditCampaignForm({ initialData, onSubmit, onCancel }) {
             >
               <option value="">Chọn trạng thái</option>
               {statusOptions.map((status) => (
-                <option key={status} value={status}>
-                  {status}
+                <option key={status.key} value={status.key}>
+                  {status.label}
                 </option>
               ))}
             </Field>

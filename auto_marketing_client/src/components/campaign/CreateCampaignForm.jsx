@@ -24,7 +24,7 @@ export default function CreateCampaignForm({
     name: "",
     description: "",
     startDate: "",
-    endDate: "",
+    // endDate: "",
     status: "DRAFT",
     workspaceId: parseInt(workspaceId),
   });
@@ -59,9 +59,9 @@ export default function CreateCampaignForm({
             startDate: firstRow["Ngày bắt đầu"]
               ? formatExcelDate(firstRow["Ngày bắt đầu"])
               : "",
-            endDate: firstRow["Ngày kết thúc"]
-              ? formatExcelDate(firstRow["Ngày kết thúc"])
-              : "",
+            // endDate: firstRow["Ngày kết thúc"]
+            //   ? formatExcelDate(firstRow["Ngày kết thúc"])
+            //   : "",
             file: file,
           }));
         }
@@ -93,7 +93,7 @@ export default function CreateCampaignForm({
           name: "",
           description: "",
           startDate: "",
-          endDate: "",
+          // endDate: "",
           file: null,
         });
         if (onUploadSuccess) await onUploadSuccess();
@@ -158,7 +158,7 @@ export default function CreateCampaignForm({
         name: "",
         description: "",
         startDate: "",
-        endDate: "",
+        // endDate: "",
         status: "DRAFT",
         workspaceId: parseInt(workspaceId),
       });
@@ -181,12 +181,12 @@ export default function CreateCampaignForm({
 
     startDate: Yup.date().required("Vui lòng chọn ngày bắt đầu"),
 
-    endDate: Yup.date()
-      .required("Vui lòng chọn ngày kết thúc")
-      .min(
-        Yup.ref("startDate"),
-        "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu"
-      ),
+    // endDate: Yup.date()
+    //   .required("Vui lòng chọn ngày kết thúc")
+    //   .min(
+    //     Yup.ref("startDate"),
+    //     "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu"
+    //   ),
 
     status: Yup.string().required("Vui lòng chọn trạng thái"),
   });
@@ -217,9 +217,8 @@ export default function CreateCampaignForm({
           <p className="text-gray-700 text-sm mb-2">
             Hướng dẫn: Tải file mẫu Excel để điền dữ liệu chiến dịch. File mẫu
             bao gồm các cột:{" "}
-            <strong>Tên chiến dịch, Mô tả, Ngày bắt đầu, Ngày kết thúc</strong>.
-            Sau khi điền xong, bạn có thể upload trực tiếp từ máy hoặc từ Google
-            Drive.
+            <strong>Tên chiến dịch, Mô tả, Ngày bắt đầu</strong>. Sau khi điền
+            xong, bạn có thể upload trực tiếp từ máy hoặc từ Google Drive.
           </p>
           <a
             href="/files/mau_campaign.xlsx"
@@ -326,23 +325,6 @@ export default function CreateCampaignForm({
                     className="text-red-500 text-sm mt-1"
                   />
                 </div>
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                    <Calendar size={16} className="text-blue-500" /> Ngày kết
-                    thúc
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <Field
-                    type="date"
-                    name="endDate"
-                    className="w-full border rounded-xl px-4 py-3 text-base shadow-sm"
-                  />
-                  <ErrorMessage
-                    name="endDate"
-                    component="p"
-                    className="text-red-500 text-sm mt-1"
-                  />
-                </div>
               </div>
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <button
@@ -428,11 +410,7 @@ export default function CreateCampaignForm({
                       let cellValue = row[key];
 
                       // Nếu value là Date object hoặc cột ngày, format sang string
-                      if (
-                        cellValue instanceof Date ||
-                        key === "Ngày bắt đầu" ||
-                        key === "Ngày kết thúc"
-                      ) {
+                      if (cellValue instanceof Date || key === "Ngày bắt đầu") {
                         cellValue = formatExcelDate(cellValue);
                       }
 

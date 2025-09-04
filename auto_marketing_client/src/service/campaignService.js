@@ -19,10 +19,11 @@ const findAllCampaign = async (
   size = 10,
   name = "",
   startDate = "",
-  endDate = "",
   workspaceId = 0
 ) => {
-  const params = { page, size, name, startDate, endDate, workspaceId };
+  const params = { page, size, name, startDate, workspaceId };
+    console.log("wsiddd",workspaceId);
+
   try {
     const resp = await axios.get(URL, { params, withCredentials: true });
     console.log("resp", resp.data);
@@ -58,6 +59,17 @@ const getStatuses = async () => {
     return [];
   }
 };
+
+const getStatusMap = async () => {
+  try {
+    const res = await axios.get(`${URL}/status-map`, { withCredentials: true });
+    return res.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy trạng thái:", error);
+    return [];
+  }
+};
+
 
 // Lấy campaign theo id
 const findById = async (id) => {
@@ -145,5 +157,6 @@ export default {
   softDelete,
   uploadExcel,
   countCampaign,
-  findCampaignByWorkspaceId
+  findCampaignByWorkspaceId,
+  getStatusMap
 };
