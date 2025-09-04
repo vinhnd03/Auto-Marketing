@@ -72,16 +72,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         long remainingTime = expTime - now;
 
 //                         Nếu còn < 10 phút thì refresh
-//                        if (remainingTime < 10 * 60 * 1000) {
-//                            String newToken = jwtService.refreshToken(token, 30 * 60 * 1000); // 30 phút
-//                            ResponseCookie cookie = ResponseCookie.from("jwt", newToken)
-//                                    .httpOnly(true)
-//                                    .sameSite("Lax")
-//                                    .path("/")
-//                                    .maxAge(30 * 60)
-//                                    .build();
-//                            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-//                        }
+                        if (remainingTime < 10 * 60 * 1000) {
+                            String newToken = jwtService.refreshToken(token, 30 * 60 * 1000); // 30 phút
+                            ResponseCookie cookie = ResponseCookie.from("jwt", newToken)
+                                    .httpOnly(true)
+                                    .sameSite("Lax")
+                                    .path("/")
+                                    .maxAge(30 * 60)
+                                    .build();
+                            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+                        }
                     }
                 } else {
                     // Token invalid

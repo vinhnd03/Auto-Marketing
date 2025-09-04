@@ -177,14 +177,6 @@ public class TransactionService implements ITransactionService {
             return;
         }
 
-        // Kiểm tra transaction đã tồn tại chưa
-        Transaction existing = transactionRepository.findByTransactionCode(txnRef);
-        if (existing != null) {
-            // Update trạng thái thanh toán
-            existing.setPaymentStatus("success".equalsIgnoreCase(status) ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
-            transactionRepository.save(existing);
-            return;
-        }
 
         // Tạo transaction mới
         Transaction transaction = new Transaction();
