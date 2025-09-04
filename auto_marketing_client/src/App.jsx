@@ -252,6 +252,7 @@ function App() {
                     </GuestRoute>
                   }
                 />
+                <Route path="/verification" element={<EmailVerificationPage />}/>
                 <Route path="/oauth2/success" element={<OAuth2Success />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
