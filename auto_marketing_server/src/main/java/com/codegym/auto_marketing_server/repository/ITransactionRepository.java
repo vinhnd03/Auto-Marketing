@@ -2,6 +2,8 @@ package com.codegym.auto_marketing_server.repository;
 
 import com.codegym.auto_marketing_server.dto.PackageDTO;
 import com.codegym.auto_marketing_server.entity.Transaction;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +15,7 @@ import java.util.List;
 
 public interface ITransactionRepository extends JpaRepository<Transaction, Long> {
     Transaction findByTransactionCode(String transactionCode);
+
     @Query(value = """
              SELECT
                 DATE(created_at) AS period,
@@ -145,9 +148,23 @@ public interface ITransactionRepository extends JpaRepository<Transaction, Long>
             "JOIN plans p ON t.plan_id = p.id " +
             "WHERE (:start IS NULL OR t.created_at >= :start) " +
             "AND (:end IS NULL OR t.created_at <= :end) " +
-            "AND (p.price >0)"+
+            "AND (p.price >0)" +
             "GROUP BY p.name",
             nativeQuery = true)
     List<PackageDTO> getPackageSales(@Param("start") LocalDateTime start,
-                                   @Param("end") LocalDateTime end);
+                                     @Param("end") LocalDateTime end);
+
+
+    @Query(
+            value = "select t.* from transactions t \n" +
+                    "join users u on u.id=t.user_id \n" +
+                    "join plans p on t.plan_id =p.id\n" +
+                    "where u.email=:email and t.payment_status=\"SUCCESS\" and p.name like concat('%',:filterPlan,'%')",
+            countQuery = "select count(*) from transactions t \n" +
+                    "join users u on u.id=t.user_id \n" +
+                    "join plans p on t.plan_id =p.id\n" +
+                    "where u.email=:email and t.payment_status=\"SUCCESS\" and p.name like concat('%',:filterPlan,'%')",
+            nativeQuery = true
+    )
+    Page<Transaction> findAllTransactionByEmail(@Param("email") String email,@Param("filterPlan") String filterPlan, Pageable pageable);
 }

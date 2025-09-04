@@ -12,6 +12,7 @@ import {
   ArrowRightEndOnRectangleIcon,
   ChevronDownIcon,
   IdentificationIcon,
+  ReceiptPercentIcon
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import ConfirmLogoutModal from "../modal/ConfirmLogoutModal";
@@ -298,6 +299,15 @@ export default function Navbar() {
                     </Link>
 
                     <Link
+                        to="/transaction_history"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <ReceiptPercentIcon className="w-4 h-4 mr-3" />
+                      Lịch sử thanh toán
+                    </Link>
+
+                    <Link
                       to="/ai-generated-posts"
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -464,6 +474,14 @@ export default function Navbar() {
                 >
                   <UserIcon className="w-5 h-5 mr-3 text-gray-400" />
                   Hồ sơ cá nhân
+                </Link>
+                <Link
+                    to="/transaction_history"
+                    onClick={closeMenu}
+                    className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 rounded-lg transition-colors"
+                >
+                  <UserIcon className="w-5 h-5 mr-3 text-gray-400" />
+                  Lịch sử thanh toán
                 </Link>
 
                 <Link

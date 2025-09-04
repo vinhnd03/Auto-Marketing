@@ -1,25 +1,19 @@
 package com.codegym.auto_marketing_server.controller.workspace;
 
-import com.codegym.auto_marketing_server.dto.WorkspaceRequestDTO;
 import com.codegym.auto_marketing_server.dto.WorkspaceStatusUpdateDTO;
 import com.codegym.auto_marketing_server.entity.SocialAccount;
 import com.codegym.auto_marketing_server.entity.SocialAccountWorkspace;
 import com.codegym.auto_marketing_server.entity.Subscription;
 import com.codegym.auto_marketing_server.entity.Workspace;
-import com.codegym.auto_marketing_server.enums.WorkspaceStatus;
 import com.codegym.auto_marketing_server.service.*;
 import com.codegym.auto_marketing_server.service.impl.SubscriptionManagementService;
 import com.codegym.auto_marketing_server.util.CloudinaryService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -152,8 +146,8 @@ public class WorkspaceController {
 
         try {
             if (avatar != null && !avatar.isEmpty()) {
-                // Giới hạn dung lượng 500KB
-                long maxSize = 5000 * 1024; // 500 KB
+                // Giới hạn dung lượng 5 MB
+                long maxSize = 5000 * 1024;
                 if (avatar.getSize() > maxSize) {
                     return new ResponseEntity<>("File quá lớn. Vui lòng chọn ảnh <= 5 MB", HttpStatus.BAD_REQUEST);
                 }

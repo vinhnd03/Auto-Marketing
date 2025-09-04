@@ -30,7 +30,7 @@ public class SubscriptionScheduler {
         subscriptionService.saveAll(pendingSubs);
     }
 
-
+//    @Scheduled(cron = "*/10 * * * * *")
     @Scheduled(cron = "0 0 0 * * *")
 //    @Scheduled(cron = "*/10 * * * * *") // For Test Purpose Only
     public void activateNextSubscription() {

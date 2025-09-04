@@ -4,6 +4,7 @@ import com.codegym.auto_marketing_server.entity.Plan;
 import com.codegym.auto_marketing_server.entity.Subscription;
 import com.codegym.auto_marketing_server.service.IPlanService;
 import com.codegym.auto_marketing_server.service.ISubscriptionService;
+import com.codegym.auto_marketing_server.service.ITransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import java.util.Optional;
 public class PlanController {
     private final IPlanService planService;
     private final ISubscriptionService subscriptionService;
+    private final ITransactionService transactionService;
 
     @GetMapping("")
     public ResponseEntity<?> getAllPlans() {
@@ -44,5 +46,14 @@ public class PlanController {
             return new ResponseEntity<>(subscription, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping("/getMostPopular")
+    public ResponseEntity<?> getMostPopular() {
+        String mostPopularPlant = transactionService.getMostPopularPackage();
+        if (mostPopularPlant.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(mostPopularPlant, HttpStatus.OK);
     }
 }

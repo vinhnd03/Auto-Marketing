@@ -1,8 +1,8 @@
 import axios from "axios";
 import api from "../../context/api";
 
-// const url = `${process.env.REACT_APP_BACKEND_URL}/api/v1/workspaces`
-const url = "/v1/workspaces"
+const url = `${process.env.REACT_APP_BACKEND_URL}/api/v1/workspaces`
+// const url = "/v1/workspaces"
 export const getAllWorkspaceByUserId = async (id) => {
     try {
         // const res = await axios.get(`${url}/user/${id}`, {withCredentials: true,})

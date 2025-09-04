@@ -44,4 +44,15 @@ public class VNPayUtil {
                         + "=" + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
                 .collect(Collectors.joining("&"));
     }
+
+    public static String buildHashData(Map<String, String> params) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (sb.length() > 0) {
+                sb.append("&");
+            }
+            sb.append(entry.getKey()).append("=").append(entry.getValue());
+        }
+        return sb.toString();
+    }
 }

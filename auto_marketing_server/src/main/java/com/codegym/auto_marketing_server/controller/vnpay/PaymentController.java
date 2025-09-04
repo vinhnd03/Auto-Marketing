@@ -1,12 +1,15 @@
 package com.codegym.auto_marketing_server.controller.vnpay;
 
 
+import com.codegym.auto_marketing_server.entity.Plan;
+import com.codegym.auto_marketing_server.service.IPlanService;
 import com.codegym.auto_marketing_server.service.ITransactionService;
 import com.codegym.auto_marketing_server.service.vnpay.VNPayService;
 import com.codegym.auto_marketing_server.util.vnpay.VNPayUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -18,11 +21,13 @@ import java.util.TreeMap;
 
 @RestController
 @RequestMapping("${api.prefix}/payment")
-//@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class PaymentController {
     private final VNPayService vnPayService;
     private final ITransactionService transactionService;
+    private final IPlanService planService;
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     @PostMapping
     public Map<String, String> createPayment(@RequestBody Map<String, Object> requestData, HttpServletRequest request) {
@@ -30,15 +35,18 @@ public class PaymentController {
         int amount = ((Number) requestData.get("amount")).intValue();
         Long userId = ((Number) requestData.get("userId")).longValue();
 
+
         Integer maxWorkspace = requestData.get("maxWorkspace") != null ? ((Number) requestData.get("maxWorkspace")).intValue() : null;
-        Integer duration = requestData.get("duration") != null
+        int duration = requestData.get("duration") != null
                 ? ((Number) requestData.get("duration")).intValue()
                 : 0;
+
+        Plan plan = planService.findByName(serviceName);
 
         String orderInfo = serviceName + "|" + userId + "|" + maxWorkspace + "|" + duration;
 
         // 👉 Sử dụng service để tạo payment URL
-        String paymentUrl = vnPayService.createPaymentUrl(request, amount, orderInfo);
+        String paymentUrl = vnPayService.createPaymentUrl(request, amount, orderInfo, userId, plan.getId());
 
         Map<String, String> response = new HashMap<>();
         response.put("paymentUrl", paymentUrl);
@@ -50,7 +58,7 @@ public class PaymentController {
     public void paymentCallback(@RequestParam Map<String, String> allParams, HttpServletResponse response) throws IOException {
         // Kiểm tra các tham số bắt buộc
         if (allParams.get("vnp_Amount") == null || allParams.get("vnp_TxnRef") == null || allParams.get("vnp_OrderInfo") == null) {
-            response.sendRedirect("http://localhost:3000/payment-result?success=false&message=Missing+parameters");
+            response.sendRedirect(frontendUrl+"/payment-result?success=false&message=Missing+parameters");
             return;
         }
 
@@ -58,6 +66,7 @@ public class PaymentController {
         String data = VNPayUtil.buildQueryString(new TreeMap<>(allParams));
         String expectedHash = VNPayUtil.hmacSHA512(vnPayService.getConfig().getVnpHashSecret(), data);
 
+        assert expectedHash != null;
         boolean validSignature = expectedHash.equals(vnp_SecureHash);
         String responseCode = allParams.get("vnp_ResponseCode");
         boolean success = validSignature && "00".equals(responseCode);
@@ -114,8 +123,4 @@ public class PaymentController {
             Map.entry("79", "Nhập sai mật khẩu OTP"),
             Map.entry("99", "Lỗi không xác định")
     );
-
-    public String computeExpectedHash(String secret, Map<String, String> params) {
-        return VNPayUtil.hmacSHA512(secret, "dữ liệu hash từ params");
-    }
 }

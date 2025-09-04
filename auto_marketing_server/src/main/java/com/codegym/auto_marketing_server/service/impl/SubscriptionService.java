@@ -19,10 +19,6 @@ public class SubscriptionService implements ISubscriptionService {
         return subscriptionRepository.findAll();
     }
 
-//    @Override
-//    public void save(Subscription subscriptions) {
-//        subscriptionRepository.save(subscriptions);
-//    }
 
     @Override
     public Optional<Subscription> findById(Long id) {

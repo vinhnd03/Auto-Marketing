@@ -77,6 +77,7 @@ import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
 import AIGeneratedPostsPage from "./pages/ai/AIGeneratedPostsPage";
 
 import GlobalScrollToTop from "./components/ui/GlobalScrollToTop";
+import TransactionSuccess from "./pages/user/TransactionSuccess";
 import EmailVerificationPage from "./pages/auth/EmailVerificationPage";
 import AIGeneratedPostDetailPage from "./pages/ai/AIGeneratedPostDetailPage";
 
@@ -326,6 +327,14 @@ function App() {
                       <AIGeneratedPostDetailPage />
                     </ProtectedRoute>
                   }
+                />
+                <Route
+                    path="/transaction_history"
+                    element={
+                      <ProtectedRoute>
+                        <TransactionSuccess/>
+                      </ProtectedRoute>
+                    }
                 />
                 <Route
                   path="/*"

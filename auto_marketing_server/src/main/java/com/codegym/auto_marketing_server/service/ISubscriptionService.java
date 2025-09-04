@@ -19,6 +19,7 @@ public interface ISubscriptionService {
     Optional<Subscription> findById(Long id);
 
     void remove(Long id);
+
     void save(Subscription subscription);
 
     void saveAll(List<Subscription> subscriptions);
@@ -30,6 +31,7 @@ public interface ISubscriptionService {
     List<Subscription> findPendingByUserIdOrderByLevel( Long userId);
 
     Integer findMaxWorkspaceByCurrenSubscription( Long id);
+
     int countSubscriptionByPlantName(String planName, Long userId);
 
 }
