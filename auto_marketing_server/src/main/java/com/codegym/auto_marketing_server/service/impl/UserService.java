@@ -97,11 +97,13 @@ public class UserService implements IUserService {
 
     @Override
     public void updateUserProfile(User user){
-        try {
-            String avatarUrl = cloudinaryService.uploadImageFromUrl(user.getAvatar());
-            user.setAvatar(avatarUrl);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if(user.getAvatar() != null && user.getAvatar() != ""){
+            try {
+                String avatarUrl = cloudinaryService.uploadImageFromUrl(user.getAvatar());
+                user.setAvatar(avatarUrl);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
         userRepository.save(user);
     }

@@ -604,7 +604,16 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
               alignItems: "center",
               justifyContent: "center",
             }}
-            onClick={() => setShowDetailModal(false)}
+            // onClick={() => setShowDetailModal(false)}
+            onMouseDown={(e) => (e.target.dataset.backdrop = "true")}
+            onMouseUp={(e) => {
+              if (
+                e.target.dataset.backdrop === "true" &&
+                e.target === e.currentTarget
+              ) {
+                setShowDetailModal(false);
+              }
+            }}
           >
             <div
               className="modal-content"
