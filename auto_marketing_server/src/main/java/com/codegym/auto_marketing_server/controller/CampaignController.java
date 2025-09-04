@@ -25,7 +25,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/campaign")
 //@RequestMapping("/api/v1/campaigns")
 @RequiredArgsConstructor
@@ -47,13 +46,11 @@ public class CampaignController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String name,
             @RequestParam("workspaceId") Long workspaceId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate
     ) {
+        System.out.println("workspaceId = " + workspaceId);
         Pageable pageable = PageRequest.of(page, size);
-        Page<Campaign> campaignList = campaignService.findAll(name, startDate, endDate,workspaceId, pageable);
-        System.out.println("startDate param = " + startDate);
-        System.out.println("endDate param = " + endDate);
+        Page<Campaign> campaignList = campaignService.findAll(name, startDate,workspaceId, pageable);
         if (campaignList.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -190,6 +187,11 @@ public class CampaignController {
             @RequestParam Long workspaceId
     ) {
         return ResponseEntity.ok(campaignService.getCampaignsByWorkspace(workspaceId));
+    }
+
+    @GetMapping("/status-map")
+    public ResponseEntity<List<Map<String, String>>> getStatusMap() {
+        return ResponseEntity.ok(campaignService.getAllStatuses());
     }
 
 //    @GetMapping

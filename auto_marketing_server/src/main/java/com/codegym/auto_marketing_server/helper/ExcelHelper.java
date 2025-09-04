@@ -97,8 +97,6 @@ public class ExcelHelper {
                     case NUMERIC -> {
                         if (column == CampaignColumn.START_DATE) {
                             dto.setStartDate(getDateValue(cell, column.getHeader()));
-                        } else if (column == CampaignColumn.END_DATE) {
-                            dto.setEndDate(getDateValue(cell, column.getHeader()));
                         }
                     }
                     default -> {
@@ -111,11 +109,7 @@ public class ExcelHelper {
 
         dto.setStatus(CampaignStatus.DRAFT);
 
-        if (dto.getStartDate() != null && dto.getEndDate() != null) {
-            if (dto.getEndDate().isBefore(dto.getStartDate())) {
-                rowErrors.add("Ngày kết thúc nên đặt bằng hoặc sau ngày bắt đầu");
-            }
-        }
+
 
         if (!rowErrors.isEmpty()) {
             throw new ExcelValidationException(String.join("\n", rowErrors));
@@ -154,8 +148,7 @@ public class ExcelHelper {
     public enum CampaignColumn {
         NAME(0, "Tên chiến dịch", CellType.STRING),
         DESCRIPTION(1, "Chi tiết", CellType.STRING),
-        START_DATE(2, "Ngày bắt đầu", CellType.NUMERIC),
-        END_DATE(3, "Ngày kết thúc", CellType.NUMERIC);
+        START_DATE(2, "Ngày bắt đầu", CellType.NUMERIC);
 
         private final int index;
         private final String header;

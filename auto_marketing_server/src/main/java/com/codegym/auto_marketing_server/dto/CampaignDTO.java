@@ -18,7 +18,7 @@ public class CampaignDTO implements Validator {
     private String name;
     private String description;
     private LocalDate startDate;
-    private LocalDate endDate;
+//    private LocalDate endDate;
     private CampaignStatus status;
     private Long workspaceId;
 
@@ -49,15 +49,15 @@ public class CampaignDTO implements Validator {
         if (dto.getStartDate() == null) {
             errors.rejectValue("startDate", "startDate.empty", "Ngày bắt đầu không được để trống");
         }
-        if (dto.getEndDate() == null) {
-            errors.rejectValue("endDate", "endDate.empty", "Ngày kết thúc không được để trống");
-        }
-
-        if (dto.getStartDate() != null && dto.getEndDate() != null) {
-            if (dto.getStartDate().isAfter(dto.getEndDate())) {
-                errors.rejectValue("startDate", "startDateAfterEndDate", "Ngày bắt đầu phải trước ngày kết thúc");
-            }
-        }
+//        if (dto.getEndDate() == null) {
+//            errors.rejectValue("endDate", "endDate.empty", "Ngày kết thúc không được để trống");
+//        }
+//
+//        if (dto.getStartDate() != null && dto.getEndDate() != null) {
+//            if (dto.getStartDate().isAfter(dto.getEndDate())) {
+//                errors.rejectValue("startDate", "startDateAfterEndDate", "Ngày bắt đầu phải trước ngày kết thúc");
+//            }
+//        }
 
         // Validate status (nếu muốn)
         if (dto.getStatus() == null) {
