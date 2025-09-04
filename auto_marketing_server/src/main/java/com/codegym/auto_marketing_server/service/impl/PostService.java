@@ -235,6 +235,19 @@ public class PostService implements IPostService {
     }
 
     @Override
+    public List<PostResponseDTO> getApprovedPostsByWorkspace(Long workspaceId) {
+        return postRepository.findByWorkspaceIdAndStatus(workspaceId, PostStatus.APPROVED)
+                .stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
+
+    @Override
+    public long countPostsByWorkspaceAndStatus(Long workspaceId, PostStatus status) {
+        return postRepository.countByWorkspaceIdAndStatus(workspaceId, status);
+    }
+
+    @Override
     public List<String> generateImagesForPost(Long postId, String prompt, String style, int numImages) {
         List<String> imageUrls = new ArrayList<>();
 
@@ -281,6 +294,14 @@ public class PostService implements IPostService {
             }
         }
         postRepository.save(post);
+    }
+
+    @Override
+    public List<PostResponseDTO> getApprovedPostsByCampaign(Long campaignId) {
+        return postRepository.findByCampaignIdAndStatus(campaignId, PostStatus.APPROVED)
+                .stream()
+                .map(this::mapToResponseDTO)
+                .toList();
     }
 
     private Post createPostFromGPTResponse(String gptResponse, Topic topic, ContentGenerationRequestDTO request) {

@@ -41,5 +41,12 @@ public interface IPostService {
     List<String> generateImagesForPost(Long postId, String prompt, String style, int numImages);
 
     void saveImagesForPost(Long postId, List<String> selectedImageUrls);
+
+    List<PostResponseDTO> getApprovedPostsByCampaign(Long campaignId);
+
+    List<PostResponseDTO> getApprovedPostsByWorkspace(Long workspaceId);
+
+    long countPostsByWorkspaceAndStatus(Long workspaceId, PostStatus status);
+
     PostResponseDTO updatePostV2(Long postId, PostUpdateDTO requestDto, MultipartFile[] files) throws Exception;
 }
