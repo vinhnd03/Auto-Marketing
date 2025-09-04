@@ -4,6 +4,7 @@ import com.codegym.auto_marketing_server.entity.Campaign;
 import com.codegym.auto_marketing_server.dto.CampaignDTO;
 import com.codegym.auto_marketing_server.entity.Campaign;
 import com.codegym.auto_marketing_server.entity.Workspace;
+import com.codegym.auto_marketing_server.enums.CampaignStatus;
 import com.codegym.auto_marketing_server.helper.ExcelHelper;
 import com.codegym.auto_marketing_server.repository.ICampaignRepository;
 import com.codegym.auto_marketing_server.repository.IWorkspaceRepository;
@@ -18,9 +19,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,8 +32,8 @@ public class CampaignService implements ICampaignService {
     private final IWorkspaceRepository workspaceRepository;
 
     @Override
-    public Page<Campaign> findAll(String name, LocalDate startDate, LocalDate endDate,Long workspaceId, Pageable pageable) {
-        return campaignRepository.findCampaignByName(name,startDate, endDate,workspaceId, pageable);
+    public Page<Campaign> findAll(String name, LocalDate startDate, Long workspaceId, Pageable pageable) {
+        return campaignRepository.findCampaignByName(name,startDate,workspaceId, pageable);
     }
 
     @Override
@@ -62,7 +65,7 @@ public class CampaignService implements ICampaignService {
                         campaign.setName(dto.getName());
                         campaign.setDescription(dto.getDescription());
                         campaign.setStartDate(dto.getStartDate());
-                        campaign.setEndDate(dto.getEndDate());
+//                        campaign.setEndDate(dto.getEndDate());
                         campaign.setStatus(dto.getStatus());
                         campaign.setWorkspace(workspace);
                         return campaignRepository.save(campaign);
@@ -88,5 +91,15 @@ public class CampaignService implements ICampaignService {
     @Override
     public List<Campaign> getCampaignsByWorkspace(Long workspaceId) {
         return campaignRepository.findByWorkspaceId(workspaceId);
+    }
+
+    @Override
+    public List<Map<String, String>> getAllStatuses() {
+        return Arrays.stream(CampaignStatus.values())
+                .map(status -> Map.of(
+                        "key", status.name(),
+                        "label", status.getVietnamese()
+                ))
+                .toList();
     }
 }
