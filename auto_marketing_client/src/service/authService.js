@@ -40,7 +40,7 @@ const login = async (data) => {
             return { success: false, error: "Email hoặc mật khẩu không đúng" };
         } else if (error.response?.status === 403) {
             if (error.response.data.error === "EMAIL_NOT_VERIFIED") {
-                return { success: false, error: "Vui lòng kiểm tra email để xác nhận tài khoản" };
+                return { success: false, error: "Vui lòng kiểm tra email để xác nhận tài khoản", code: "EMAIL_NOT_VERIFIED" };
             }
             return { success: false, error: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên" };
 

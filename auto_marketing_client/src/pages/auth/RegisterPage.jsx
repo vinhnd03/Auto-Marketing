@@ -17,6 +17,7 @@ import * as Yup from "yup";
 import authService from "../../service/authService";
 import zxcvbn from "zxcvbn";
 import PasswordStrength from "./PasswordStrength";
+import EnableAccountModal from "../../components/modal/EnableAccountModal";
 
 // Validation schema
 const registerSchema = Yup.object({
@@ -48,6 +49,7 @@ const RegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   // const { register } = useAuth();
   const navigate = useNavigate();
+  const [showReminderModal, setShowReminderModal] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     name: "",
@@ -79,7 +81,8 @@ const RegisterPage = () => {
         toast.success("Kiểm tra email của bạn để xác nhận đăng ký", {
           duration: 3000,
         });
-        navigate("/login");
+        setShowReminderModal(true)
+        // navigate("/login");
       } else {
         if (result.error.includes("Email")) {
           setFieldError("email", result.error);
@@ -97,6 +100,7 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {showReminderModal && <EnableAccountModal />}
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
