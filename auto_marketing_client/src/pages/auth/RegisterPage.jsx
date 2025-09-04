@@ -226,16 +226,13 @@ const RegisterPage = () => {
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
-                  {/* {!errors.password && values.password && (
-                    <PasswordStrength password={values.password} />
-                  )} */}
 
-                  <PasswordStrength password={values.password} />
-                  <ErrorMessage
+                  <PasswordStrength password={values.password} message={touched.password && errors.password ? errors.password : null} />
+                  {/* <ErrorMessage
                     name="password"
                     component="div"
                     className="mt-1 text-sm text-red-600"
-                  />
+                  /> */}
                 </div>
 
                 {/* Confirm Password Field */}

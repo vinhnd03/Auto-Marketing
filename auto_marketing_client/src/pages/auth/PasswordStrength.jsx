@@ -1,8 +1,12 @@
-const PasswordStrength = ({ password }) => {
+const PasswordStrength = ({ password, message }) => {
   // Hàm tính strength
   const getPasswordStrength = (password) => {
     let score = 0;
-    if (!password) return { score, label: "Chưa nhập" };
+    if (!password)
+      return {
+        score,
+        label: "Mật khẩu phải có ít nhất 1 chữ thường, 1 chữ hoa và 1 số",
+      };
 
     if (password.length >= 6) score++;
     if (password.length >= 10) score++;
@@ -22,7 +26,13 @@ const PasswordStrength = ({ password }) => {
   const { score, label } = getPasswordStrength(password);
 
   // màu cho progress bar
-  const colors = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-blue-500", "bg-green-500"];
+  const colors = [
+    "bg-red-500",
+    "bg-orange-500",
+    "bg-yellow-500",
+    "bg-blue-500",
+    "bg-green-500",
+  ];
   const width = `${(score / 5) * 100}%`;
 
   return (
@@ -33,7 +43,12 @@ const PasswordStrength = ({ password }) => {
           style={{ width }}
         ></div>
       </div>
-      {/* <p className="text-sm mt-1 text-gray-600">{label}</p> */}
+
+      {message ? (
+        <p className="text-sm mt-1 text-red-600">{message}</p>
+      ) : (
+        <p className="text-sm mt-1 text-gray-600">{label}</p>
+      )}
     </div>
   );
 };

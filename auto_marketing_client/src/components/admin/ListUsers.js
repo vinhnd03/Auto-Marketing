@@ -1,5 +1,5 @@
-import React, { useEffect, useState,useRef } from "react";
-import { findById, search,filterUsersByPackage,updateUser } from "../../service/admin/usersService";
+import React, { useEffect, useState, useRef } from "react";
+import { findById, search, filterUsersByPackage, updateUser } from "../../service/admin/usersService";
 import { getAllPackages } from "../../service/admin/statisticsPackagesService";
 import { Eye, Lock, Unlock } from "lucide-react";
 import UpdateUserModal from "./UpdateUser";
@@ -20,24 +20,24 @@ function ListUsers() {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-        const fetchPackages = async () => {
-            const pkgs = await getAllPackages();
-            setPackages(pkgs);
-        };
-        fetchPackages().then();
-        handleSearch().then();
-    }, [page, packageFilter]);
+    const fetchPackages = async () => {
+      const pkgs = await getAllPackages();
+      setPackages(pkgs);
+    };
+    fetchPackages().then();
+    handleSearch().then();
+  }, [page, packageFilter]);
 
-    // Xử lý click outside để đóng dropdown
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setShowPackageFilter(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+  // Xử lý click outside để đóng dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowPackageFilter(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleViewDetail = async (id) => {
     let u = await findById(id);
@@ -59,44 +59,44 @@ function ListUsers() {
     );
   };
 
-    const handleSearch = async () => {
-        let result;
+  const handleSearch = async () => {
+    let result;
 
-        if (sortKey === "NO_PACKAGE" || sortKey === "EXPIRED" || sortKey === "ACTIVE") {
-            // Nếu chọn các trạng thái đặc biệt
-            result = await filterUsersByPackage(sortKey, page, 5);
-        } else {
-            // Nếu chọn gói cụ thể hoặc tất cả
-            result = await search(
-                keyword,
-                sortKey,   // truyền tên gói hoặc rỗng
-                page,
-                5,
-                null,
-                null,
-                showLocked
-            );
-        }
+    if (sortKey === "NO_PACKAGE" || sortKey === "EXPIRED" || sortKey === "ACTIVE") {
+      // Nếu chọn các trạng thái đặc biệt
+      result = await filterUsersByPackage(sortKey, page, 5);
+    } else {
+      // Nếu chọn gói cụ thể hoặc tất cả
+      result = await search(
+        keyword,
+        sortKey,   // truyền tên gói hoặc rỗng
+        page,
+        5,
+        null,
+        null,
+        showLocked
+      );
+    }
 
-        setList(result.data);
-        setTotalPages(result.totalPages);
+    setList(result.data);
+    setTotalPages(result.totalPages);
 
-        if (page > result.totalPages) {
-            setPage(1);
-        }
-    };
+    if (page > result.totalPages) {
+      setPage(1);
+    }
+  };
 
   const handleClear = async () => {
-        setKeyword("");
-        setSortKey("");
-        setShowLocked(null);
-        setPage(1);
+    setKeyword("");
+    setSortKey("");
+    setShowLocked(null);
+    setPage(1);
 
-        // Lấy tất cả bằng searchAndPage
-        const result = await search("", "", 1, 5, null, null, null);
-        setList(result.data);
-        setTotalPages(result.totalPages);
-    };
+    // Lấy tất cả bằng searchAndPage
+    const result = await search("", "", 1, 5, null, null, null);
+    setList(result.data);
+    setTotalPages(result.totalPages);
+  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -279,18 +279,17 @@ function ListUsers() {
                       <span className="truncate block max-w-[160px] 2xl:max-w-[200px]">
                         {customer.subscriptions.length > 0
                           ? customer.subscriptions
-                              .map((sub) => sub.plan?.name)
-                              .join(", ")
+                            .map((sub) => sub.plan?.name)
+                            .join(", ")
                           : "Chưa mua gói nào"}
                       </span>
                     </td>
                     <td className="px-2 py-3">
                       <span
-                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                          customer.status
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${customer.status
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
-                        }`}
+                          }`}
                       >
                         {customer.status ? "Hoạt động" : "Bị khóa"}
                       </span>
@@ -306,11 +305,10 @@ function ListUsers() {
                         </button>
                         <button
                           onClick={() => openModal(customer)}
-                          className={`p-1.5 rounded-md focus:outline-none transition-colors duration-200 ${
-                            customer.status
+                          className={`p-1.5 rounded-md focus:outline-none transition-colors duration-200 ${customer.status
                               ? "text-green-400 hover:text-green-600 hover:bg-green-50"
                               : "text-red-400 hover:text-red-600 hover:bg-red-50"
-                          }`}
+                            }`}
                           title={
                             customer.status
                               ? "Khóa tài khoản"
@@ -411,11 +409,10 @@ function ListUsers() {
                       Trạng thái tài khoản:
                     </span>
                     <span
-                      className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        selectedUser.status
+                      className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${selectedUser.status
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
-                      }`}
+                        }`}
                     >
                       {selectedUser.status ? "Đang hoạt động" : "Đang bị khóa"}
                     </span>
@@ -464,11 +461,10 @@ function ListUsers() {
                                 Ngày hết hạn:
                               </span>
                               <p
-                                className={`${
-                                  isExpired
+                                className={`${isExpired
                                     ? "text-red-600 font-semibold"
                                     : "text-gray-900"
-                                }`}
+                                  }`}
                               >
                                 {isExpired
                                   ? "Đã hết hạn"
@@ -507,45 +503,46 @@ function ListUsers() {
       )}
 
       {/* Phân trang */}
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
-        <div className="flex items-center space-x-1">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            Trước
-          </button>
-
+      {totalPages > 0 &&
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
           <div className="flex items-center space-x-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPage(p)}
-                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  page === p
-                    ? "bg-blue-600 text-white border border-blue-600"
-                    : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Trước
+            </button>
+
+            <div className="flex items-center space-x-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${page === p
+                      ? "bg-blue-600 text-white border border-blue-600"
+                      : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700"
+                    }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Sau
+            </button>
           </div>
 
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            Sau
-          </button>
+          <div className="text-sm text-gray-500">
+            Trang {page + " / " + totalPages}
+          </div>
         </div>
-
-        <div className="text-sm text-gray-500">
-          Trang {page} của {totalPages}
-        </div>
-      </div>
+      }
     </div>
   );
 }

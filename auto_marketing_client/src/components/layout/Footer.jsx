@@ -20,7 +20,7 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">A</span>
+                <span className="text-white font-bold text-sm">AM</span>
               </div>
               <h3 className="text-xl font-bold text-blue-600">AutoMarketing</h3>
             </div>
