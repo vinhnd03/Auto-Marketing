@@ -13,7 +13,7 @@ export const fetchPlans = async () => {
 // Đăng ký gói FREE
 export const subscribeTrial = async (userId) => {
     const response = await axios.post(
-        `${API_URL}/api/v1/workspaces/subscriptions/trial?userId=${userId}`,
+        `${API_URL}/api/v1/workspaces/subscriptions/trial`,
         {},
         {withCredentials: true}
     );
@@ -21,13 +21,12 @@ export const subscribeTrial = async (userId) => {
 };
 
 // Thanh toán gói qua VNPAY
-export const createPayment = async (plan, userId) => {
+export const createPayment = async (plan) => {
     const response = await axios.post(
         `${API_URL}/api/payment`,
         {
             serviceName: plan.name,
             amount: plan.price,
-            userId,
             maxWorkspace: plan.maxWorkspace,
             duration: plan.durationDate,
         },

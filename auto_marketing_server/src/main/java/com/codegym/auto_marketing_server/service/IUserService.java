@@ -73,4 +73,5 @@ public interface IUserService {
     void register(User user);
 
     void resendEmailVerification(User user);
+
 }

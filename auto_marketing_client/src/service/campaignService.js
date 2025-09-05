@@ -1,4 +1,3 @@
-import axios from "axios";
 import api from "../context/api";
 // const URL = `${process.env.REACT_APP_BACKEND_URL}/api/campaign`;
 const URL = `/campaign`;
@@ -68,7 +67,7 @@ const getStatuses = async () => {
 
 const getStatusMap = async () => {
   try {
-    const res = await axios.get(`${URL}/status-map`, { withCredentials: true });
+    const res = await api.get(`${URL}/status-map`, { withCredentials: true });
     return res.data;
   } catch (error) {
     console.error("Lỗi khi lấy trạng thái:", error);

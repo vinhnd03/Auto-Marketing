@@ -1,20 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Plus, Folder, Settings } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import React, {useEffect, useRef, useState} from "react";
+import {Folder, Plus, Settings} from "lucide-react";
+import {Link, useNavigate} from "react-router-dom";
 import CreateWorkspaceModal from "../../components/workspace/CreateWorkspaceModal";
 import UpdateWorkspaceModal from "../../components/workspace/UpdateWorkspaceModal";
 import SelectPagesModal from "../../components/modal/SelectPagesModal";
 import SelectSocialNetwork from "../../components/modal/SelectSocialNetwork";
 
-import {
-  getAllWorkspaceByUserId,
-  getMaxWorkspace,
-  updateWorkspaceStatus,
-} from "../../service/workspace/workspace_service";
+import {getAllWorkspace, getMaxWorkspace, updateWorkspaceStatus,} from "../../service/workspace/workspace_service";
 import WorkspaceLimitModal from "../../components/workspace/WorkspaceLimitModal";
 import toast from "react-hot-toast";
-import { useAuth } from "../../context/AuthContext";
-import { Preloader } from "../../components";
+import {useAuth} from "../../context/AuthContext";
 import CampaignService from "../../service/campaignService";
 
 const WorkspacePage = () => {
@@ -50,8 +45,8 @@ const WorkspacePage = () => {
     const fetchData = async () => {
       try {
         const [maxWsRes, wsList] = await Promise.all([
-          getMaxWorkspace(user.id),
-          getAllWorkspaceByUserId(user.id),
+          getMaxWorkspace(),
+          getAllWorkspace(),
         ]);
 
         if (maxWsRes.error) {
@@ -83,7 +78,7 @@ const WorkspacePage = () => {
         if (activeCount < maxWsRes) {
           const allIds = sortedWs.map((w) => w.id);
           try {
-            const res = await updateWorkspaceStatus(user.id, allIds, "ACTIVE");
+            const res = await updateWorkspaceStatus( allIds, "ACTIVE");
             if (res.error) handleError(res.error);
             else {
               const updatedWs = sortedWs.map((w) => ({
@@ -171,7 +166,6 @@ const WorkspacePage = () => {
     if (status !== 401 || status !== 403) {
       const message =
         error?.response?.data?.message
-        //  ||  "Không lấy được danh sách workspace, vui lòng đăng nhập lại";
 
       // Dùng toastId để chỉ hiển thị 1 lần cho cùng 1 message
       if(message)

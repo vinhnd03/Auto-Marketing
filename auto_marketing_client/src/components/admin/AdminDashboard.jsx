@@ -1,20 +1,10 @@
 import React, {useEffect, useState} from "react";
 import {Link} from "react-router-dom";
-import {
-    TrendingUp,
-    Users,
-    DollarSign,
-    Target,
-    ArrowUp,
-    ArrowDown,
-    AlertTriangle,
-    CheckCircle,
-    Package,
-} from "lucide-react";
+import {AlertTriangle, ArrowDown, ArrowUp, CheckCircle, DollarSign, Package, Users,} from "lucide-react";
 // import {getUserCount} from "../../service/admin/notificationService";
 import {getRevenueStats} from "../../service/revenueService";
 import {getAll} from "../../service/admin/usersService";
-import { getMonthlyDetail } from "../../service/admin/statisticsCustomerService";
+import {getMonthlyDetail} from "../../service/admin/statisticsCustomerService";
 import {getPackageStats} from "../../service/packageService";
 
 const pad = (n) => (n < 10 ? `0${n}` : n);

@@ -1,20 +1,19 @@
 package com.codegym.auto_marketing_server.controller.workspace;
 
 import com.codegym.auto_marketing_server.dto.WorkspaceStatusUpdateDTO;
-import com.codegym.auto_marketing_server.entity.SocialAccount;
-import com.codegym.auto_marketing_server.entity.SocialAccountWorkspace;
-import com.codegym.auto_marketing_server.entity.Subscription;
-import com.codegym.auto_marketing_server.entity.Workspace;
+import com.codegym.auto_marketing_server.entity.*;
 import com.codegym.auto_marketing_server.service.*;
 import com.codegym.auto_marketing_server.service.impl.SubscriptionManagementService;
 import com.codegym.auto_marketing_server.util.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -31,13 +30,19 @@ public class WorkspaceController {
     private final CloudinaryService cloudinaryService;
     private final SubscriptionManagementService subscriptionManagementService;
 
-    @GetMapping("/user/{id}")
-    public ResponseEntity<?> searchWorkspaceByUserId(@PathVariable(required = false) Long id) {
-        if (id == null) {
-            return ResponseEntity.badRequest().body("User ID không hợp lệ");
-        }
+    @GetMapping("")
+    public ResponseEntity<?> searchWorkspaceByUserId(Authentication authentication) {
 
-        List<Workspace> workspaces = workspaceService.searchWorkspaceByUserId(id);
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body("Not authenticated");
+        }
+        User user = (User) authentication.getPrincipal();
+
+        List<Workspace> workspaces = new ArrayList<>();
+        Optional<User> newUser = userService.findByEmail(user.getEmail());
+        if (newUser.isPresent()) {
+            workspaces = workspaceService.searchWorkspaceByUserId(newUser.get().getId());
+        }
 
         if (workspaces == null || workspaces.isEmpty()) {
             // trả về 201 + danh sách rỗng
@@ -119,6 +124,7 @@ public class WorkspaceController {
             @RequestPart(value = "avatar", required = false) MultipartFile avatar,
             @RequestParam("socialAccountId") Long socialAccountId
     ) {
+
         // Validate
         if (name == null || name.isBlank()) {
             return new ResponseEntity<>("Tên workspace là bắt buộc", HttpStatus.BAD_REQUEST);
@@ -169,30 +175,48 @@ public class WorkspaceController {
         return ResponseEntity.ok(updated);
     }
 
-    @GetMapping("/{id}/workspace-limit")
-    public ResponseEntity<?> workspaceLimit(@PathVariable Long id) {
-        Optional<Subscription> subscriptionCur = subscriptionService.findActiveByUserId(id);
-        if (subscriptionCur.isPresent()) {
-            Integer maxWorkspace = subscriptionService.findMaxWorkspaceByCurrenSubscription(subscriptionCur.get().getId());
-            return new ResponseEntity<>(maxWorkspace, HttpStatus.OK);
+    @GetMapping("/workspace-limit")
+    public ResponseEntity<?> workspaceLimit(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body("Not authenticated");
+        }
+        User user = (User) authentication.getPrincipal();
+
+        Optional<User> newUser = userService.findByEmail(user.getEmail());
+        if (newUser.isPresent()) {
+            Optional<Subscription> subscriptionCur = subscriptionService.findActiveByUserId(newUser.get().getId());
+            if (subscriptionCur.isPresent()) {
+                Integer maxWorkspace = subscriptionService.findMaxWorkspaceByCurrenSubscription(subscriptionCur.get().getId());
+                return new ResponseEntity<>(maxWorkspace, HttpStatus.OK);
+            }
         }
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body("Bạn chưa mua gói dịch vụ hoặc gói của bạn đã hết hạn");
     }
 
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/status")
     public ResponseEntity<?> updateWorkspaceStatus(
-            @PathVariable Long id,
-            @RequestBody WorkspaceStatusUpdateDTO dto) {
+            Authentication authentication,
+            @RequestBody
+            WorkspaceStatusUpdateDTO dto) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body("Not authenticated");
+        }
+        User user = (User) authentication.getPrincipal();
+        Optional<User> newUser = userService.findByEmail(user.getEmail());
 
         if (dto == null || dto.getIds() == null || dto.getIds().isEmpty()) {
             return ResponseEntity.badRequest().body("Danh sách Id không hợp lệ");
         }
 
         try {
-            workspaceService.updateWorkspaceStatusForUser(id, dto.getIds());
-            return ResponseEntity.ok("Cập nhật trạng thái thành công");
+            if (newUser.isPresent()) {
+                workspaceService.updateWorkspaceStatusForUser(newUser.get().getId(), dto.getIds());
+                return ResponseEntity.ok("Cập nhật trạng thái thành công");
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Không tìm thấy người dùng");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Cập nhật thất bại: " + e.getMessage());
@@ -209,13 +233,22 @@ public class WorkspaceController {
     }
 
     @PostMapping("/subscriptions/trial")
-    public ResponseEntity<?> activateTrial(@RequestParam Long userId) {
+    public ResponseEntity<?> activateTrial( Authentication authentication) {
         try {
-            subscriptionManagementService.activateTrialPlan(userId);
-            return ResponseEntity.ok("Đã kích hoạt gói Trial");
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(401).body("Not authenticated");
+            }
+            User user = (User) authentication.getPrincipal();
+            Optional<User> newUser = userService.findByEmail(user.getEmail());
+            if (newUser.isPresent()) {
+                subscriptionManagementService.activateTrialPlan(newUser.get().getId());
+                return ResponseEntity.ok("Đã kích hoạt gói Trial");
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Không tìm thấy người dùng");
+
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-
 }

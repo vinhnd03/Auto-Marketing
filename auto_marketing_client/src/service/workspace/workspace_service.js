@@ -3,10 +3,10 @@ import api from "../../context/api";
 
 const url = `${process.env.REACT_APP_BACKEND_URL}/api/v1/workspaces`
 // const url = "/v1/workspaces"
-export const getAllWorkspaceByUserId = async (id) => {
+export const getAllWorkspace = async () => {
     try {
         // const res = await axios.get(`${url}/user/${id}`, {withCredentials: true,})
-        const res = await api.get(`${url}/user/${id}`, {withCredentials: true,})
+        const res = await api.get(`${url}`, {withCredentials: true,})
         return res.data;
     } catch (e) {
         console.log("loi ket noi db")
@@ -54,11 +54,10 @@ export const updateWorkspace = async (id, formData) => {
     }
 };
 
-export const getMaxWorkspace = async (id) => {
+export const getMaxWorkspace = async () => {
 
     try {
-        // const res = await axios.get(`${url}/${id}/workspace-limit`, {withCredentials: true,});
-        const res = await api.get(`${url}/${id}/workspace-limit`, {withCredentials: true,});
+        const res = await api.get(`${url}/workspace-limit`, {withCredentials: true,});
         return res.data;
     } catch (error) {
         if (error.response && error.response.data) {
@@ -68,10 +67,10 @@ export const getMaxWorkspace = async (id) => {
     }
 }
 
-export const updateWorkspaceStatus = async (userId, ids, status) => {
+export const updateWorkspaceStatus = async ( ids, status) => {
     try {
         // const res = await axios.patch(`${url}/${userId}/status`, {
-        const res = await api.patch(`${url}/${userId}/status`, {
+        const res = await api.patch(`${url}/status`, {
             ids,
             status
         }, {withCredentials: true,});

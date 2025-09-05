@@ -88,7 +88,7 @@ const TransactionSuccess = () => {
                 toast.success(msg || "Đã kích hoạt gói FREE");
             } else {
                 // Paid
-                const { paymentUrl } = await createPayment(plan, user.id);
+                const { paymentUrl } = await createPayment(plan);
                 if (paymentUrl) {
                     window.location.href = paymentUrl;
                 } else {
@@ -97,7 +97,7 @@ const TransactionSuccess = () => {
             }
         } catch (error) {
             console.error("Lỗi khi xử lý thanh toán:", error);
-            toast.error(error.response?.data || "Lỗi khi xử lý thanh toán!");
+            // toast.error( "Lỗi khi xử lý thanh toán!");
         } finally {
             setLoadingId(null);
         }

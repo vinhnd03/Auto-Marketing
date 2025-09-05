@@ -1,5 +1,6 @@
 package com.codegym.auto_marketing_server.service;
 
+import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.entity.Workspace;
 import org.springframework.data.repository.query.Param;
 
@@ -29,5 +30,6 @@ public interface IWorkspaceService {
     boolean existsByNameForUserExceptId(String name, Long userId, Long excludeId);
 
     void updateWorkspaceStatusForUser(Long userId, List<Long> activeIds);
+
 
 }

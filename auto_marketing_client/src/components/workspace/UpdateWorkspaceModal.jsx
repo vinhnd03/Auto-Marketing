@@ -4,7 +4,7 @@ import {Formik, Form, Field} from "formik";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
 import {
-    getAllWorkspaceByUserId,
+    getAllWorkspace,
     updateWorkspace,
 } from "../../service/workspace/workspace_service";
 
@@ -85,7 +85,7 @@ const UpdateWorkspaceModal = ({
                     toast.success("Cập nhật workspace thành công");
                 }
 
-                const list = await getAllWorkspaceByUserId(userId);
+                const list = await getAllWorkspace(userId);
                 const sortedWs = [...list].sort((a, b) => {
                     // Ưu tiên ACTIVE lên trước
                     if (a.status === "ACTIVE" && b.status !== "ACTIVE") return -1;
@@ -154,7 +154,7 @@ const UpdateWorkspaceModal = ({
                                                     className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                     <div className="flex space-x-2">
                                                         <Camera className="w-6 h-6 text-white"/>
-                                                        <button
+                                                        <span
                                                             type="button"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
@@ -167,7 +167,7 @@ const UpdateWorkspaceModal = ({
                                                             className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                                                         >
                                                             <X className="w-4 h-4 text-white"/>
-                                                        </button>
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </>

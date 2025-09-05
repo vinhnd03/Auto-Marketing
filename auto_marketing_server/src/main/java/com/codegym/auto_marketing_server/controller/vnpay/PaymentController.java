@@ -2,14 +2,19 @@ package com.codegym.auto_marketing_server.controller.vnpay;
 
 
 import com.codegym.auto_marketing_server.entity.Plan;
+import com.codegym.auto_marketing_server.entity.User;
 import com.codegym.auto_marketing_server.service.IPlanService;
 import com.codegym.auto_marketing_server.service.ITransactionService;
+import com.codegym.auto_marketing_server.service.IUserService;
 import com.codegym.auto_marketing_server.service.vnpay.VNPayService;
 import com.codegym.auto_marketing_server.util.vnpay.VNPayUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -17,6 +22,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 @RestController
@@ -26,31 +32,38 @@ public class PaymentController {
     private final VNPayService vnPayService;
     private final ITransactionService transactionService;
     private final IPlanService planService;
+    private final IUserService userService;
     @Value("${app.frontend.url}")
     private String frontendUrl;
 
     @PostMapping
-    public Map<String, String> createPayment(@RequestBody Map<String, Object> requestData, HttpServletRequest request) {
+    public ResponseEntity<?> createPayment(@RequestBody Map<String, Object> requestData, HttpServletRequest request, Authentication authentication) {
         String serviceName = requestData.get("serviceName").toString();
         int amount = ((Number) requestData.get("amount")).intValue();
-        Long userId = ((Number) requestData.get("userId")).longValue();
-
-
         Integer maxWorkspace = requestData.get("maxWorkspace") != null ? ((Number) requestData.get("maxWorkspace")).intValue() : null;
         int duration = requestData.get("duration") != null
                 ? ((Number) requestData.get("duration")).intValue()
                 : 0;
 
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body("Not authenticated");
+        }
+        User user = (User) authentication.getPrincipal();
+        Optional<User> newUser = userService.findByEmail(user.getEmail());
+        if (newUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
         Plan plan = planService.findByName(serviceName);
 
-        String orderInfo = serviceName + "|" + userId + "|" + maxWorkspace + "|" + duration;
+        String orderInfo = serviceName + "|" + newUser.get().getId() + "|" + maxWorkspace + "|" + duration;
 
         // 👉 Sử dụng service để tạo payment URL
-        String paymentUrl = vnPayService.createPaymentUrl(request, amount, orderInfo, userId, plan.getId());
+        String paymentUrl = vnPayService.createPaymentUrl(request, amount, orderInfo, newUser.get().getId(), plan.getId());
 
         Map<String, String> response = new HashMap<>();
         response.put("paymentUrl", paymentUrl);
-        return response;
+        return ResponseEntity.ok(response);
     }
 
 
@@ -58,7 +71,7 @@ public class PaymentController {
     public void paymentCallback(@RequestParam Map<String, String> allParams, HttpServletResponse response) throws IOException {
         // Kiểm tra các tham số bắt buộc
         if (allParams.get("vnp_Amount") == null || allParams.get("vnp_TxnRef") == null || allParams.get("vnp_OrderInfo") == null) {
-            response.sendRedirect(frontendUrl+"/payment-result?success=false&message=Missing+parameters");
+            response.sendRedirect(frontendUrl + "/payment-result?success=false&message=Missing+parameters");
             return;
         }
 
@@ -95,7 +108,7 @@ public class PaymentController {
         transactionService.handlePayment(txnRef, amount, service, userId, status);
 
         String redirectUrl = String.format(
-                "http://localhost:3000/pricing?success=%s&message=%s&amount=%d&service=%s&txnRef=%s&workspaces=%d&duration=%d",
+                frontendUrl + "/pricing?success=%s&message=%s&amount=%d&service=%s&txnRef=%s&workspaces=%d&duration=%d",
                 success,
                 URLEncoder.encode(message, StandardCharsets.UTF_8),
                 amount,

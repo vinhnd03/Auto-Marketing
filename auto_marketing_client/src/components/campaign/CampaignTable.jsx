@@ -131,6 +131,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
         return;
       }
 
+
       // Reload dữ liệu sau khi xóa
       setCurrentPage(1);
       const { content, totalElements } = await CampaignService.findAllCampaign(
@@ -545,7 +546,15 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
               alignItems: "center",
               justifyContent: "center",
             }}
-            onClick={() => setShowEditModal(false)}
+            onMouseDown={(e) => (e.target.dataset.backdrop = "true")}
+            onMouseUp={(e) => {
+              if (
+                  e.target.dataset.backdrop === "true" &&
+                  e.target === e.currentTarget
+              ) {
+                setShowEditModal(false);
+              }
+            }}
           >
             <div
               className="modal-content"
@@ -595,7 +604,15 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
               alignItems: "center",
               justifyContent: "center",
             }}
-            onClick={() => setShowDetailModal(false)}
+            onMouseDown={(e) => (e.target.dataset.backdrop = "true")}
+            onMouseUp={(e) => {
+              if (
+                  e.target.dataset.backdrop === "true" &&
+                  e.target === e.currentTarget
+              ) {
+                setShowDetailModal(false);
+              }
+            }}
           >
             <div
               className="modal-content"
@@ -610,7 +627,15 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                 margin: "16px",
                 position: "relative",
               }}
-              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => (e.target.dataset.backdrop = "true")}
+              onMouseUp={(e) => {
+                if (
+                    e.target.dataset.backdrop === "true" &&
+                    e.target === e.currentTarget
+                ) {
+                  setShowEditModal(false);
+                }
+              }}
             >
               <div style={{ padding: "24px" }}>
                 <DetailCampaign
