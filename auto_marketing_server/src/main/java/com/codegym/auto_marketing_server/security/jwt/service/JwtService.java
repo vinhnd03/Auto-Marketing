@@ -1,9 +1,11 @@
 package com.codegym.auto_marketing_server.security.jwt.service;
 
 import com.codegym.auto_marketing_server.entity.User;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -14,7 +16,7 @@ import java.util.Map;
 
 @Service
 public class JwtService {
-//    @Value("${jwt.secret}")
+    //    @Value("${jwt.secret}")
     private String jwtSecret = "+giuxKoSEsvBX+OSt2ICd3aCsa4ZuKf+4lxkxBfO2UZjMDXV7ivlpoXzzOVtplLz36ojIOM+sIU9rjbtwPronQ==";
 //    @Value("${jwt.expiration}")
 //    private Long jwtExpiration = 30 * 60 * 1000l;
