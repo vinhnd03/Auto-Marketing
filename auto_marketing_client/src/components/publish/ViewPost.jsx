@@ -23,9 +23,18 @@ const ViewPost = ({ postData, onClose }) => {
     }
   };
 
+  // Nếu có nhiều fanpage, check xem có postUrl không
+  const postLinks =
+    postData.fanpages
+      ?.filter((f) => f.postUrl)
+      .map((f) => ({
+        name: f.pageName,
+        url: f.postUrl,
+      })) || [];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-xl shadow-lg max-w-xl w-full relative overflow-hidden flex flex-col">
+      <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full relative overflow-hidden flex flex-col">
         {/* Close button */}
         <button
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold"
@@ -37,7 +46,7 @@ const ViewPost = ({ postData, onClose }) => {
         {/* Header */}
         <div className="flex items-center gap-3 p-4 border-b border-gray-200 bg-blue-50">
           <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-            {postData.pageName ? postData.pageName[0].toUpperCase() : "F"}
+            {postData.fanpages?.[0]?.pageName?.[0]?.toUpperCase() || "F"}
           </div>
           <div className="font-semibold text-gray-800">
             {postData.fanpages?.length > 0
@@ -45,17 +54,22 @@ const ViewPost = ({ postData, onClose }) => {
               : "Facebook Page"}
           </div>
         </div>
+
         {/* Content */}
         <div className="p-4 flex-1 overflow-y-auto">
           {/* Title */}
-          <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words">
-            {postData.post.title}
-          </h3>
+          {postData.post.title && (
+            <h3 className="text-lg font-semibold text-gray-900 mb-2 break-words">
+              {postData.post.title}
+            </h3>
+          )}
 
           {/* Content */}
-          <div className="text-gray-800 mb-2 whitespace-pre-wrap max-h-48 overflow-y-auto">
-            {postData.post.content}
-          </div>
+          {postData.post.content && (
+            <div className="text-gray-800 mb-2 whitespace-pre-wrap max-h-48 overflow-y-auto">
+              {postData.post.content}
+            </div>
+          )}
 
           {/* Hashtag */}
           {postData.post.hashtag && (
@@ -66,17 +80,15 @@ const ViewPost = ({ postData, onClose }) => {
 
           {/* Media */}
           {postData.post.medias && postData.post.medias.length > 0 ? (
-            <div className="mt-2 max-h-64 overflow-y-auto pr-2">
-              <div className="flex flex-wrap gap-2">
-                {postData.post.medias.map((m, idx) => (
-                  <img
-                    key={idx}
-                    src={m.url}
-                    alt={m.name || "media"}
-                    className="w-[48%] sm:w-[48%] h-36 object-cover rounded-md"
-                  />
-                ))}
-              </div>
+            <div className="mt-2 grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-2">
+              {postData.post.medias.map((m, idx) => (
+                <img
+                  key={idx}
+                  src={m.url}
+                  alt={m.name || "media"}
+                  className="w-full h-36 object-cover rounded-md"
+                />
+              ))}
             </div>
           ) : (
             <p className="text-gray-500 italic mt-2">Không có ảnh</p>
@@ -84,13 +96,32 @@ const ViewPost = ({ postData, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 text-sm text-gray-600 flex justify-between">
-          <span>
-            <strong>Trạng thái:</strong> {getStatusText(postData.status)}
-          </span>
-          <span>
-            <strong>Lên lịch:</strong> {formatDateTime(postData.scheduledTime)}
-          </span>
+        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 text-sm text-gray-600 flex flex-col gap-1">
+          <div className="flex justify-between">
+            <span>
+              <strong>Trạng thái:</strong> {getStatusText(postData.status)}
+            </span>
+            <span>
+              <strong>Lên lịch:</strong> {formatDateTime(postData.scheduledTime)}
+            </span>
+          </div>
+
+          {/* Post links */}
+          {postLinks.length > 0 && (
+            <div className="mt-1">
+              {postLinks.map((link, idx) => (
+                <a
+                  key={idx}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline mr-3"
+                >
+                  Xem trên {link.name}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -148,7 +148,6 @@ public class ScheduledPostService implements IScheduledPostService {
                             sp.getStatus().name(),
                             fanpages,
                             sp.getPostedAt()
-
                     );
                 })
                 .toList();
@@ -193,7 +192,6 @@ public class ScheduledPostService implements IScheduledPostService {
                             sp.getStatus().name(),
                             fanpages,
                             sp.getPostedAt()
-
                     );
                 })
                 .toList();
@@ -230,7 +228,6 @@ public class ScheduledPostService implements IScheduledPostService {
                             sp.getStatus().name(),
                             fanpages,
                             sp.getPostedAt()
-
                     );
                 })
                 .toList();
@@ -346,50 +343,6 @@ public class ScheduledPostService implements IScheduledPostService {
 
             return scheduledPostRepository.save(existing);
         }).orElseThrow(() -> new RuntimeException("ScheduledPost not found"));
-    }
-
-    // lấy danh sách bài viết đã đăng theo workspace
-    public List<ScheduledPostDTO> getPostedByWorkspace(Long workspaceId) {
-        return scheduledPostRepository.findPostedByWorkspace(workspaceId)
-                .stream()
-                .map(sp -> {
-                    // lấy danh sách fanpage của scheduledPost
-                    List<FanpageDTO> fanpages = postTargetRepository.findByScheduledPost(sp)
-                            .stream()
-                            .map(pt -> {
-                                Fanpage f = pt.getFanpage();
-                                return new FanpageDTO(
-                                        f.getId(),
-                                        f.getPageId(),
-                                        f.getPageName(),
-                                        f.getAvatarUrl()
-                                );
-                            })
-                            .toList();
-
-                    // map Post -> PostDTO
-                    Post post = sp.getPost();
-                    PostDTO postDTO = new PostDTO(
-                            post.getId(),
-                            post.getTitle(),
-                            post.getContent(),
-                            post.getHashtag(),
-                            post.getMedias().stream()
-                                    .map(m -> new PostMediaDTO(m.getId(), m.getUrl(), m.getType()))
-                                    .toList()
-                    );
-
-                    // trả về ScheduledPostDTO
-                    return new ScheduledPostDTO(
-                            sp.getId(),
-                            postDTO,
-                            sp.getScheduledTime(),
-                            sp.getStatus().name(),
-                            fanpages,
-                            sp.getPostedAt()
-                    );
-                })
-                .toList();
     }
 
 
