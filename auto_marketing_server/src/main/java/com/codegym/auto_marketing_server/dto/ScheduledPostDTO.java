@@ -1,5 +1,7 @@
 package com.codegym.auto_marketing_server.dto;
 
+import com.codegym.auto_marketing_server.entity.PostTarget;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -11,5 +13,4 @@ public record ScheduledPostDTO(
 //        List<Long> fanpageIds
         List<FanpageDTO> fanpages,
         LocalDateTime postedAt
-
 ) {}

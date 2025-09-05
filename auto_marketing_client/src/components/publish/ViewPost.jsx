@@ -25,7 +25,7 @@ const ViewPost = ({ postData, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-xl shadow-lg max-w-md w-full relative overflow-hidden flex flex-col">
+      <div className="bg-white rounded-xl shadow-lg max-w-xl w-full relative overflow-hidden flex flex-col">
         {/* Close button */}
         <button
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold"
@@ -35,19 +35,16 @@ const ViewPost = ({ postData, onClose }) => {
         </button>
 
         {/* Header */}
-<div className="flex items-center gap-3 p-4 border-b border-gray-200 bg-blue-50">
-  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-    {postData.pageName ? postData.pageName[0].toUpperCase() : "F"}
-  </div>
-  <div className="font-semibold text-gray-800">
-  {postData.fanpages?.length > 0 
-      ? postData.fanpages.map(f => f.pageName).join(", ") 
-      : "Facebook Page"}
-</div>
-
-</div>
-
-
+        <div className="flex items-center gap-3 p-4 border-b border-gray-200 bg-blue-50">
+          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+            {postData.pageName ? postData.pageName[0].toUpperCase() : "F"}
+          </div>
+          <div className="font-semibold text-gray-800">
+            {postData.fanpages?.length > 0
+              ? postData.fanpages.map((f) => f.pageName).join(", ")
+              : "Facebook Page"}
+          </div>
+        </div>
         {/* Content */}
         <div className="p-4 flex-1 overflow-y-auto">
           {/* Title */}
@@ -62,22 +59,25 @@ const ViewPost = ({ postData, onClose }) => {
 
           {/* Hashtag */}
           {postData.post.hashtag && (
-            <p className="text-blue-600 mb-3 font-medium">{postData.post.hashtag}</p>
+            <p className="text-blue-600 mb-3 font-medium">
+              {postData.post.hashtag}
+            </p>
           )}
 
           {/* Media */}
           {postData.post.medias && postData.post.medias.length > 0 ? (
-            <div className="flex flex-wrap gap-2 mt-2">
-  {postData.post.medias.map((m, idx) => (
-    <img
-      key={idx}
-      src={m.url}
-      alt={m.name || "media"}
-      className="w-[48%] sm:w-[48%] h-36 object-cover rounded-md"
-    />
-  ))}
-</div>
-
+            <div className="mt-2 max-h-64 overflow-y-auto pr-2">
+              <div className="flex flex-wrap gap-2">
+                {postData.post.medias.map((m, idx) => (
+                  <img
+                    key={idx}
+                    src={m.url}
+                    alt={m.name || "media"}
+                    className="w-[48%] sm:w-[48%] h-36 object-cover rounded-md"
+                  />
+                ))}
+              </div>
+            </div>
           ) : (
             <p className="text-gray-500 italic mt-2">Không có ảnh</p>
           )}
