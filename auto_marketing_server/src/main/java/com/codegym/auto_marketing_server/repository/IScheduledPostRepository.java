@@ -50,6 +50,18 @@ public interface IScheduledPostRepository extends JpaRepository<ScheduledPost, L
       AND sp.status = 'SCHEDULED'
     """, nativeQuery = true)
     List<ScheduledPost> findScheduledByWorkspace(@Param("workspaceId") Long workspaceId);
+    @Query(value = """
+    SELECT sp.* FROM scheduled_posts sp
+    JOIN posts p ON p.id = sp.post_id
+    JOIN topics t ON t.id = p.topic_id
+    JOIN campaigns c ON c.id = t.campaign_id
+    JOIN workspaces w ON w.id = c.workspace_id
+    WHERE w.id = :workspaceId
+      AND sp.status = 'POSTED'
+            ORDER BY sp.posted_at DESC
+        
+    """, nativeQuery = true)
+    List<ScheduledPost> findPostedByWorkspace(@Param("workspaceId") Long workspaceId);
 
 
 }

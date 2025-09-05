@@ -9,5 +9,7 @@ public record ScheduledPostDTO(
         LocalDateTime scheduledTime,
         String status,
 //        List<Long> fanpageIds
-        List<FanpageDTO> fanpages
+        List<FanpageDTO> fanpages,
+        LocalDateTime postedAt
+
 ) {}

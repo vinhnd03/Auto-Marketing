@@ -120,4 +120,12 @@ public class ScheduledPostController {
         scheduledPostService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    // 6. Lấy danh sách bài viết đã đăng (status = POSTED) theo workspace
+    @GetMapping("/posted")
+    public ResponseEntity<List<ScheduledPostDTO>> getPostedSchedules(
+            @RequestParam Long workspaceId) {
+        return ResponseEntity.ok(scheduledPostService.getPostedByWorkspace(workspaceId));
+    }
+
 }
