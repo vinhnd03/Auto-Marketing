@@ -235,32 +235,54 @@ public class PostService implements IPostService {
     }
 
     @Override
+    public List<PostResponseDTO> getApprovedPostsByWorkspace(Long workspaceId) {
+        return postRepository.findByWorkspaceIdAndStatus(workspaceId, PostStatus.APPROVED)
+                .stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
+
+    @Override
+    public long countPostsByWorkspaceAndStatus(Long workspaceId, PostStatus status) {
+        return postRepository.countByWorkspaceIdAndStatus(workspaceId, status);
+    }
+
+    @Override
     public List<String> generateImagesForPost(Long postId, String prompt, String style, int numImages) {
-        List<String> imageUrls = new ArrayList<>();
+        List<CompletableFuture<String>> futures = new ArrayList<>();
 
         for (int i = 0; i < numImages; i++) {
-            // Ghép thêm index vào prompt/style nếu muốn đa dạng
-            String finalPrompt = prompt + (style != null ? " (" + style + ")" : "") + " #" + (i + 1);
+            final int idx = i;
+            futures.add(
+                    CompletableFuture.supplyAsync(() -> {
+                        String finalPrompt = prompt + (style != null ? " (" + style + ")" : "") + " #" + (idx + 1);
 
-            // Gọi OpenAI image API hoặc dịch vụ gen ảnh của bạn
-            String aiImageUrl = openAIImageService.generateImageUrlFromPrompt(finalPrompt);
+                        String aiImageUrl = openAIImageService.generateImageUrlFromPrompt(finalPrompt);
 
-            String uploadedUrl = null;
-            File imageFile = null;
-            try {
-                imageFile = downloadImageToFile(aiImageUrl);
-                uploadedUrl = cloudinaryService.uploadImage(imageFile);
-            } catch (Exception e) {
-                log.error("Error generating/uploading image {}: {}", i + 1, e.getMessage(), e);
-                continue;
-            } finally {
-                // Clean temp file
-                if (imageFile != null && imageFile.exists()) {
-                    imageFile.delete();
-                }
-            }
-            imageUrls.add(uploadedUrl);
+                        String uploadedUrl = null;
+                        File imageFile = null;
+                        try {
+                            imageFile = downloadImageToFile(aiImageUrl);
+                            uploadedUrl = cloudinaryService.uploadImage(imageFile);
+                        } catch (Exception e) {
+                            log.error("Error generating/uploading image {}: {}", idx + 1, e.getMessage(), e);
+                            // Có thể return null hoặc throw, tùy ý bạn
+                        } finally {
+                            if (imageFile != null && imageFile.exists()) {
+                                imageFile.delete();
+                            }
+                        }
+                        return uploadedUrl;
+                    })
+            );
         }
+
+        // Đợi tất cả ảnh hoàn thành
+        List<String> imageUrls = futures.stream()
+                .map(CompletableFuture::join)
+                .filter(url -> url != null && !url.isBlank())
+                .collect(Collectors.toList());
+
         return imageUrls;
     }
 
@@ -281,6 +303,14 @@ public class PostService implements IPostService {
             }
         }
         postRepository.save(post);
+    }
+
+    @Override
+    public List<PostResponseDTO> getApprovedPostsByCampaign(Long campaignId) {
+        return postRepository.findByCampaignIdAndStatus(campaignId, PostStatus.APPROVED)
+                .stream()
+                .map(this::mapToResponseDTO)
+                .toList();
     }
 
     private Post createPostFromGPTResponse(String gptResponse, Topic topic, ContentGenerationRequestDTO request) {

@@ -125,16 +125,30 @@ export async function saveImagesForPost(postId, selectedImageUrls) {
 export const updatePostV2 = (postId, payload, isMultipart = false) => {
   if (isMultipart) {
     // multipart -> không set Content-Type thủ công
-    return axios.put(`${BASE_URL}/posts/${postId}`, payload, {
-      withCredentials: true,
-    }).then(res => res.data);
+    return axios
+      .put(`${BASE_URL}/posts/${postId}`, payload, {
+        withCredentials: true,
+      })
+      .then((res) => res.data);
   } else {
     // json
-    return axios.put(`${BASE_URL}/posts/${postId}`, payload, {
-      headers: { "Content-Type": "application/json" },
-      withCredentials: true,
-    }).then(res => res.data);
+    return axios
+      .put(`${BASE_URL}/posts/${postId}`, payload, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      })
+      .then((res) => res.data);
   }
 };
 
-
+// Đếm tổng số bài viết APPROVED của một workspace
+export async function countApprovedPostsByWorkspace(workspaceId) {
+  try {
+    const response = await apiClient.get(
+      `/posts/workspace/${workspaceId}/count/approved`
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
