@@ -32,6 +32,7 @@ import TopicContentDetail from "./TopicContentDetail";
 import { AITopicGenerator, CampaignTable } from "../../components";
 import SchedulePostCalendar from "../../components/publish/SchedulePostCalendar";
 import ScheduledPostsList from "../../components/publish/ScheduledPostsList";
+import PostedPostsList from "../../components/publish/PostedPostsList";
 
 const WorkspaceDetailPage = () => {
   // State cho tìm kiếm campaign
@@ -1019,6 +1020,11 @@ const WorkspaceDetailPage = () => {
                     label: "Quản lý bài",
                     icon: <Table size={14} />,
                   },
+                  {
+                    id: "postedManager",
+                    label: "Lịch sử bài đăng",
+                    icon: <Table size={14} />,
+                  }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -1499,6 +1505,11 @@ const WorkspaceDetailPage = () => {
               {activeTab === "publishedManager" && (
                 <div className="p-0 mt-0">
                   <ScheduledPostsList />
+                </div>
+              )}
+              {activeTab === "postedManager" && (
+                <div className="p-0 mt-0">
+                  <PostedPostsList />
                 </div>
               )}
             </div>
