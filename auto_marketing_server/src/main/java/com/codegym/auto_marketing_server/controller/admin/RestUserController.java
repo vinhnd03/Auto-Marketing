@@ -24,7 +24,6 @@ import java.util.Optional;
 public class RestUserController {
     private final IUserService userService;
 
-
     public RestUserController(IUserService userService) {
         this.userService = userService;
     }
@@ -61,6 +60,7 @@ public class RestUserController {
         Page<User> users=userService.filterUsersBySubscription(subscriptionFilter,pageable);
         return ResponseEntity.ok(users);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Optional<User>> findUserById(@PathVariable Long id) {

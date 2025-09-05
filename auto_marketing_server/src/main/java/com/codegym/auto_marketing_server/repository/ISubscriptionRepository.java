@@ -32,4 +32,6 @@ public interface ISubscriptionRepository extends JpaRepository<Subscription, Lon
 
     // Lấy tất cả subscription có status SUCCESS mà endDate <= ngày hiện tại
     List<Subscription> findAllByStatusAndEndDateLessThanEqual(SubscriptionStatus status, LocalDate date);
+    @Query(value = "SELECT count(*) FROM subscriptions s join users u on s.user_id=u.id join plans p on p.id=s.plan_id where p.name=:planName and u.id=:userId", nativeQuery = true)
+    int countSubscriptionByPlantName(@Param("planName") String planName ,@Param("userId") Long userId);
 }

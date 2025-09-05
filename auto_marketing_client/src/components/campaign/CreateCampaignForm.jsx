@@ -176,7 +176,7 @@ export default function CreateCampaignForm({
       .min(3, "Tên chiến dịch phải có ít nhất 3 ký tự")
       .max(100, "Tên chiến dịch không được vượt quá 100 ký tự"),
     description: Yup.string()
-      .required("Mô rả không được để trống")
+      .required("Chi tiết không được để trống")
       .max(500, "Mô tả không được vượt quá 500 ký tự"),
 
     startDate: Yup.date().required("Vui lòng chọn ngày bắt đầu"),

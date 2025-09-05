@@ -65,7 +65,9 @@ const AdminSidebar = ({ collapsed }) => {
     {
       name: "Thống kê doanh thu",
       icon: TrendingUp,
-      children: [{ name: "Tổng quan doanh thu", href: "/admin/revenue" }],
+      children: [
+          { name: "Tổng quan doanh thu", href: "/admin/revenue" },
+      ],
     },
     {
       name: "Quản lý gói dịch vụ",

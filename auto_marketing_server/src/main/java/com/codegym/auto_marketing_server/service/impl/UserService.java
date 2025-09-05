@@ -123,7 +123,6 @@ public class UserService implements IUserService {
         }
     }
 
-
     @Override
     public Page<User> searchAndPage(String name, String planName, LocalDate startDate, LocalDate endDate,Boolean status,Pageable pageable) {
         return userRepository.searchAndPage(name, planName, startDate, endDate, status,pageable);

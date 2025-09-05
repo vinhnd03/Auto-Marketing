@@ -1,5 +1,5 @@
 import axios from "axios";
-const URL = "http://localhost:8080/api/campaign";
+const URL = `${process.env.REACT_APP_BACKEND_URL}/api/campaign`;
 
 const findCampaignByWorkspaceId = async (workspaceId) => {
   try {

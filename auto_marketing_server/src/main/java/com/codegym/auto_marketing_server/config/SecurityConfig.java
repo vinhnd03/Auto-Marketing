@@ -52,7 +52,7 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/social/connect/facebook/callback",
-                                "/api/v1/plans", "api/payment/vn-pay-callback").permitAll()
+                                "/api/v1/plans", "/api/payment/vn-pay-callback").permitAll()
                         .requestMatchers("/api/user/**", "/api/schedules/**", "/api/v1/**").hasAnyAuthority("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
@@ -93,7 +93,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(frontendUrl, "http://127.0.0.1:3000")); // domain frontend// domain frontend
+        configuration.setAllowedOrigins(Arrays.asList(frontendUrl, "http://10.10.8.15:3000")); // domain frontend// domain frontend
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true); // <--- QUAN TRỌNG

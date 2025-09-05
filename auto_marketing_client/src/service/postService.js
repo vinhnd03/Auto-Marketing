@@ -1,10 +1,10 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080/api/v1";
+const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}/api/v1`;
 const apiClient = axios.create({
   withCredentials: true,
   baseURL: BASE_URL,
-  timeout: 5 * 60 * 1000,
+  timeout: 10 * 60 * 1000,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -37,20 +37,18 @@ export async function approveAndCleanPosts(topicId, selectedPostIds) {
   );
 }
 
-export const getPostsByFilter = async (workspaceId,campaignId,topicId) => {
+export const getPostsByFilter = async (workspaceId, campaignId, topicId) => {
   try {
     const resp = await axios.get(`${BASE_URL}/posts/filter`, {
       params: {
         workspaceId,
         campaignId: campaignId || null,
-        topicId: topicId || null
+        topicId: topicId || null,
       },
-      withCredentials: true
-    })
+      withCredentials: true,
+    });
     console.log(resp.data);
 
-    return resp.data
-  } catch (error) {
-
-  }
-}
+    return resp.data;
+  } catch (error) {}
+};

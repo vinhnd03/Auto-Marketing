@@ -71,7 +71,7 @@ export async function findById(id) {
     }
 }
 
-export async function searchAndPage(
+export async function search(
     nameKeyword,
     servicePackageKey,
     page = 1,
@@ -104,6 +104,5 @@ export async function searchAndPage(
         return { data: [], totalItems: 0, totalPages: 0, currentPage: page };
     }
 }
-
 
 

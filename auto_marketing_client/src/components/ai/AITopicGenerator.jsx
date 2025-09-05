@@ -257,8 +257,11 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
               </div>
             </div>
             <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              onClick={generating ? undefined : onClose}
+              disabled={generating}
+              className={`text-gray-400 hover:text-gray-600 ${
+                generating ? "cursor-not-allowed opacity-50" : ""
+              }`}
             >
               <X size={24} />
             </button>
@@ -302,9 +305,15 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
               ) : (
                 <select
                   value={selectedCampaign}
-                  onChange={(e) => setSelectedCampaign(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  disabled={campaigns.length === 0}
+                  onChange={
+                    generating
+                      ? undefined
+                      : (e) => setSelectedCampaign(e.target.value)
+                  }
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    generating ? "cursor-not-allowed opacity-50" : ""
+                  }`}
+                  disabled={campaigns.length === 0 || generating}
                 >
                   <option value="">-- Chọn chiến dịch --</option>
                   {campaigns
@@ -330,8 +339,15 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
               </label>
               <select
                 value={topicsCount}
-                onChange={(e) => setTopicsCount(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                onChange={
+                  generating
+                    ? undefined
+                    : (e) => setTopicsCount(parseInt(e.target.value))
+                }
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                  generating ? "cursor-not-allowed opacity-50" : ""
+                }`}
+                disabled={generating}
               >
                 <option value={5}>5 topics</option>
                 <option value={10}>10 topics</option>
@@ -356,31 +372,38 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
               </label>
               <textarea
                 value={additionalInstructions}
-                onChange={(e) => {
-                  let value = e.target.value;
-                  const forbiddenRegex = /[!@#$%^&*<>]/;
-                  const invalidChar = value.match(forbiddenRegex);
-                  setShowInvalidCharWarning(!!invalidChar);
-                  setShowLengthWarning(value.length > 500);
-                  // Nếu có nhiều hơn 1 dấu cách liên tiếp thì cảnh báo
-                  const hasMultipleSpaces = / {2,}/.test(value);
-                  // Chuẩn hóa: thay thế nhiều dấu cách liên tiếp bằng 1 dấu cách
-                  value = value.replace(/ {2,}/g, " ");
-                  setAdditionalInstructions(value);
-                  // Chuẩn hóa input: loại bỏ khoảng trắng thừa, trim đầu/cuối
-                  const normalized = value.replace(/\s+/g, " ").trim();
-                  // Nếu normalized rỗng hoặc chỉ có 1 từ thì báo lỗi
-                  const wordCount =
-                    normalized.length === 0 ? 0 : normalized.split(" ").length;
-                  setShowEmptyWarning(wordCount < 2 || hasMultipleSpaces);
-                }}
+                onChange={
+                  generating
+                    ? undefined
+                    : (e) => {
+                        let value = e.target.value;
+                        const forbiddenRegex = /[!@#$%^&*<>]/;
+                        const invalidChar = value.match(forbiddenRegex);
+                        setShowInvalidCharWarning(!!invalidChar);
+                        setShowLengthWarning(value.length > 500);
+                        // Nếu có nhiều hơn 1 dấu cách liên tiếp thì cảnh báo
+                        const hasMultipleSpaces = / {2,}/.test(value);
+                        // Chuẩn hóa: thay thế nhiều dấu cách liên tiếp bằng 1 dấu cách
+                        value = value.replace(/ {2,}/g, " ");
+                        setAdditionalInstructions(value);
+                        // Chuẩn hóa input: loại bỏ khoảng trắng thừa, trim đầu/cuối
+                        const normalized = value.replace(/\s+/g, " ").trim();
+                        // Nếu normalized rỗng hoặc chỉ có 1 từ thì báo lỗi
+                        const wordCount =
+                          normalized.length === 0
+                            ? 0
+                            : normalized.split(" ").length;
+                        setShowEmptyWarning(wordCount < 2 || hasMultipleSpaces);
+                      }
+                }
                 placeholder="Ví dụ: Tập trung vào đối tượng khách hàng trẻ tuổi, sử dụng hashtag trending, đề cập đến sản phẩm mới..."
                 className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none ${
                   showInvalidCharWarning || showLengthWarning
                     ? "border-red-500"
                     : ""
-                }`}
+                } ${generating ? "cursor-not-allowed opacity-50" : ""}`}
                 rows={3}
+                disabled={generating}
               />
               {showEmptyWarning && (
                 <div className="text-xs text-red-600 mt-1">
@@ -416,16 +439,23 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
                   {creativityOptions.map((option) => (
                     <div
                       key={option.value}
-                      onClick={() =>
-                        setAiSettings({
-                          ...aiSettings,
-                          creativity: option.value,
-                        })
+                      onClick={
+                        generating
+                          ? undefined
+                          : () =>
+                              setAiSettings({
+                                ...aiSettings,
+                                creativity: option.value,
+                              })
                       }
                       className={`p-3 border rounded-lg cursor-pointer transition-all ${
                         aiSettings.creativity === option.value
                           ? "border-purple-500 bg-purple-50"
                           : "border-gray-300 hover:border-gray-400"
+                      } ${
+                        generating
+                          ? "cursor-not-allowed opacity-50 pointer-events-none"
+                          : ""
                       }`}
                     >
                       <div className="font-medium text-sm">{option.label}</div>
@@ -446,16 +476,23 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
                   {styleOptions.map((option) => (
                     <div
                       key={option.value}
-                      onClick={() =>
-                        setAiSettings({
-                          ...aiSettings,
-                          contentStyle: option.value,
-                        })
+                      onClick={
+                        generating
+                          ? undefined
+                          : () =>
+                              setAiSettings({
+                                ...aiSettings,
+                                contentStyle: option.value,
+                              })
                       }
                       className={`p-3 border rounded-lg cursor-pointer transition-all ${
                         aiSettings.contentStyle === option.value
                           ? "border-purple-500 bg-purple-50"
                           : "border-gray-300 hover:border-gray-400"
+                      } ${
+                        generating
+                          ? "cursor-not-allowed opacity-50 pointer-events-none"
+                          : ""
                       }`}
                     >
                       <div className="font-medium text-sm">{option.label}</div>
@@ -517,8 +554,11 @@ const AITopicGenerator = ({ isOpen, onClose, onGenerate }) => {
 
           <div className="flex justify-between items-center p-6 border-t bg-gray-50">
             <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              onClick={generating ? undefined : onClose}
+              disabled={generating}
+              className={`px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 ${
+                generating ? "cursor-not-allowed opacity-50" : ""
+              }`}
             >
               Hủy
             </button>

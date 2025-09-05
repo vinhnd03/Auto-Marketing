@@ -162,7 +162,7 @@ public class WorkspaceController {
                 avatarUrl = cloudinaryService.uploadMultipart(avatar);
             } else if (avatar == null) {
                 // Nếu phía FE gửi null (user muốn xóa avatar)
-                avatarUrl = "https://haycafe.vn/wp-content/uploads/2022/10/Hinh-anh-anime-nu-buon.jpg";
+                avatarUrl = "https://res.cloudinary.com/dnrxauvuu/image/upload/v1756258156/b6cayxhszrhmlv6yxqmy.png";
             }
         } catch (IOException e) {
             return new ResponseEntity<>("Upload ảnh thất bại: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

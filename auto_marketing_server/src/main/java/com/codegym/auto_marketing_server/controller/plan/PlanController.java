@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,12 +30,17 @@ public class PlanController {
     }
 
     @GetMapping("/currentPlan/{id}")
-    public ResponseEntity<?> getCurrentPlan(@PathVariable("id") Long userId){
-        if(userId != null){
+    public ResponseEntity<?> getCurrentPlan(@PathVariable("id") Long userId) {
+        if (userId != null) {
             Optional<Subscription> subscription = subscriptionService.findActiveByUserId(userId);
-            if(subscription.isEmpty()){
+
+            if (subscription.isEmpty()) {
                 return new ResponseEntity<>(null, HttpStatus.OK);
             }
+
+            int countSubscriptionByPlantName = subscriptionService.countSubscriptionByPlantName(subscription.get().getPlan().getName(), userId);
+            LocalDate endDate = subscription.get().getEndDate().plusDays((long) (countSubscriptionByPlantName - 1) * subscription.get().getPlan().getDurationDate());
+            subscription.get().setEndDate(endDate);
             return new ResponseEntity<>(subscription, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

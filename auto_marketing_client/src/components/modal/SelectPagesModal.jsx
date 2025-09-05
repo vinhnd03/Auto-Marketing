@@ -15,12 +15,12 @@ const SelectPagesModal = ({ isOpen, onClose, onSuccess, userId }) => {
       setLoading(true);
       try {
         // 1️⃣ Đồng bộ fanpage từ Facebook dựa trên access token
-        await fetch(`http://localhost:8080/api/fanpages/sync?userId=${userId}`, {
+        await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/fanpages/sync?userId=${userId}`, {
           method: "POST",
         });
 
         // 2️⃣ Lấy danh sách fanpage đã sync từ DB
-        const res = await fetch(`http://localhost:8080/api/fanpages?userId=${userId}`);
+        const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/fanpages?userId=${userId}`);
         if (!res.ok) throw new Error("Lỗi khi lấy danh sách Fanpage");
         const data = await res.json();
         setPages(data || []);

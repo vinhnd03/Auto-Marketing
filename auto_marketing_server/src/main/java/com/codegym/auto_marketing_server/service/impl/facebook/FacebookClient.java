@@ -38,6 +38,7 @@ public class FacebookClient {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("message", message);
         form.add("access_token", pageAccessToken);
+        form.add("published", "true");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

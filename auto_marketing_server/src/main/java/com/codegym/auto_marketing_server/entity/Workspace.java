@@ -29,7 +29,7 @@ public class Workspace {
     @PrePersist
     public void prePersist() {
         if (this.avatar == null || this.avatar.isBlank()) {
-            this.avatar = "https://haycafe.vn/wp-content/uploads/2022/10/Hinh-anh-anime-nu-buon.jpg";
+            this.avatar = "https://res.cloudinary.com/dnrxauvuu/image/upload/v1756258156/b6cayxhszrhmlv6yxqmy.png";
         }
         this.createdAt = LocalDate.now();
     }

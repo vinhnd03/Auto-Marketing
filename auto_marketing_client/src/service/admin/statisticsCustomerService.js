@@ -1,10 +1,10 @@
 import axios from "axios";
 
-const BASE = "http://localhost:8080/api/users";
+const BASE = `${process.env.REACT_APP_BACKEND_URL}/api/users`;
 
 export async function getAllServicePackages() {
     try {
-        const response = await axios.get("http://localhost:8080/api/plans", {withCredentials: true});
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/plans`, {withCredentials: true});
         const plans = response.data?.data || response.data;
         return Array.isArray(plans) ? plans : [];
     } catch (e) {

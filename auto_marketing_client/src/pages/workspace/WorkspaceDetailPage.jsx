@@ -32,9 +32,6 @@ import axios from "axios";
 
 import { useAuth } from "../../context/AuthContext";
 const WorkspaceDetailPage = () => {
-
-  const [expanded, setExpanded] = useState(false);
-  const maxLength = 100;
   // State cho tìm kiếm campaign
   const [campaignSearch, setCampaignSearch] = useState("");
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
@@ -55,9 +52,17 @@ const WorkspaceDetailPage = () => {
   const { workspaceId } = useParams();
   const [workspace, setWorkspace] = useState(null);
   const [loadingWorkspace, setLoadingWorkspace] = useState(true);
-  const [activeTab, setActiveTab] = useState("campaigns");
+  const [activeTab, setActiveTab] = useState("overview");
   const [showTopicGenerator, setShowTopicGenerator] = useState(false);
-  const [newlyCreatedTopics, setNewlyCreatedTopics] = useState([]);
+  // Persist AI generated topics so section remains after reload
+  const [newlyCreatedTopics, setNewlyCreatedTopics] = useState(() => {
+    try {
+      const saved = localStorage.getItem("newlyCreatedTopics");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [selectedTopicForContent, setSelectedTopicForContent] = useState(null);
   const [autoGeneratingTopics, setAutoGeneratingTopics] = useState(false);
   const [approvedTopics, setApprovedTopics] = useState(new Set());
@@ -313,7 +318,9 @@ const WorkspaceDetailPage = () => {
         }
         return updatedWorkspace;
       });
-      setNewlyCreatedTopics(newGeneratedTopics.map((topic) => topic.id));
+      const topicIds = newGeneratedTopics.map((topic) => topic.id);
+      setNewlyCreatedTopics(topicIds);
+      localStorage.setItem("newlyCreatedTopics", JSON.stringify(topicIds));
       setActiveTab("topics");
       toast.dismiss();
       toast.success(
@@ -589,6 +596,7 @@ const WorkspaceDetailPage = () => {
         duration: 4000,
       });
       setNewlyCreatedTopics([]);
+      localStorage.removeItem("newlyCreatedTopics");
       setApprovedTopics(new Set());
     } catch (error) {
       toast.dismiss(loadingToast);
@@ -619,7 +627,7 @@ const WorkspaceDetailPage = () => {
   // Lấy danh sách bài viết từ DB
   useEffect(() => {
     axios
-      .get("http://localhost:8080/api/v1/posts/all", { withCredentials: true })
+      .get(`${process.env.REACT_APP_BACKEND_URL}/api/v1/posts/all`, { withCredentials: true })
       .then((res) => {
         const dataArray = Array.isArray(res.data) ? res.data : [];
         const formattedData = dataArray.map((p) => ({
@@ -864,8 +872,8 @@ const WorkspaceDetailPage = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
             <div className="flex items-center space-x-2 md:space-x-4">
               <Link
-                  to="/workspace"
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                to="/workspace"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <ArrowLeft size={20} className="text-gray-600" />
               </Link>
@@ -873,22 +881,7 @@ const WorkspaceDetailPage = () => {
                 <h1 className="text-2xl font-bold text-gray-900">
                   {workspace.name}
                 </h1>
-
-                <p className="text-gray-600">
-                  {expanded
-                      ? workspace.description
-                      : workspace.description?.length > maxLength
-                          ? workspace.description.substring(0, maxLength) + "..."
-                          : workspace.description}
-                  {workspace.description?.length > maxLength && (
-                      <button
-                          onClick={() => setExpanded(!expanded)}
-                          className="ml-2 text-blue-500 hover:underline"
-                      >
-                        {expanded ? "Thu gọn" : "Xem thêm"}
-                      </button>
-                  )}
-                </p>
+                <p className="text-gray-600">{workspace.description}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2 md:space-x-3 mt-2 md:mt-0">
@@ -957,11 +950,11 @@ const WorkspaceDetailPage = () => {
             <div className="border-b border-gray-200 w-full overflow-x-auto">
               <nav className="flex flex-nowrap space-x-2 px-2 py-2 scrollbar-hide">
                 {[
-                  // {
-                  //   id: "overview",
-                  //   label: "Tổng quan",
-                  //   icon: <BarChart3 size={16} />,
-                  // },
+                  {
+                    id: "overview",
+                    label: "Tổng quan",
+                    icon: <BarChart3 size={14} />,
+                  },
                   {
                     id: "campaigns",
                     label: "Chiến dịch",
@@ -1000,68 +993,67 @@ const WorkspaceDetailPage = () => {
               </nav>
             </div>
 
-            <div className="p-6">
-              {/*{activeTab === "overview" && (*/}
-              {/*  <div className="space-y-6">*/}
-              {/*    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">*/}
-              {/*      /!*<div>*!/*/}
-              {/*      /!*  <h3 className="text-lg font-semibold text-gray-900 mb-4">*!/*/}
-              {/*      /!*    Thông tin workspace*!/*/}
-              {/*      /!*  </h3>*!/*/}
-              {/*      /!*  <div className="space-y-3">*!/*/}
-              {/*      /!*    <div className="flex justify-between">*!/*/}
-              {/*      /!*      <span className="text-gray-600">Template:</span>*!/*/}
-              {/*      /!*      <span className="font-medium">*!/*/}
-              {/*      /!*        E-commerce Marketing*!/*/}
-              {/*      /!*      </span>*!/*/}
-              {/*      /!*    </div>*!/*/}
-              {/*      /!*    <div className="flex justify-between">*!/*/}
-              {/*      /!*      <span className="text-gray-600">Ngân sách:</span>*!/*/}
-              {/*      /!*      <span className="font-medium">*!/*/}
-              {/*      /!*        {formatCurrency(workspace.budget)}*!/*/}
-              {/*      /!*      </span>*!/*/}
-              {/*      /!*    </div>*!/*/}
-              {/*      /!*    <div className="flex justify-between">*!/*/}
-              {/*      /!*      <span className="text-gray-600">Thời gian:</span>*!/*/}
-              {/*      /!*      <span className="font-medium">*!/*/}
-              {/*      /!*        {workspace.duration}*!/*/}
-              {/*      /!*      </span>*!/*/}
-              {/*      /!*    </div>*!/*/}
-              {/*      /!*    <div className="flex justify-between">*!/*/}
-              {/*      /!*      <span className="text-gray-600">Tạo ngày:</span>*!/*/}
-              {/*      /!*      <span className="font-medium">*!/*/}
-              {/*      /!*        {workspace.createdAt}*!/*/}
-              {/*      /!*      </span>*!/*/}
-              {/*      /!*    </div>*!/*/}
-              {/*      /!*  </div>*!/*/}
-              {/*      /!*</div>*!/*/}
-              {/*      /!*<div>*!/*/}
-              {/*      /!*  <h3 className="text-lg font-semibold text-gray-900 mb-4">*!/*/}
-              {/*      /!*    Mục tiêu*!/*/}
-              {/*      /!*  </h3>*!/*/}
-              {/*      /!*  <div className="space-y-2">*!/*/}
-              {/*      /!*    {Array.isArray(workspace.goals) &&*!/*/}
-              {/*      /!*    workspace.goals.length > 0 ? (*!/*/}
-              {/*      /!*      workspace.goals.map((goal, goalIndex) => (*!/*/}
-              {/*      /!*        <div*!/*/}
-              {/*      /!*          key={`goal-${goalIndex}-${goal}`}*!/*/}
-              {/*      /!*          className="flex items-center space-x-2"*!/*/}
-              {/*      /!*        >*!/*/}
-              {/*      /!*          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>*!/*/}
-              {/*      /!*          <span className="text-gray-700">{goal}</span>*!/*/}
-              {/*      /!*        </div>*!/*/}
-              {/*      /!*      ))*!/*/}
-              {/*      /!*    ) : (*!/*/}
-              {/*      /!*      <span className="text-gray-500">*!/*/}
-              {/*      /!*        Chưa có mục tiêu nào*!/*/}
-              {/*      /!*      </span>*!/*/}
-              {/*      /!*    )}*!/*/}
-              {/*      /!*  </div>*!/*/}
-              {/*      /!*</div>*!/*/}
-              {/*    </div>*/}
-              {/*  </div>*/}
-              {/*)}*/}
-
+            <div className="p-2 md:p-6">
+              {activeTab === "overview" && (
+                <div className="space-y-4 md:space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Thông tin workspace
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Template:</span>
+                          <span className="font-medium">
+                            E-commerce Marketing
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Ngân sách:</span>
+                          <span className="font-medium">
+                            {formatCurrency(workspace.budget)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Thời gian:</span>
+                          <span className="font-medium">
+                            {workspace.duration}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Tạo ngày:</span>
+                          <span className="font-medium">
+                            {workspace.createdAt}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Mục tiêu
+                      </h3>
+                      <div className="space-y-2">
+                        {Array.isArray(workspace.goals) &&
+                        workspace.goals.length > 0 ? (
+                          workspace.goals.map((goal, goalIndex) => (
+                            <div
+                              key={`goal-${goalIndex}-${goal}`}
+                              className="flex items-center space-x-2"
+                            >
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <span className="text-gray-700">{goal}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <span className="text-gray-500">
+                            Chưa có mục tiêu nào
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               {/* CAMPAIGN CUA ANH KHANH */}
               {activeTab === "campaigns" && (
                 <div className="px-2 sm:px-4 md:px-8 lg:px-12">
@@ -1129,12 +1121,6 @@ const WorkspaceDetailPage = () => {
                               bạn. Hãy xem và chỉnh sửa nếu cần.
                             </p>
                           </div>
-                          <button
-                            onClick={handleHideAITopics}
-                            className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center space-x-2"
-                          >
-                            <span>✕ Ẩn section</span>
-                          </button>
                         </div>
                       </div>
 
@@ -1308,7 +1294,7 @@ const WorkspaceDetailPage = () => {
                                           return (
                                             <div className="mb-3">
                                               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                                {contentCount} content
+                                                {contentCount} bài viết
                                               </span>
                                             </div>
                                           );
@@ -1320,7 +1306,7 @@ const WorkspaceDetailPage = () => {
                                               setSelectedTopicForContent(topic);
                                             }}
                                           >
-                                            Xem Content
+                                            Xem các bài viết
                                           </button>
                                           <button
                                             className="ml-2 bg-purple-100 text-purple-700 px-3 py-2 rounded-lg text-sm font-semibold hover:bg-purple-200 transition-colors flex items-center justify-center"
@@ -1436,7 +1422,6 @@ const WorkspaceDetailPage = () => {
                   )}
                 </div>
               )}
-
               {/* ĐĂNG BÀI LÊN MXH CỦA ANH BÌNH 
                 Có thể tạo 1 component và truyền props vào như của anh khánh ví dụ như:
                   <CampaignTable
@@ -1444,7 +1429,6 @@ const WorkspaceDetailPage = () => {
                   onUpdateCampaigns={handleUpdateCampaigns}
                 />
               */}
-
               {activeTab === "publish" && (
                 <SchedulePostCalendar
                   confirmedPosts={confirmedPosts}
