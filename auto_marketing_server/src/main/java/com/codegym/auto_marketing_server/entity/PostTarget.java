@@ -18,6 +18,8 @@ public class PostTarget {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String postUrl;
+
     @ManyToOne
     @JoinColumn(name = "schedule_post_id", nullable = false)
     private ScheduledPost scheduledPost;

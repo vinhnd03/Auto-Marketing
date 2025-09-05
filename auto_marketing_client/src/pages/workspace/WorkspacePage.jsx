@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { Preloader } from "../../components";
 import CampaignService from "../../service/campaignService";
+import { getUserFanpages } from "../../service/publish/fanpageService";
 
 const WorkspacePage = () => {
   const { user } = useAuth();
@@ -46,6 +47,16 @@ const WorkspacePage = () => {
       setTotalCampaign(null);
     }
   };
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     await getUserFanpages(user.id);
+  //   }
+  //   fetchData();
+  // }, [])
+
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {

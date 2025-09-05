@@ -59,17 +59,27 @@ public class PostingJob {
                             //.limit(1) // nếu cho up 1 ảnh
                             .collect(Collectors.toList());
 
-                    boolean ok;
+                    String postId;
                     if (imageUrls.isEmpty()) {
-                        ok = facebookClient.publishText(pageId, pageToken, message);
+                        postId = facebookClient.publishText(pageId, pageToken, message);
                     } else if (imageUrls.size() == 1) {
-                        ok = facebookClient.publishPhoto(pageId, pageToken, message, imageUrls.get(0));
+                        postId = facebookClient.publishPhoto(pageId, pageToken, message, imageUrls.get(0));
                     } else {
-                        ok = facebookClient.publishPhotos(pageId, pageToken,message,imageUrls);
+                        postId = facebookClient.publishPhotos(pageId, pageToken, message, imageUrls);
                     }
 
-                    allOk = allOk && ok;
-                    logger.info("Publish to page {} -> {}", pageId, ok ? "OK" : "FAIL");
+                    if (postId != null) {
+                        String[] parts = postId.split("_");
+                        String page = parts[0];
+                        String post = parts[1];
+
+                        String postUrl = "https://www.facebook.com/" + page +  "/posts/" + post;
+                        postTarget.setPostUrl(postUrl);
+                        postTargetRepository.save(postTarget);
+                        logger.info("Publish to page {} success, postId = {}", pageId, postId);
+                    } else {
+                        logger.error("Publish to page {} failed", pageId);
+                    }
                 }
 
                 scheduledPost.setStatus(allOk ? ScheduledPostStatus.POSTED : ScheduledPostStatus.FAILED);
