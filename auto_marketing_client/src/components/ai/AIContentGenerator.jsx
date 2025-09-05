@@ -33,7 +33,7 @@ const AIContentGenerator = ({
     tone: "professional",
     includeHashtags: true,
     includeCTA: true,
-    model: "gpt", // mặc định GPT
+    model: "gpt",
   });
   const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [previewContent, setPreviewContent] = useState([]);
@@ -42,6 +42,9 @@ const AIContentGenerator = ({
   // Lưu và lấy lại content từ localStorage
   const LOCAL_KEY = selectedTopic?.id
     ? `ai_preview_content_${selectedTopic.id}`
+    : null;
+  const CACHE_KEY = selectedTopic?.id
+    ? `ai_gen_cache_${selectedTopic.id}`
     : null;
 
   // Khi gen xong thì lưu vào localStorage
@@ -53,7 +56,7 @@ const AIContentGenerator = ({
     }
   }, [showResults, previewContent, LOCAL_KEY]);
 
-  // Khi mở modal thì lấy lại nếu có
+  // Khi mở modal thì lấy lại nếu có kết quả đã gen
   useEffect(() => {
     if (isOpen && LOCAL_KEY) {
       const saved = localStorage.getItem(LOCAL_KEY);
@@ -70,6 +73,46 @@ const AIContentGenerator = ({
     }
     // Khi đóng modal thì không xóa dữ liệu, chỉ xóa khi tạo lại hoặc quay lại settings
   }, [isOpen, LOCAL_KEY]);
+
+  // ----- BẮT ĐẦU PATCH: Lưu lại state khi modal đóng hoặc unmount -----
+  // Lưu trạng thái form vào localStorage khi đang gen
+  useEffect(() => {
+    if (generating && CACHE_KEY) {
+      const cache = {
+        generating,
+        contentSettings,
+        additionalInstructions,
+        previewContent,
+        showResults,
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+    }
+  }, [
+    generating,
+    contentSettings,
+    additionalInstructions,
+    previewContent,
+    showResults,
+    CACHE_KEY,
+  ]);
+
+  useEffect(() => {
+    if (isOpen && LOCAL_KEY) {
+      const saved = localStorage.getItem(LOCAL_KEY);
+      if (saved) {
+        try {
+          const arr = JSON.parse(saved);
+          if (Array.isArray(arr) && arr.length > 0) {
+            setPreviewContent(arr);
+            setShowResults(true);
+            setGenerating(false); // <- reset trạng thái loading!
+            setSelectedContentIds(arr.map((c) => c.id));
+          }
+        } catch (e) {}
+      }
+    }
+  }, [isOpen, LOCAL_KEY]);
+  // ----- KẾT THÚC PATCH -----
 
   // Notify parent when showResults changes
   useEffect(() => {
@@ -99,8 +142,6 @@ const AIContentGenerator = ({
       }
     }
   }, [isOpen]);
-
-  // Đã bỏ loại nội dung
 
   const toneOptions = [
     { value: "casual", label: "Thân thiện", description: "Gần gũi, dễ hiểu" },
@@ -169,37 +210,19 @@ const AIContentGenerator = ({
       setSelectedContentIds(safeContent.map((c) => c.id));
       setShowResults(true);
       setGenerating(false);
+
+      // Xoá cache khi gen xong
+      if (LOCAL_KEY) {
+        try {
+          localStorage.setItem(LOCAL_KEY, JSON.stringify(safeContent));
+        } catch (e) {}
+      }
+
       // Thông báo thành công qua chuông
       const postCountDisplay =
         contentSettings.postCount === -1
           ? contentSettings.customPostCount
           : contentSettings.postCount;
-
-      Swal.fire({
-        icon: "success",
-        title: "Đã tạo nội dung thành công!",
-        html: `
-    <div style="font-size:16px;margin-top:8px;">
-      Đã tạo thành công <b>${postCountDisplay}</b> bài viết cho chủ đề "<b>${
-          selectedTopic?.title || selectedTopic?.name || ""
-        }</b>"!<br/><br/>
-      <span style="color:#16a34a;font-weight:bold;">
-        👉 Hãy bấm vào nút 
-        <span style="background:#16a34a;color:white;padding:2px 10px;border-radius:6px;display:inline-block;">Xem nội dung đã tạo</span>
-        để xem các bài viết chi tiết!
-      </span>
-    </div>
-  `,
-        confirmButtonColor: "#16a34a",
-        confirmButtonText: "Đã hiểu",
-        allowOutsideClick: true,
-        backdrop: true,
-        didOpen: () => {
-          document.querySelector(".swal2-container").style.zIndex = "999999";
-        },
-      });
-
-      // Nếu muốn add notification và play sound thì vẫn giữ
       addNotification &&
         addNotification({
           type: "success",
@@ -210,11 +233,12 @@ const AIContentGenerator = ({
         });
       // Phát âm thanh
       playNotificationSound && playNotificationSound();
-      // toast.success("Tạo nội dung thành công!", { style: TOAST_STYLE });
     } catch (err) {
       setError("Không thể tạo nội dung. Vui lòng thử lại.");
       setGenerating(false);
-      // toast.error("Tạo nội dung thất bại!", { style: TOAST_STYLE });
+
+      // Xoá cache khi có lỗi
+      if (CACHE_KEY) localStorage.removeItem(CACHE_KEY);
     }
   };
 
@@ -303,20 +327,18 @@ const AIContentGenerator = ({
       setShowPublisher(false);
       toast.success("Lưu nội dung thành công!");
       setGenerating(false);
-      setShowResults(false); // Nếu muốn ẩn kết quả sau khi lưu
+      setShowResults(false);
 
       // Xoá localStorage sau khi lưu thành công
-      const LOCAL_KEY = selectedTopic?.id
-        ? `ai_preview_content_${selectedTopic.id}`
-        : null;
       if (LOCAL_KEY) localStorage.removeItem(LOCAL_KEY);
+
+      // Xoá cache khi lưu thành công
+      if (CACHE_KEY) localStorage.removeItem(CACHE_KEY);
 
       // Gọi callback để cập nhật danh sách content ở component cha
       if (typeof onContentSaved === "function") {
-        // Truyền về mảng content mới đã được duyệt
         onContentSaved(approvedPosts);
       }
-      // Đóng modal sau khi lưu thành công
       if (typeof onClose === "function") {
         onClose();
       }
@@ -335,8 +357,12 @@ const AIContentGenerator = ({
     setEditingContent(null);
     setSelectedContentIds([]);
     setShowPublisher(false);
+
     // Xóa dữ liệu local khi quay lại settings
     if (LOCAL_KEY) localStorage.removeItem(LOCAL_KEY);
+
+    // Xoá cache khi quay lại settings
+    if (CACHE_KEY) localStorage.removeItem(CACHE_KEY);
   };
 
   useEffect(() => {

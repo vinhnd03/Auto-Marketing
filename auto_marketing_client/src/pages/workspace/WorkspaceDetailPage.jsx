@@ -16,7 +16,11 @@ import {
 } from "lucide-react";
 
 import { countApprovedTopicsByCampaign } from "../../service/topicService";
-import { getPostsByTopic, countPostsByTopic, countApprovedPostsByWorkspace } from "../../service/postService";
+import {
+  getPostsByTopic,
+  countPostsByTopic,
+  countApprovedPostsByWorkspace,
+} from "../../service/postService";
 import {
   generateTopicsWithAI,
   approveTopic,
