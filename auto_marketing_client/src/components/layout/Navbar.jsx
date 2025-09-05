@@ -308,27 +308,6 @@ export default function Navbar() {
                     </Link>
 
                     <Link
-                      to="/ai-generated-posts"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-4 h-4 mr-3 text-gray-400"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15.362 5.214A6.75 6.75 0 1 1 5.214 15.362m10.148-10.148a6.751 6.751 0 0 0-10.148 10.148m10.148-10.148L21 3m-5.638 2.214L21 3m-15.786 12.362L3 21m2.214-5.638L3 21"
-                        />
-                      </svg>
-                      Xem bài viết AI đã tạo
-                    </Link>
-                    <Link
                       to="/settings"
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -484,27 +463,6 @@ export default function Navbar() {
                   Lịch sử thanh toán
                 </Link>
 
-                <Link
-                  to="/ai-generated-posts"
-                  onClick={closeMenu}
-                  className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5 mr-3 text-gray-400"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15.362 5.214A6.75 6.75 0 1 1 5.214 15.362m10.148-10.148a6.751 6.751 0 0 0-10.148 10.148m10.148-10.148L21 3m-5.638 2.214L21 3m-15.786 12.362L3 21m2.214-5.638L3 21"
-                    />
-                  </svg>
-                  Xem bài viết AI đã tạo
-                </Link>
                 <Link
                   to="/settings"
                   onClick={closeMenu}

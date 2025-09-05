@@ -213,15 +213,15 @@ const AIContentGenerator = ({
 
       // Hiển thị SweetAlert khi gen thành công (chỉ ở đây, không ở nút lưu)
       Swal.fire({
-        icon: 'success',
-        title: 'Tạo nội dung AI thành công!',
+        icon: "success",
+        title: "Tạo nội dung AI thành công!",
         text: `Đã tạo thành công ${safeContent.length} bài viết cho chủ đề này.`,
-        confirmButtonText: 'OK',
+        confirmButtonText: "OK",
         timer: 2500,
         didOpen: () => {
-          const swal = document.querySelector('.swal2-container');
-          if (swal) swal.style.zIndex = '999999';
-        }
+          const swal = document.querySelector(".swal2-container");
+          if (swal) swal.style.zIndex = "999999";
+        },
       });
 
       // Xoá cache khi gen xong
@@ -233,18 +233,49 @@ const AIContentGenerator = ({
 
       // Thông báo thành công qua chuông
       const postCountDisplay =
-        contentSettings.postCount === -1
-          ? contentSettings.customPostCount
-          : contentSettings.postCount;
-      addNotification &&
-        addNotification({
-          type: "success",
-          message: `Đã tạo thành công ${postCountDisplay} bài viết cho chủ đề "${
+        // Hiển thị SweetAlert khi gen thành công (chỉ ở đây, không ở nút lưu)
+        Swal.fire({
+          icon: "success",
+          title: "Tạo nội dung AI thành công!",
+          html: `Đã tạo thành công <b>${
+            safeContent.length
+          }</b> bài viết cho chủ đề <b>"${
             selectedTopic?.title || selectedTopic?.name || ""
-          }"!`,
-          createdAt: new Date(),
+          }"</b>!<br/><br/>👉 <b>Hướng dẫn:</b> Vui lòng chuyển sang tab <b>Chủ đề</b> và chọn lại chủ đề <b>"${
+            selectedTopic?.title || selectedTopic?.name || ""
+          }"</b> để xem các nội dung vừa được tạo.`,
+          confirmButtonText: "OK",
+          allowOutsideClick: false,
+          didOpen: () => {
+            const swal = document.querySelector(".swal2-container");
+            if (swal) {
+              swal.style.zIndex = 120001;
+            }
+            // Thông báo thành công qua chuông và phát âm thanh ngay khi hiện alert
+            const postCountDisplay =
+              contentSettings.postCount === -1
+                ? contentSettings.customPostCount
+                : contentSettings.postCount;
+            if (addNotification) {
+              addNotification({
+                type: "success",
+                message: `Đã tạo thành công ${postCountDisplay} bài viết cho chủ đề "${
+                  selectedTopic?.title || selectedTopic?.name || ""
+                }"!`,
+                createdAt: new Date(),
+              });
+            }
+            if (typeof playNotificationSound === "function") {
+              playNotificationSound();
+            }
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            if (typeof onClose === "function") {
+              onClose();
+            }
+          }
         });
-      // Phát âm thanh
       playNotificationSound && playNotificationSound();
     } catch (err) {
       setError("Không thể tạo nội dung. Vui lòng thử lại.");
@@ -338,7 +369,7 @@ const AIContentGenerator = ({
 
       setPreviewContent(approvedPosts);
       setShowPublisher(false);
-  toast.success("Lưu nội dung thành công!");
+      toast.success("Lưu nội dung thành công!");
       setGenerating(false);
       setShowResults(false);
 
