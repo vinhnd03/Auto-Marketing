@@ -1,10 +1,12 @@
 import axios from "axios";
+import api from './../context/api';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+// const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 // Lấy danh sách plan
 export const fetchPlans = async () => {
-    const response = await axios.get(`${API_URL}/api/v1/plans`,{
+    // const response = await axios.get(`${API_URL}/api/v1/plans`,{
+    const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/v1/plans`,{
         withCredentials: true,
     });
     return Array.isArray(response.data) ? response.data : [];
@@ -12,8 +14,8 @@ export const fetchPlans = async () => {
 
 // Đăng ký gói FREE
 export const subscribeTrial = async (userId) => {
-    const response = await axios.post(
-        `${API_URL}/api/v1/workspaces/subscriptions/trial?userId=${userId}`,
+    // const response = await axios.post(`${API_URL}/api/v1/workspaces/subscriptions/trial?userId=${userId}`,
+    const response = await api.post(`/v1/workspaces/subscriptions/trial?userId=${userId}`,
         {},
         {withCredentials: true}
     );
@@ -22,8 +24,8 @@ export const subscribeTrial = async (userId) => {
 
 // Thanh toán gói qua VNPAY
 export const createPayment = async (plan, userId) => {
-    const response = await axios.post(
-        `${API_URL}/api/payment`,
+    // const response = await axios.post(`${API_URL}/api/payment`,
+    const response = await api.post(`/payment`,
         {
             serviceName: plan.name,
             amount: plan.price,
@@ -38,7 +40,8 @@ export const createPayment = async (plan, userId) => {
 
 export const getMostPopularPlan = async () => {
     try {
-        const res = await axios.get(`${API_URL}/api/v1/plans/getMostPopular`, {withCredentials: true})
+        // const res = await axios.get(`${API_URL}/api/v1/plans/getMostPopular`, {withCredentials: true})
+        const res = await api.get(`/v1/plans/getMostPopular`, {withCredentials: true})
         console.log(res.data)
         return res.data;
     } catch (e) {
