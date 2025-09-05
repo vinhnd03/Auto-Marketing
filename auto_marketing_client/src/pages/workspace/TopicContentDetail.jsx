@@ -5,6 +5,7 @@ import { getApprovedPostsByTopic } from "../../service/postService";
 import dayjs from "dayjs";
 import ImageGenModal from "../../components/modal/ImageGenModal";
 import EditPostModal from "./EditPostModal";
+import Swal from "sweetalert2";
 
 const TopicContentDetail = ({ topic, onBack }) => {
   // Khi quay lại danh sách content, nếu content vừa xem là mới thì bỏ badge 'Mới'

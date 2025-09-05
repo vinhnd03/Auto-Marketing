@@ -211,6 +211,19 @@ const AIContentGenerator = ({
       setShowResults(true);
       setGenerating(false);
 
+      // Hiển thị SweetAlert khi gen thành công (chỉ ở đây, không ở nút lưu)
+      Swal.fire({
+        icon: 'success',
+        title: 'Tạo nội dung AI thành công!',
+        text: `Đã tạo thành công ${safeContent.length} bài viết cho chủ đề này.`,
+        confirmButtonText: 'OK',
+        timer: 2500,
+        didOpen: () => {
+          const swal = document.querySelector('.swal2-container');
+          if (swal) swal.style.zIndex = '999999';
+        }
+      });
+
       // Xoá cache khi gen xong
       if (LOCAL_KEY) {
         try {
@@ -325,7 +338,7 @@ const AIContentGenerator = ({
 
       setPreviewContent(approvedPosts);
       setShowPublisher(false);
-      toast.success("Lưu nội dung thành công!");
+  toast.success("Lưu nội dung thành công!");
       setGenerating(false);
       setShowResults(false);
 
