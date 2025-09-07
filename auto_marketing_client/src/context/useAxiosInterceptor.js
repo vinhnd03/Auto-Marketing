@@ -12,7 +12,9 @@ export const useAxiosInterceptor = () => {
   // ✅ Dùng useCallback để giữ 1 reference duy nhất
   const errorHandler = useCallback(
     (error) => {
-      if (error.response?.status === 401) {
+      const status = error.response?.status;
+      const errorData = error.response?.data;
+      if (status === 401 && errorData?.error === "Unauthorized") {
         // if (!hasShown.current) {
         // cancelAllRequests();
         // setSessionExpired(true);
@@ -25,6 +27,10 @@ export const useAxiosInterceptor = () => {
         });
         navigate("/login", { replace: true });
         // }
+
+        // ⛔️ không reject để component không xử lý tiếp
+        // return new Promise(() => { }); // "treo" promise này
+        return Promise.resolve();
       }
       return Promise.reject(error);
     },
