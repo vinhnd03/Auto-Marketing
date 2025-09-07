@@ -62,7 +62,6 @@ export const deleteSchedule = async (id) => {
 
 // GET all published
 export const getSchedulesPosted = async (workspaceId) => {
-  // const res = await axios.get(`${API_URL}/published`,{
   const res = await api.get(`${API_URL}/posted`,{
     withCredentials:true,
     params: { workspaceId }
