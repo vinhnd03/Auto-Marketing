@@ -57,8 +57,8 @@ public class FanpageService implements IFanpageService {
                 currentPageIds.add(pageId);
 
                 // upsert theo pageId + socialAccount
-                Fanpage fanpage = fanpageRepository.findBySocialAccountId(socialAccount.getId())
-                        .stream().filter(f -> pageId.equals(f.getPageId())).findFirst()
+                Fanpage fanpage = fanpageRepository
+                        .findByPageIdAndSocialAccountId(pageId, socialAccount.getId())
                         .orElse(new Fanpage());
 
                 fanpage.setPageId(pageId);
@@ -70,6 +70,15 @@ public class FanpageService implements IFanpageService {
                 saved.add(fanpageRepository.save(fanpage));
             }
 
+            // set inactive cho các page không còn được chọn
+            List<Fanpage> existingPages = fanpageRepository.findBySocialAccountId(socialAccount.getId());
+            for (Fanpage fp : existingPages) {
+                if (!currentPageIds.contains(fp.getPageId())) {
+                    fp.setActive(false);
+                    fanpageRepository.save(fp);
+                }
+            }
+
         } catch (Exception e) {
             throw new RuntimeException("Parse danh sách fanpage thất bại: " + e.getMessage());
         }
@@ -78,7 +87,7 @@ public class FanpageService implements IFanpageService {
 
     public List<Fanpage> listByUser(Long userId) {
         SocialAccount socialAccount = socialAccountRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User chưa lin kết tài khoản facebook"));
+                .orElseThrow(() -> new RuntimeException("User chưa liên kết tài khoản facebook"));
         return fanpageRepository.findBySocialAccountId(socialAccount.getId());
     }
 

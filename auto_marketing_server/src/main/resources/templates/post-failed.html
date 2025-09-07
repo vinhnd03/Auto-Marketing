@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Bài viết đăng thất bại</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f7;
+            margin: 0;
+            padding: 0;
+        }
+        .email-wrapper {
+            width: 100%;
+            background-color: #f4f4f7;
+            padding: 20px 0;
+        }
+        .email-content {
+            max-width: 600px;
+            background-color: white;
+            margin: auto;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .email-header {
+            background: linear-gradient(to right, #2563eb, #9333ea);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .email-body {
+            padding: 30px;
+            color: #333;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #9333ea;
+            color: white !important;
+            padding: 12px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background-color: #4338ca;
+        }
+        .email-footer {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="email-wrapper">
+    <div class="email-content">
+        <div class="email-header">
+            <h1>Đăng bài thất bại ❌</h1>
+        </div>
+        <div class="email-body">
+            <p>Xin chào <strong th:text="${name}">Người dùng</strong>,</p>
+            <p>Bài viết của bạn với tiêu đề:</p>
+            <p style="font-size:16px; font-weight:bold; color:#4f46e5;" th:text="${postTitle}">Tiêu đề bài viết</p>
+            <p>Đã <strong>không thể đăng thành công</strong> vào ngày
+                <strong th:text="${failedDate}">26-08-2025</strong>,
+                trên trang <strong style="color:#2563eb;" th:text="${pageName}">Tên trang</strong>.
+            </p>
+            <p>Vui lòng kiểm tra lại cài đặt Fanpage và quyền quản trị trong trang của bạn hoặc thử đăng lại trong website.</p>
+            <p>Trân trọng,<br/>Đội ngũ AutoMarketing</p>
+        </div>
+        <div class="email-footer">
+            © 2025 AutoMarketing. All rights reserved.
+        </div>
+    </div>
+</div>
+</body>
+</html>

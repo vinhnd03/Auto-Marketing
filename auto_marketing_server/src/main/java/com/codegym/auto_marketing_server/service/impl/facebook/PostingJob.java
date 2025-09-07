@@ -77,9 +77,53 @@ public class PostingJob {
                         postTarget.setPostUrl(postUrl);
                         postTargetRepository.save(postTarget);
                         logger.info("Publish to page {} success, postId = {}", pageId, postId);
+
+                        // 📧 Gửi mail thành công cho page này
+                        List<Object[]> results = scheduledPostRepository.findUserEmailsAndNamesByScheduledPostId(scheduledPost.getId());
+                        for (Object[] row : results) {
+                            String email = (String) row[0];
+                            String name = (String) row[1];
+                            String pageIdDb = (String) row[2];
+                            String pageName = (String) row[3];
+
+                            if (pageId.equals(pageIdDb)) { // chỉ gửi đúng page thành công
+                                emailService.sendPostPublishedEmail(
+                                        email,
+                                        name,
+                                        pageId,
+                                        pageName,
+                                        scheduledPost.getPost().getTitle(),
+                                        LocalDateTime.now()
+                                );
+                                logger.info("Sent post-published email to {} ({}) for page {}", name, email, pageName);
+                            }
+                        }
+
                     } else {
                         logger.error("Publish to page {} failed", pageId);
+                        allOk = false;
+
+                        // 📧 Gửi mail thất bại chỉ cho page này
+                        List<Object[]> results = scheduledPostRepository.findUserEmailsAndNamesByScheduledPostId(scheduledPost.getId());
+                        for (Object[] row : results) {
+                            String email = (String) row[0];
+                            String name = (String) row[1];
+                            String pageIdDb = (String) row[2];
+                            String pageName = (String) row[3];
+
+                            if (pageId.equals(pageIdDb)) { // chỉ gửi đúng page fail
+                                emailService.sendPostFailedEmail(
+                                        email,
+                                        name,
+                                        pageName,
+                                        scheduledPost.getPost().getTitle(),
+                                        LocalDateTime.now()
+                                );
+                                logger.info("Sent post-failed email to {} ({}) for page {}", name, email, pageName);
+                            }
+                        }
                     }
+
                 }
 
                 scheduledPost.setStatus(allOk ? ScheduledPostStatus.POSTED : ScheduledPostStatus.FAILED);
