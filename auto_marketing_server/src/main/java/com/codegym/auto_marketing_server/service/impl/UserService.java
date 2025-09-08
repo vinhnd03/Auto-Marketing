@@ -5,6 +5,7 @@ import com.codegym.auto_marketing_server.dto.MonthStatisticDTO;
 import com.codegym.auto_marketing_server.dto.NotificationDTO;
 import com.codegym.auto_marketing_server.dto.QuarterStatisticDTO;
 import com.codegym.auto_marketing_server.dto.WeekStatisticDTO;
+import com.codegym.auto_marketing_server.entity.UserToken;
 import com.codegym.auto_marketing_server.enums.TokenType;
 import com.codegym.auto_marketing_server.repository.IUserRepository;
 import com.codegym.auto_marketing_server.security.email.EmailService;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -244,11 +246,24 @@ public class UserService implements IUserService {
 
     @Override
     public void resendEmailVerification(User user) {
+        UserToken userToken = userTokenService.findByUserAndType(user, TokenType.EMAIL_VERIFICATION)
+                .get();
+//                .orElseThrow(() -> new RuntimeException("Không tìm thấy token"));
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // Nếu token vẫn còn hạn trên 10 phút thì không gửi lại
+        if (userToken.getExpiresAt().isAfter(now.plusMinutes(10))) {
+//            throw new RuntimeException("Token vẫn còn hạn, chưa cần gửi lại");
+            return;
+        }
+
         try {
-            String token = userTokenService.generateToken(user, TokenType.EMAIL_VERIFICATION);
-            emailService.sendUserVerificationEmail(user.getEmail(), user.getName(), token);
-        }catch (MessagingException e){
-            throw new RuntimeException(e);
+            // Tạo token mới
+            String newToken = userTokenService.generateToken(user, TokenType.EMAIL_VERIFICATION);
+            emailService.sendUserVerificationEmail(user.getEmail(), user.getName(), newToken);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Lỗi khi gửi email", e);
         }
     }
 }

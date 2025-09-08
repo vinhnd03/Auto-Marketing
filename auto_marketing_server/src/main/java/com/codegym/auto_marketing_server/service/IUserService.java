@@ -24,6 +24,7 @@ import java.util.Optional;
 public interface IUserService {
 
     Long selectUserIdBySocialAccountId(@Param("id") Long id);
+
     Optional<User> findByEmail(String username);
 
     User save(User user);
@@ -39,15 +40,15 @@ public interface IUserService {
     void updateUserProfile(User user);
 
     long count();
-    public Page<User> filterUsersBySubscription(String filter, Pageable pageable);
-    Page<User> searchAndPage(String name,
-                              String planName,
-                              LocalDate startDate,
-                              LocalDate endDate,
-                             Boolean status,
-                              Pageable pageable
-                             );
 
+    public Page<User> filterUsersBySubscription(String filter, Pageable pageable);
+
+    Page<User> searchAndPage(String name,
+                             String planName,
+                             LocalDate startDate,
+                             LocalDate endDate,
+                             Boolean status,
+                             Pageable pageable);
 
     List<User> findAll();
 
@@ -60,13 +61,17 @@ public interface IUserService {
     List<QuarterStatisticDTO> getStatisticByQuarter(int year);
 
     List<WeekStatisticDTO> getStatisticByWeek(int year, int month);
+
     List<MonthStatisticDTO> getStatisticPackagesByMonth(int year);
 
     List<QuarterStatisticDTO> getStatisticPackagesByQuarter(int year);
 
     List<WeekStatisticDTO> getStatisticPackagesByWeek(int year, int month);
+
     List<NotificationDTO> getNotifications();
+
     int countByMonth(int year, int month);
+
     User getCurrentUser();
 
     @Transactional

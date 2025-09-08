@@ -71,4 +71,9 @@ public class UserTokenService implements IUserTokenService {
         return userTokenRepository.save(userToken);
     }
 
+    @Override
+    public Optional<UserToken> findByUserAndType(User user, TokenType tokenType) {
+        return userTokenRepository.findByUserAndType(user, tokenType);
+    }
+
 }

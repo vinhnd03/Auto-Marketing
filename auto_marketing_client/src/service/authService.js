@@ -1,11 +1,14 @@
 import axios from "axios";
 import { data } from "react-router-dom";
+import api from "../context/api";
 
-const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api/auth`;
+// const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api/auth`;
+const API_URL = `/auth`;
 
 const register = async (data) => {
     try {
-        const resp = await axios.post(`${API_URL}/register`, data, { withCredentials: true, })
+        // const resp = await axios.post(`${API_URL}/register`, data, { withCredentials: true, })
+        const resp = await api.post(`${API_URL}/register`, data, { withCredentials: true, })
         return { ...resp, success: true };
     } catch (error) {
         console.log(error);
@@ -20,13 +23,15 @@ const register = async (data) => {
 const login = async (data) => {
     try {
         // Gửi request login, server sẽ set JWT cookie (HttpOnly)
-        const resp = await axios.post(`${API_URL}/login`, data, {
+        // const resp = await axios.post(`${API_URL}/login`, data, {
+        const resp = await api.post(`${API_URL}/login`, data, {
             withCredentials: true, // Bắt buộc để cookie được lưu
         });
 
         if (resp.data.success) {
             // Gọi API /me ngay sau login
-            const me = await axios.get(`${API_URL}/me`, {
+            // const me = await axios.get(`${API_URL}/me`, {
+            const me = await api.get(`${API_URL}/me`, {
                 withCredentials: true, // Gửi kèm cookie JWT
             });
 
@@ -51,7 +56,8 @@ const login = async (data) => {
 
 const logout = async () => {
     try {
-        await axios.post(`${API_URL}/logout`, {}, { withCredentials: true });
+        // await axios.post(`${API_URL}/logout`, {}, { withCredentials: true });
+        await api.post(`${API_URL}/logout`, {}, { withCredentials: true });
         return { success: true };
     } catch (error) {
         console.error("Lỗi khi logout:", error);
@@ -61,7 +67,8 @@ const logout = async () => {
 
 const getCurrentUser = async () => {
     try {
-        const resp = await axios.get(`${API_URL}/me`, { withCredentials: true });
+        // const resp = await axios.get(`${API_URL}/me`, { withCredentials: true });
+        const resp = await api.get(`${API_URL}/me`, { withCredentials: true });
         return { success: true, user: resp.data };
     } catch (error) {
         if (error.response?.status === 401) {
@@ -74,7 +81,8 @@ const getCurrentUser = async () => {
 
 const changePassword = async (token, newPassword) => {
     try {
-        const resp = await axios.post(`${API_URL}/reset-password`, { token, newPassword });
+        // const resp = await axios.post(`${API_URL}/reset-password`, { token, newPassword });
+        const resp = await api.post(`${API_URL}/reset-password`, { token, newPassword });
         return { success: resp.data.success, data: resp.data };
     } catch (error) {
         console.log(error);
@@ -84,7 +92,8 @@ const changePassword = async (token, newPassword) => {
 
 const verifyEmail = async (token) => {
     try {
-        const resp = await axios.get(`${API_URL}/email-verification?token=${token}`)
+        // const resp = await axios.get(`${API_URL}/email-verification?token=${token}`)
+        const resp = await api.get(`${API_URL}/email-verification?token=${token}`)
         return { success: resp.data.success, data: resp.data };
     } catch (error) {
         console.log(error);
