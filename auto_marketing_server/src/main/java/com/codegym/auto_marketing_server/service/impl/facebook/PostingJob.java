@@ -4,10 +4,12 @@ import com.codegym.auto_marketing_server.entity.Fanpage;
 import com.codegym.auto_marketing_server.entity.PostMedia;
 import com.codegym.auto_marketing_server.entity.PostTarget;
 import com.codegym.auto_marketing_server.entity.ScheduledPost;
+import com.codegym.auto_marketing_server.enums.PostStatus;
 import com.codegym.auto_marketing_server.enums.ScheduledPostStatus;
 import com.codegym.auto_marketing_server.repository.IPostTargetRepository;
 import com.codegym.auto_marketing_server.repository.IScheduledPostRepository;
 import com.codegym.auto_marketing_server.security.email.EmailService;
+import com.codegym.auto_marketing_server.service.impl.PostService;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class PostingJob {
     private final IPostTargetRepository postTargetRepository;
     private final FacebookClient facebookClient;
     private final EmailService emailService;
+    private final PostService postService;
 
     @Scheduled(cron = "0 * * * * *")
     @Transactional
@@ -129,30 +132,31 @@ public class PostingJob {
                 scheduledPost.setStatus(allOk ? ScheduledPostStatus.POSTED : ScheduledPostStatus.FAILED);
                 scheduledPost.setPostedAt(LocalDateTime.now());
                 scheduledPostRepository.save(scheduledPost);
-                // 🔔 Gửi email nếu đăng thành công
-                if (allOk) {
-                    try {
-                        List<Object[]> results = scheduledPostRepository.findUserEmailsAndNamesByScheduledPostId(scheduledPost.getId());
-                        for (Object[] row : results) {
-                            String email = (String) row[0];
-                            String name = (String) row[1];
-                            String pageId = (String) row[2];
-                            String pageName = (String) row[3];
-                            emailService.sendPostPublishedEmail(
-                                    email,
-                                    name,
-                                    pageId,
-                                    pageName,
-                                    scheduledPost.getPost().getTitle(),
-                                    LocalDateTime.now()
-                            );
-                            logger.info("Sent post-published email to {} ({})", name, email);
-                        }
 
-                    } catch (MessagingException | UnsupportedEncodingException e) {
-                        logger.error("Không gửi được email thông báo: {}", e.getMessage(), e);
+//                if(allOk) {
+                    // 🔍 Kiểm tra post còn được lên lịch nữa không
+                    Long postId = scheduledPost.getPost().getId();
+                    boolean stillScheduled = scheduledPostRepository
+                            .existsByPostIdAndStatus(postId, ScheduledPostStatus.SCHEDULED);
+
+                    if (!stillScheduled) {
+                        // Xóa content và set DELETED
+                        var post = scheduledPost.getPost();
+                        post.setContent(null);
+                        post.setStatus(PostStatus.DELETED); // giả sử bạn có enum PostStatus
+                        // Có thể xóa luôn hashtag/title... nếu muốn
+                        // post.setTitle(null);
+                        // post.setHashtag(null);
+
+                        // Lưu lại post
+                        scheduledPostRepository.save(scheduledPost); // lưu lại scheduled trước
+                        // cần inject thêm IPostRepository để lưu post
+                        postService.save(post);
+
+                        logger.info("Post {} đã không còn được lên lịch, set DELETED", postId);
                     }
-                }
+//                }
+
             } catch (Exception e) {
                 logger.error("Schedule {} failed: {}", scheduledPost.getId(), e.getMessage(), e);
                 scheduledPost.setStatus(ScheduledPostStatus.FAILED);
