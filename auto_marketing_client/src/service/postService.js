@@ -14,7 +14,7 @@ import api from "../context/api";
 
 const config = {
   withCredentials: true,
-  timeout: 30000, // 30 seconds for AI generation
+  timeout: 60000, // 60 seconds for AI generation (increased from 30s)
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -124,11 +124,82 @@ export async function generateImagesForPost(
         style,
         numImages,
       },
-      config
+      {
+        ...config,
+        timeout: 90000, // 90 seconds for image generation specifically
+      }
     );
     return response.data; // List<String> imageUrls
   } catch (error) {
-    throw error;
+    console.error("Error in generateImagesForPost:", error);
+
+    // Enhanced error handling
+    if (error.code === "ECONNABORTED") {
+      const customError = new Error(
+        "Quá trình tạo hình ảnh mất quá nhiều thời gian. Vui lòng thử lại với mô tả ngắn gọn hơn."
+      );
+      customError.code = "ECONNABORTED";
+      throw customError;
+    }
+
+    if (error.response) {
+      // Server responded with error status
+      const { status, data } = error.response;
+      let message = "Có lỗi xảy ra khi tạo hình ảnh";
+
+      // Log the full error response for debugging
+      console.log("Full error response:", error.response);
+      console.log("Error message:", error.message);
+
+      switch (status) {
+        case 400:
+          // Check for OpenAI content policy violation in multiple places
+          const errorString = JSON.stringify(data || {});
+          const messageString = error.message || "";
+
+          if (
+            messageString.includes("content_policy_violation") ||
+            messageString.includes("safety system") ||
+            errorString.includes("content_policy_violation") ||
+            errorString.includes("safety system") ||
+            data?.message?.includes("safety system") ||
+            data?.message?.includes("content_policy_violation") ||
+            data?.error?.code === "content_policy_violation"
+          ) {
+            message =
+              "Nội dung mô tả không phù hợp với chính sách an toàn của AI. Vui lòng thử lại với mô tả khác (tránh nội dung bạo lực, tình dục, hoặc không phù hợp).";
+          } else {
+            message = data?.message || "Dữ liệu đầu vào không hợp lệ";
+          }
+          break;
+        case 401:
+          message = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại";
+          break;
+        case 403:
+          message = "Bạn không có quyền thực hiện thao tác này";
+          break;
+        case 429:
+          message = "Đã vượt quá giới hạn yêu cầu. Vui lòng thử lại sau";
+          break;
+        case 500:
+          message = "Server đang gặp sự cố. Vui lòng thử lại sau ít phút";
+          break;
+        case 503:
+          message = "Dịch vụ tạo ảnh tạm thời không khả dụng";
+          break;
+        default:
+          message = data?.message || `Lỗi server (${status})`;
+      }
+
+      const customError = new Error(message);
+      customError.response = error.response;
+      throw customError;
+    }
+
+    // Network or other errors
+    throw new Error(
+      "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng"
+    );
   }
 }
 
