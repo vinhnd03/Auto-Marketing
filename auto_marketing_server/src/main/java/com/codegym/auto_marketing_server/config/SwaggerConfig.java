@@ -41,7 +41,7 @@ public class SwaggerConfig {
                         
                         ## Features:
                         - **Task 9**: Generate marketing topics using AI
-                        - **Task 10**: Generate post content using AI  
+                        - **Task 10**: Generate post content using AI
                         - **Task 11**: Schedule posts for publishing
                         
                         ## Usage:
