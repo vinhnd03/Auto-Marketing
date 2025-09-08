@@ -3,11 +3,13 @@ package com.codegym.auto_marketing_server.service.impl;
 import com.codegym.auto_marketing_server.dto.*;
 import com.codegym.auto_marketing_server.entity.Post;
 import com.codegym.auto_marketing_server.entity.PostMedia;
+import com.codegym.auto_marketing_server.entity.PostTarget;
 import com.codegym.auto_marketing_server.entity.Topic;
 import com.codegym.auto_marketing_server.enums.PostMediaType;
 import com.codegym.auto_marketing_server.enums.PostStatus;
 import com.codegym.auto_marketing_server.enums.TopicStatus;
 import com.codegym.auto_marketing_server.repository.IPostRepository;
+import com.codegym.auto_marketing_server.repository.IPostTargetRepository;
 import com.codegym.auto_marketing_server.service.IPostService;
 import com.codegym.auto_marketing_server.service.ITopicService;
 import com.codegym.auto_marketing_server.util.CloudinaryService;
@@ -43,6 +45,7 @@ public class PostService implements IPostService {
     private final ObjectMapper objectMapper;
     private final CloudinaryService cloudinaryService;
     private final OpenAIImageService openAIImageService;
+    private final IPostTargetRepository postTargetRepository;
 
     @Override
     public CompletableFuture<List<PostResponseDTO>> generateContentWithAI(ContentGenerationRequestDTO request) {
@@ -68,18 +71,7 @@ public class PostService implements IPostService {
                         long postStart = System.currentTimeMillis();
                         log.info("⏳ [AI GEN] Bắt đầu gen bài số {} cho topic {} với model {}", postIndex, topic.getId(), selectedModel);
 
-                        String promptUsed = gptService.buildLongFormContentPrompt(
-                                topic,
-                                request.getTone(),
-                                request.getContentType(),
-                                request.getTargetWordCount(),
-                                request.getIncludeBulletPoints(),
-                                request.getIncludeStatistics(),
-                                request.getIncludeCaseStudies(),
-                                request.getIncludeCallToAction(),
-                                request.getIncludeHashtag(),
-                                request.getAdditionalInstructions()
-                        );
+                        String promptUsed = gptService.buildLongFormContentPrompt(topic, request.getTone(), request.getContentType(), request.getTargetWordCount(), request.getIncludeBulletPoints(), request.getIncludeStatistics(), request.getIncludeCaseStudies(), request.getIncludeCallToAction(), request.getIncludeHashtag(), request.getAdditionalInstructions());
                         log.info("📢 Prompt sent to AI model {} (post {}): \n{}", selectedModel, postIndex, promptUsed);
 
                         String gptResponse;
@@ -236,10 +228,7 @@ public class PostService implements IPostService {
 
     @Override
     public List<PostResponseDTO> getApprovedPostsByWorkspace(Long workspaceId) {
-        return postRepository.findByWorkspaceIdAndStatus(workspaceId, PostStatus.APPROVED)
-                .stream()
-                .map(this::mapToResponseDTO)
-                .toList();
+        return postRepository.findByWorkspaceIdAndStatus(workspaceId, PostStatus.APPROVED).stream().map(this::mapToResponseDTO).toList();
     }
 
     @Override
@@ -253,35 +242,30 @@ public class PostService implements IPostService {
 
         for (int i = 0; i < numImages; i++) {
             final int idx = i;
-            futures.add(
-                    CompletableFuture.supplyAsync(() -> {
-                        String finalPrompt = prompt + (style != null ? " (" + style + ")" : "") + " #" + (idx + 1);
+            futures.add(CompletableFuture.supplyAsync(() -> {
+                String finalPrompt = prompt + (style != null ? " (" + style + ")" : "") + " #" + (idx + 1);
 
-                        String aiImageUrl = openAIImageService.generateImageUrlFromPrompt(finalPrompt);
+                String aiImageUrl = openAIImageService.generateImageUrlFromPrompt(finalPrompt);
 
-                        String uploadedUrl = null;
-                        File imageFile = null;
-                        try {
-                            imageFile = downloadImageToFile(aiImageUrl);
-                            uploadedUrl = cloudinaryService.uploadImage(imageFile);
-                        } catch (Exception e) {
-                            log.error("Error generating/uploading image {}: {}", idx + 1, e.getMessage(), e);
-                            // Có thể return null hoặc throw, tùy ý bạn
-                        } finally {
-                            if (imageFile != null && imageFile.exists()) {
-                                imageFile.delete();
-                            }
-                        }
-                        return uploadedUrl;
-                    })
-            );
+                String uploadedUrl = null;
+                File imageFile = null;
+                try {
+                    imageFile = downloadImageToFile(aiImageUrl);
+                    uploadedUrl = cloudinaryService.uploadImage(imageFile);
+                } catch (Exception e) {
+                    log.error("Error generating/uploading image {}: {}", idx + 1, e.getMessage(), e);
+                    // Có thể return null hoặc throw, tùy ý bạn
+                } finally {
+                    if (imageFile != null && imageFile.exists()) {
+                        imageFile.delete();
+                    }
+                }
+                return uploadedUrl;
+            }));
         }
 
         // Đợi tất cả ảnh hoàn thành
-        List<String> imageUrls = futures.stream()
-                .map(CompletableFuture::join)
-                .filter(url -> url != null && !url.isBlank())
-                .collect(Collectors.toList());
+        List<String> imageUrls = futures.stream().map(CompletableFuture::join).filter(url -> url != null && !url.isBlank()).collect(Collectors.toList());
 
         return imageUrls;
     }
@@ -307,10 +291,7 @@ public class PostService implements IPostService {
 
     @Override
     public List<PostResponseDTO> getApprovedPostsByCampaign(Long campaignId) {
-        return postRepository.findByCampaignIdAndStatus(campaignId, PostStatus.APPROVED)
-                .stream()
-                .map(this::mapToResponseDTO)
-                .toList();
+        return postRepository.findByCampaignIdAndStatus(campaignId, PostStatus.APPROVED).stream().map(this::mapToResponseDTO).toList();
     }
 
     private Post createPostFromGPTResponse(String gptResponse, Topic topic, ContentGenerationRequestDTO request) {
@@ -496,11 +477,7 @@ public class PostService implements IPostService {
         }
 
         // Mapping medias → imageUrls
-        List<String> imageUrls = (post.getMedias() == null || post.getMedias().isEmpty())
-                ? List.of()
-                : post.getMedias().stream()
-                .map(PostMedia::getUrl)
-                .collect(Collectors.toList());
+        List<String> imageUrls = (post.getMedias() == null || post.getMedias().isEmpty()) ? List.of() : post.getMedias().stream().map(PostMedia::getUrl).collect(Collectors.toList());
         dto.setImageUrls(imageUrls);
 
         // imageUrl ưu tiên DB field, nếu null thì lấy cái đầu trong imageUrls
@@ -524,9 +501,7 @@ public class PostService implements IPostService {
             post.setMedias(new ArrayList<>());
         }
 
-        List<String> oldUrls = post.getMedias().stream()
-                .map(PostMedia::getUrl)
-                .collect(Collectors.toList());
+        List<String> oldUrls = post.getMedias().stream().map(PostMedia::getUrl).collect(Collectors.toList());
 
         for (String url : selectedImageUrls) {
             if (!oldUrls.contains(url)) {
@@ -564,14 +539,11 @@ public class PostService implements IPostService {
             for (PostMediaDTO dto : requestDto.getMedias()) {
                 if (dto.id() != null) {
                     // tìm media cũ
-                    post.getMedias().stream()
-                            .filter(m -> m.getId().equals(dto.id()))
-                            .findFirst()
-                            .ifPresent(m -> {
-                                if (dto.url() != null) m.setUrl(dto.url());
-                                m.setType(dto.type() != null ? dto.type() : PostMediaType.PIC);
-                                updatedMedias.add(m); // chỉ giữ những ảnh còn lại
-                            });
+                    post.getMedias().stream().filter(m -> m.getId().equals(dto.id())).findFirst().ifPresent(m -> {
+                        if (dto.url() != null) m.setUrl(dto.url());
+                        m.setType(dto.type() != null ? dto.type() : PostMediaType.PIC);
+                        updatedMedias.add(m); // chỉ giữ những ảnh còn lại
+                    });
                 } else {
                     // Ảnh mới dạng URL
                     PostMedia newMedia = new PostMedia();
@@ -605,6 +577,4 @@ public class PostService implements IPostService {
 
         return mapToResponseDTOV2(saved);
     }
-
-
 }
