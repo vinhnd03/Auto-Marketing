@@ -99,7 +99,9 @@ public class FanpageService implements IFanpageService {
                         f.getId(),
                         f.getPageId(),
                         f.getPageName(),
-                        f.getAvatarUrl()
+                        f.getAvatarUrl(),
+                        null,
+                        null
                 ))
                 .toList();
     }

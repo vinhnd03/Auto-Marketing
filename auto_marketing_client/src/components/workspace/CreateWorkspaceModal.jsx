@@ -27,7 +27,7 @@ const CreateWorkspaceModal = ({ isOpen, onClose, onAdd, workspaces }) => {
         }
         setSocialAccountId(account.id);
       } catch (err) {
-        toast.error("Không lấy được Social Account");
+        toast.error("Không lấy được mạng xã hội");
       }
     };
 
