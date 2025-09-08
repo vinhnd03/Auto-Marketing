@@ -127,7 +127,8 @@ public class ScheduledPostService implements IScheduledPostService {
                             .stream()
                             .map(pt -> {
                                 Fanpage f = pt.getFanpage();
-                                return new FanpageDTO(f.getId(), f.getPageId(), f.getPageName(), f.getAvatarUrl());
+                                return new FanpageDTO(f.getId(), f.getPageId(), f.getPageName(), f.getAvatarUrl(), pt.getPostUrl(),pt.getId()
+                                );
                             }).toList();
 
                     Post post = sp.getPost();
@@ -167,7 +168,10 @@ public class ScheduledPostService implements IScheduledPostService {
                                         f.getId(),
                                         f.getPageId(),
                                         f.getPageName(),
-                                        f.getAvatarUrl()
+                                        f.getAvatarUrl(),
+                                        pt.getPostUrl(),
+                                        pt.getId()
+
                                 );
                             })
                             .toList();
@@ -207,7 +211,8 @@ public class ScheduledPostService implements IScheduledPostService {
                             .stream()
                             .map(pt -> {
                                 Fanpage f = pt.getFanpage();
-                                return new FanpageDTO(f.getId(), f.getPageId(), f.getPageName(), f.getAvatarUrl());
+                                return new FanpageDTO(f.getId(), f.getPageId(), f.getPageName(), f.getAvatarUrl(), pt.getPostUrl(),pt.getId()
+                                );
                             }).toList();
 
                     Post post = sp.getPost();
@@ -358,7 +363,9 @@ public class ScheduledPostService implements IScheduledPostService {
                                         f.getId(),
                                         f.getPageId(),
                                         f.getPageName(),
-                                        f.getAvatarUrl()
+                                        f.getAvatarUrl(),
+                                        pt.getPostUrl(),
+                                        pt.getId()
                                 );
                             })
                             .toList();

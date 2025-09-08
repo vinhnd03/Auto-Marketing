@@ -4,5 +4,7 @@ public record FanpageDTO(
         Long id,
         String pageId,
         String pageName,
-        String avatarUrl
+        String avatarUrl,
+        String postUrl,
+        Long postTargetId
 ) {}
