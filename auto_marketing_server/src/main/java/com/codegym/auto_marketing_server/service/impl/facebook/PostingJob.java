@@ -9,6 +9,7 @@ import com.codegym.auto_marketing_server.enums.ScheduledPostStatus;
 import com.codegym.auto_marketing_server.repository.IPostTargetRepository;
 import com.codegym.auto_marketing_server.repository.IScheduledPostRepository;
 import com.codegym.auto_marketing_server.security.email.EmailService;
+import com.codegym.auto_marketing_server.service.IPostService;
 import com.codegym.auto_marketing_server.service.impl.PostService;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
@@ -32,7 +33,7 @@ public class PostingJob {
     private final IPostTargetRepository postTargetRepository;
     private final FacebookClient facebookClient;
     private final EmailService emailService;
-    private final PostService postService;
+    private final IPostService postService;
 
     @Scheduled(cron = "0 * * * * *")
     @Transactional

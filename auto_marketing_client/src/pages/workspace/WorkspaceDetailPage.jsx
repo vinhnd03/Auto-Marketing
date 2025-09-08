@@ -37,6 +37,7 @@ import { AITopicGenerator, CampaignTable } from "../../components";
 import SchedulePostCalendar from "../../components/publish/SchedulePostCalendar";
 import ScheduledPostsList from "../../components/publish/ScheduledPostsList";
 import PostedPostsList from "../../components/publish/PostedPostsList";
+import { getUserFanpages } from "../../service/publish/fanpageService";
 
 const WorkspaceDetailPage = () => {
   // State cho tìm kiếm campaign
@@ -96,6 +97,13 @@ const WorkspaceDetailPage = () => {
     }
   };
   // Fetch campaigns from API
+
+  useEffect(() => {
+    const fetchSocialAccount = async () => {
+      await getUserFanpages(user.id);
+    }
+    fetchSocialAccount();
+  }, [])
 
   useEffect(() => {
     const fetchCampaigns = async () => {
