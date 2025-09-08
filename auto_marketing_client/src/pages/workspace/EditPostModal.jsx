@@ -182,7 +182,7 @@ const handleSubmit = async (values, { setSubmitting }) => {
               </div>
 
               {/* Thêm ảnh mới */}
-              <div className="mt-3">
+              {/* <div className="mt-3">
                 <label className="block text-sm font-medium mb-1">
                   Thêm ảnh mới
                 </label>
@@ -227,7 +227,7 @@ const handleSubmit = async (values, { setSubmitting }) => {
                     ))}
                   </div>
                 )}
-              </div>
+              </div> */}
 
               {/* Buttons */}
               <div className="mt-6 flex justify-end gap-3">
