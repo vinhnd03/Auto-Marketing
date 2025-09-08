@@ -1129,7 +1129,7 @@ const WorkspaceDetailPage = () => {
               )}
               {/* CAMPAIGN CUA ANH KHANH */}
               {activeTab === "campaigns" && (
-                <div className="px-2 sm:px-4 md:px-8 lg:px-12">
+                <div className="px-1 sm:px-2 md:px-4 lg:px-6">
                   <CampaignTable
                     campaigns={transformedCampaigns}
                     onUpdateCampaigns={handleUpdateCampaigns}
@@ -1324,19 +1324,19 @@ const WorkspaceDetailPage = () => {
                         return (
                           <div
                             key={campaign.id}
-                            className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6"
+                            className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-4"
                           >
-                            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
-                                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                    <Target className="text-white" size={20} />
+                                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                    <Target className="text-white" size={16} />
                                   </div>
                                   <div>
-                                    <h4 className="text-lg font-semibold text-gray-900">
+                                    <h4 className="text-base font-semibold text-gray-900">
                                       {campaign.name}
                                     </h4>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-xs text-gray-600">
                                       {campaign.description}
                                     </p>
                                   </div>
@@ -1344,36 +1344,36 @@ const WorkspaceDetailPage = () => {
                                 {getStatusBadge(campaign.status)}
                               </div>
                             </div>
-                            <div className="p-6">
+                            <div className="p-4">
                               {visibleTopics.length > 0 ? (
                                 <>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                     {visibleTopics.map((topic, topicIndex) => (
                                       <div
                                         key={`campaign-${campaign.id}-topic-${topic.id}-${topicIndex}`}
-                                        className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+                                        className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
                                       >
-                                        <div className="flex items-center mb-3">
-                                          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 mr-2">
+                                        <div className="flex items-center mb-2">
+                                          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-r from-purple-500 to-blue-500 mr-2">
                                             <Folder
                                               className="text-white"
-                                              size={20}
+                                              size={16}
                                             />
                                           </div>
                                           {topic.aiGenerated && (
-                                            <div className="flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-bold ml-2">
+                                            <div className="flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-bold ml-1">
                                               <Wand2
-                                                size={12}
+                                                size={10}
                                                 className="mr-1"
                                               />
                                               AI
                                             </div>
                                           )}
                                         </div>
-                                        <h5 className="font-semibold text-base mb-1 text-gray-900">
+                                        <h5 className="font-semibold text-sm mb-1 text-gray-900">
                                           {topic.name || topic.title}
                                         </h5>
-                                        <p className="text-sm mb-3 text-gray-600">
+                                        <p className="text-xs mb-2 text-gray-600 line-clamp-2">
                                           {topic.description}
                                         </p>
                                         {/* Content count badge */}
@@ -1381,8 +1381,8 @@ const WorkspaceDetailPage = () => {
                                           const contentCount =
                                             getTopicContentCount(topic);
                                           return (
-                                            <div className="mb-3">
-                                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                            <div className="mb-2">
+                                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                                                 {contentCount} bài viết
                                               </span>
                                             </div>
@@ -1390,7 +1390,7 @@ const WorkspaceDetailPage = () => {
                                         })()}
                                         <div className="flex items-center justify-between mt-auto">
                                           <button
-                                            className="w-full bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center justify-center"
+                                            className="w-full bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-200 transition-colors flex items-center justify-center"
                                             onClick={() => {
                                               setSelectedTopicForContent(topic);
                                             }}
@@ -1413,12 +1413,12 @@ const WorkspaceDetailPage = () => {
                                     ))}
                                   </div>
                                   {/* Nút phân trang: Xem thêm & Thu gọn */}
-                                  <div className="flex flex-wrap justify-center mt-4 md:mt-6 space-x-2 md:space-x-3 gap-y-2">
+                                  <div className="flex flex-wrap justify-center mt-3 space-x-2 gap-y-2">
                                     {hasMore &&
                                       pageSize > DEFAULT_TOPICS_PER_PAGE && (
                                         <>
                                           <button
-                                            className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold shadow hover:from-purple-600 hover:to-blue-600 transition-all"
+                                            className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold shadow hover:from-purple-600 hover:to-blue-600 transition-all"
                                             onClick={() =>
                                               handleShowMoreTopics(
                                                 campaign.id,
@@ -1429,7 +1429,7 @@ const WorkspaceDetailPage = () => {
                                             Xem thêm
                                           </button>
                                           <button
-                                            className="px-6 py-2 rounded-lg bg-gradient-to-r from-gray-400 to-gray-600 text-white font-semibold shadow hover:from-gray-500 hover:to-gray-700 transition-all"
+                                            className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-gray-400 to-gray-600 text-white text-sm font-semibold shadow hover:from-gray-500 hover:to-gray-700 transition-all"
                                             onClick={() =>
                                               setTopicsPageByCampaign(
                                                 (prev) => ({
@@ -1462,7 +1462,7 @@ const WorkspaceDetailPage = () => {
                                     {hasMore &&
                                       pageSize === DEFAULT_TOPICS_PER_PAGE && (
                                         <button
-                                          className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold shadow hover:from-purple-600 hover:to-blue-600 transition-all"
+                                          className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold shadow hover:from-purple-600 hover:to-blue-600 transition-all"
                                           onClick={() =>
                                             handleShowMoreTopics(
                                               campaign.id,
