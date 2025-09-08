@@ -1,26 +1,10 @@
 import React, { useEffect, useState, useCallback } from "react";
 import AIContentGenerator from "../../components/ai/AIContentGenerator";
-import {
-  Wand2,
-  Target,
-  BarChart3,
-  TrendingUp,
-  Eye,
-  MoreVertical,
-  Edit,
-  Image,
-} from "lucide-react";
+import { Wand2, Eye, MoreVertical, Edit, Image } from "lucide-react";
 import { getApprovedPostsByTopic } from "../../service/postService";
-import {
-  setPostGoals,
-  getPostGoals,
-  updatePostActualStats,
-  getPostProgress,
-} from "../../service/goalService";
 import dayjs from "dayjs";
 import ImageGenModal from "../../components/modal/ImageGenModal";
 import EditPostModal from "./EditPostModal";
-import Swal from "sweetalert2";
 
 const TopicContentDetail = ({ topic, onBack }) => {
   // Khi quay lại danh sách content, nếu content vừa xem là mới thì bỏ badge 'Mới'
@@ -40,11 +24,6 @@ const TopicContentDetail = ({ topic, onBack }) => {
   const [hasGeneratedResults, setHasGeneratedResults] = useState(false);
   const [zoomedImage, setZoomedImage] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showGoalsModal, setShowGoalsModal] = useState(false);
-  const [selectedContentForGoals, setSelectedContentForGoals] = useState(null);
-  const [showProgressModal, setShowProgressModal] = useState(false);
-  const [selectedContentForProgress, setSelectedContentForProgress] =
-    useState(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
 
   // Kiểm tra localStorage khi mount để xác định trạng thái nút
@@ -127,614 +106,12 @@ const TopicContentDetail = ({ topic, onBack }) => {
   };
 
   // Component Modal đặt mục tiêu
-  const GoalsModal = ({ isOpen, onClose, content, onSave }) => {
-    const [goals, setGoals] = useState({
-      targetLikes: content?.goals?.targetLikes || 0,
-      targetComments: content?.goals?.targetComments || 0,
-      targetShares: content?.goals?.targetShares || 0,
-      targetViews: content?.goals?.targetViews || 0,
-      targetEngagement: content?.goals?.targetEngagement || 0,
-    });
-
-    const [loading, setLoading] = useState(false);
-
-    // Load existing goals khi mở modal
-    const loadExistingGoals = useCallback(async () => {
-      if (!content?.id) {
-        console.log("No content ID available for loading goals");
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const existingGoals = await getPostGoals(content.id);
-        if (existingGoals) {
-          setGoals({
-            targetLikes: existingGoals.targetLikes || 0,
-            targetComments: existingGoals.targetComments || 0,
-            targetShares: existingGoals.targetShares || 0,
-            targetViews: existingGoals.targetViews || 0,
-            targetEngagement: existingGoals.targetEngagement || 0,
-          });
-        }
-      } catch (error) {
-        console.error("Error loading goals:", error);
-        // Nếu không tìm thấy goals hoặc có lỗi, chỉ log và tiếp tục
-      } finally {
-        setLoading(false);
-      }
-    }, [content?.id]);
-
-    useEffect(() => {
-      if (isOpen && content?.id) {
-        loadExistingGoals();
-      }
-    }, [isOpen, content?.id, loadExistingGoals]);
-
-    const handleSave = async () => {
-      try {
-        setLoading(true);
-        await onSave(goals);
-        onClose();
-      } catch (error) {
-        console.error("Error saving goals:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-            <Target className="mr-2" size={20} />
-            Đặt mục tiêu cho Content
-          </h3>
-
-          <div className="space-y-4">
-            {loading && (
-              <div className="text-center text-gray-500">
-                Đang tải dữ liệu...
-              </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Lượt thích (Likes)
-              </label>
-              <input
-                type="number"
-                value={goals.targetLikes}
-                onChange={(e) =>
-                  setGoals((prev) => ({
-                    ...prev,
-                    targetLikes: parseInt(e.target.value) || 0,
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="0"
-                min="0"
-                disabled={loading}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Bình luận (Comments)
-              </label>
-              <input
-                type="number"
-                value={goals.targetComments}
-                onChange={(e) =>
-                  setGoals((prev) => ({
-                    ...prev,
-                    targetComments: parseInt(e.target.value) || 0,
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="0"
-                min="0"
-                disabled={loading}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Chia sẻ (Shares)
-              </label>
-              <input
-                type="number"
-                value={goals.targetShares}
-                onChange={(e) =>
-                  setGoals((prev) => ({
-                    ...prev,
-                    targetShares: parseInt(e.target.value) || 0,
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="0"
-                min="0"
-                disabled={loading}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Lượt xem (Views)
-              </label>
-              <input
-                type="number"
-                value={goals.targetViews}
-                onChange={(e) =>
-                  setGoals((prev) => ({
-                    ...prev,
-                    targetViews: parseInt(e.target.value) || 0,
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="0"
-                min="0"
-                disabled={loading}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tỷ lệ tương tác (%)
-              </label>
-              <input
-                type="number"
-                value={goals.targetEngagement}
-                onChange={(e) =>
-                  setGoals((prev) => ({
-                    ...prev,
-                    targetEngagement: parseFloat(e.target.value) || 0,
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="0"
-                min="0"
-                disabled={loading}
-                max="100"
-                step="0.1"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 mt-6">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              disabled={loading}
-            >
-              Hủy
-            </button>
-            <button
-              onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading}
-            >
-              <Target className="mr-1" size={16} />
-              {loading ? "Đang lưu..." : "Đặt mục tiêu"}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // REMOVED - Goals functionality removed
 
   // Component Modal xem tiến độ mục tiêu
-  const ProgressModal = ({ isOpen, onClose, content, onUpdateStats }) => {
-    const [actualStats, setActualStats] = useState({
-      actualLikes: content?.actualStats?.actualLikes || 0,
-      actualComments: content?.actualStats?.actualComments || 0,
-      actualShares: content?.actualStats?.actualShares || 0,
-      actualViews: content?.actualStats?.actualViews || 0,
-      actualEngagement: content?.actualStats?.actualEngagement || 0,
-    });
+  // REMOVED - Progress functionality removed
 
-    const [loading, setLoading] = useState(false);
-    const [goals, setGoals] = useState({});
-
-    // Load progress data khi mở modal
-    const loadProgressData = useCallback(async () => {
-      try {
-        setLoading(true);
-        const progressData = await getPostProgress(content.id);
-        if (progressData) {
-          setGoals(progressData.goals || {});
-          setActualStats({
-            actualLikes: progressData.actualStats?.actualLikes || 0,
-            actualComments: progressData.actualStats?.actualComments || 0,
-            actualShares: progressData.actualStats?.actualShares || 0,
-            actualViews: progressData.actualStats?.actualViews || 0,
-            actualEngagement: progressData.actualStats?.actualEngagement || 0,
-          });
-        }
-      } catch (error) {
-        console.error("Error loading progress data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }, [content?.id]);
-
-    useEffect(() => {
-      if (isOpen && content?.id) {
-        loadProgressData();
-      }
-    }, [isOpen, content?.id, loadProgressData]);
-
-    const getProgressPercentage = (actual, target) => {
-      if (!target || target === 0) return 0;
-      return Math.min((actual / target) * 100, 100);
-    };
-
-    const getProgressColor = (percentage) => {
-      if (percentage >= 100) return "text-green-600 bg-green-100";
-      if (percentage >= 70) return "text-yellow-600 bg-yellow-100";
-      if (percentage >= 40) return "text-orange-600 bg-orange-100";
-      return "text-red-600 bg-red-100";
-    };
-
-    const handleUpdateStats = async () => {
-      try {
-        setLoading(true);
-        await onUpdateStats(actualStats);
-        onClose();
-      } catch (error) {
-        console.error("Error updating stats:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-            <BarChart3 className="mr-2" size={20} />
-            Tiến độ mục tiêu - {content?.title || "Content"}
-          </h3>
-
-          {/* Hiển thị so sánh mục tiêu vs thực tế */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {loading && (
-              <div className="col-span-full text-center text-gray-500">
-                Đang tải dữ liệu...
-              </div>
-            )}
-            {Object.entries(goals)
-              .filter(([key, value]) => value > 0)
-              .map(([key, targetValue]) => {
-                const fieldMapping = {
-                  targetLikes: {
-                    field: "actualLikes",
-                    label: "Lượt thích",
-                    icon: "👍",
-                  },
-                  targetComments: {
-                    field: "actualComments",
-                    label: "Bình luận",
-                    icon: "💬",
-                  },
-                  targetShares: {
-                    field: "actualShares",
-                    label: "Chia sẻ",
-                    icon: "🔄",
-                  },
-                  targetViews: {
-                    field: "actualViews",
-                    label: "Lượt xem",
-                    icon: "👀",
-                  },
-                  targetEngagement: {
-                    field: "actualEngagement",
-                    label: "Tương tác (%)",
-                    icon: "📊",
-                  },
-                };
-
-                const mapping = fieldMapping[key];
-                if (!mapping) return null;
-
-                const actualValue = actualStats[mapping.field] || 0;
-                const percentage = getProgressPercentage(
-                  actualValue,
-                  targetValue
-                );
-                const colorClass = getProgressColor(percentage);
-
-                return (
-                  <div key={key} className="bg-gray-50 p-4 rounded-lg border">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-700 flex items-center">
-                        <span className="mr-2">{mapping.icon}</span>
-                        {mapping.label}
-                      </span>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-bold ${colorClass}`}
-                      >
-                        {percentage.toFixed(1)}%
-                      </span>
-                    </div>
-
-                    <div className="mb-2">
-                      <div className="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>
-                          Thực tế: {actualValue.toLocaleString()}
-                          {key === "targetEngagement" ? "%" : ""}
-                        </span>
-                        <span>
-                          Mục tiêu: {targetValue.toLocaleString()}
-                          {key === "targetEngagement" ? "%" : ""}
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-500 ${
-                            percentage >= 100
-                              ? "bg-green-500"
-                              : percentage >= 70
-                              ? "bg-yellow-500"
-                              : percentage >= 40
-                              ? "bg-orange-500"
-                              : "bg-red-500"
-                          }`}
-                          style={{ width: `${Math.min(percentage, 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-
-          {/* Form cập nhật số liệu thực tế */}
-          <div className="border-t pt-6">
-            <h4 className="font-semibold text-gray-800 mb-4 flex items-center">
-              <TrendingUp className="mr-2" size={16} />
-              Cập nhật số liệu thực tế
-            </h4>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {loading && (
-                <div className="col-span-full text-center text-gray-500">
-                  Đang tải dữ liệu...
-                </div>
-              )}
-              {Object.entries(goals)
-                .filter(([key, value]) => value > 0)
-                .map(([key, targetValue]) => {
-                  const fieldMapping = {
-                    targetLikes: {
-                      field: "actualLikes",
-                      label: "Lượt thích thực tế",
-                    },
-                    targetComments: {
-                      field: "actualComments",
-                      label: "Bình luận thực tế",
-                    },
-                    targetShares: {
-                      field: "actualShares",
-                      label: "Chia sẻ thực tế",
-                    },
-                    targetViews: {
-                      field: "actualViews",
-                      label: "Lượt xem thực tế",
-                    },
-                    targetEngagement: {
-                      field: "actualEngagement",
-                      label: "Tương tác thực tế (%)",
-                    },
-                  };
-
-                  const mapping = fieldMapping[key];
-                  if (!mapping) return null;
-
-                  return (
-                    <div key={key}>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {mapping.label}
-                      </label>
-                      <input
-                        type="number"
-                        value={actualStats[mapping.field]}
-                        onChange={(e) =>
-                          setActualStats((prev) => ({
-                            ...prev,
-                            [mapping.field]:
-                              key === "targetEngagement"
-                                ? parseFloat(e.target.value) || 0
-                                : parseInt(e.target.value) || 0,
-                          }))
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="0"
-                        min="0"
-                        disabled={loading}
-                        max={key === "targetEngagement" ? "100" : undefined}
-                        step={key === "targetEngagement" ? "0.1" : "1"}
-                      />
-                      <div className="text-xs text-gray-500 mt-1">
-                        Mục tiêu: {targetValue.toLocaleString()}
-                        {key === "targetEngagement" ? "%" : ""}
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 mt-6">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              disabled={loading}
-            >
-              Đóng
-            </button>
-            <button
-              onClick={handleUpdateStats}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading}
-            >
-              <BarChart3 className="mr-1" size={16} />
-              {loading ? "Đang cập nhật..." : "Cập nhật số liệu"}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const handleSetGoals = async (content) => {
-    if (!content?.id) {
-      console.error("No content provided for setting goals");
-      return;
-    }
-
-    setSelectedContentForGoals(content);
-    setShowGoalsModal(true);
-
-    // Load existing goals từ API
-    try {
-      const existingGoals = await getPostGoals(content.id);
-      if (existingGoals) {
-        // Cập nhật goals vào content
-        setContents((prev) =>
-          prev.map((c) =>
-            c.id === content.id ? { ...c, goals: existingGoals } : c
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Error loading goals:", error);
-    }
-  };
-
-  const handleViewProgress = async (content) => {
-    setSelectedContentForProgress(content);
-    setShowProgressModal(true);
-
-    // Load progress data từ API
-    try {
-      const progressData = await getPostProgress(content.id);
-      if (progressData) {
-        // Cập nhật progress data
-        setContents((prev) =>
-          prev.map((c) =>
-            c.id === content.id
-              ? {
-                  ...c,
-                  goals: progressData.goals || c.goals,
-                  actualStats: progressData.actualStats || c.actualStats,
-                }
-              : c
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Error loading progress:", error);
-    }
-  };
-
-  const handleSaveGoals = async (goals) => {
-    try {
-      // Kiểm tra xem selectedContentForGoals có tồn tại không
-      if (!selectedContentForGoals?.id) {
-        console.error("No content selected for goals");
-        Swal.fire({
-          icon: "error",
-          title: "Lỗi!",
-          text: "Không có content được chọn để đặt mục tiêu.",
-        });
-        return;
-      }
-
-      // Gọi API để lưu goals
-      await setPostGoals(selectedContentForGoals.id, {
-        targetLikes: goals.targetLikes || 0,
-        targetComments: goals.targetComments || 0,
-        targetShares: goals.targetShares || 0,
-        targetViews: goals.targetViews || 0,
-        targetEngagement: goals.targetEngagement || 0,
-      });
-
-      // Cập nhật state local
-      setContents((prev) =>
-        prev.map((c) =>
-          c.id === selectedContentForGoals.id ? { ...c, goals } : c
-        )
-      );
-
-      if (
-        selectedContent &&
-        selectedContent.id === selectedContentForGoals.id
-      ) {
-        setSelectedContent((prev) => ({ ...prev, goals }));
-      }
-
-      Swal.fire({
-        icon: "success",
-        title: "Thành công!",
-        text: "Mục tiêu đã được lưu thành công.",
-        showConfirmButton: false,
-        timer: 1500,
-      });
-    } catch (error) {
-      console.error("Error saving goals:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Lỗi!",
-        text: "Không thể lưu mục tiêu. Vui lòng thử lại.",
-      });
-    }
-  };
-
-  const handleUpdateStats = async (actualStats) => {
-    try {
-      // Gọi API để cập nhật actual stats
-      await updatePostActualStats(selectedContentForProgress.id, {
-        actualLikes: actualStats.actualLikes || 0,
-        actualComments: actualStats.actualComments || 0,
-        actualShares: actualStats.actualShares || 0,
-        actualViews: actualStats.actualViews || 0,
-        actualEngagement: actualStats.actualEngagement || 0,
-      });
-
-      // Cập nhật state local
-      setContents((prev) =>
-        prev.map((c) =>
-          c.id === selectedContentForProgress.id ? { ...c, actualStats } : c
-        )
-      );
-
-      if (
-        selectedContent &&
-        selectedContent.id === selectedContentForProgress.id
-      ) {
-        setSelectedContent((prev) => ({ ...prev, actualStats }));
-      }
-
-      Swal.fire({
-        icon: "success",
-        title: "Thành công!",
-        text: "Thống kê thực tế đã được cập nhật.",
-        showConfirmButton: false,
-        timer: 1500,
-      });
-    } catch (error) {
-      console.error("Error updating stats:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Lỗi!",
-        text: "Không thể cập nhật thống kê. Vui lòng thử lại.",
-      });
-    }
-  };
+  // REMOVED - Goals and Progress handlers removed from TopicContentDetail
 
   // Đóng dropdown menu khi click outside
   useEffect(() => {
@@ -823,14 +200,6 @@ const TopicContentDetail = ({ topic, onBack }) => {
               : item.hashtag || "",
             imageUrl: item.imageUrl || (item.images && item.images[0]) || "",
             isNew: true, // Đánh dấu content mới
-            goals: item.goals || null, // Thêm trường goals
-            actualStats: item.actualStats || {
-              likes: 0,
-              comments: 0,
-              shares: 0,
-              views: 0,
-              engagement: 0,
-            }, // Thêm trường thống kê thực tế
           });
           const normalized = Array.isArray(newContents)
             ? newContents.map(normalize)
@@ -872,30 +241,6 @@ const TopicContentDetail = ({ topic, onBack }) => {
             );
             setSelectedContent(updated);
           }}
-        />
-      )}
-
-      {selectedContent && (
-        <GoalsModal
-          isOpen={showGoalsModal}
-          onClose={() => {
-            setShowGoalsModal(false);
-            setSelectedContentForGoals(null);
-          }}
-          content={selectedContentForGoals}
-          onSave={handleSaveGoals}
-        />
-      )}
-
-      {selectedContent && (
-        <ProgressModal
-          isOpen={showProgressModal}
-          onClose={() => {
-            setShowProgressModal(false);
-            setSelectedContentForProgress(null);
-          }}
-          content={selectedContentForProgress}
-          onUpdateStats={handleUpdateStats}
         />
       )}
 
@@ -957,7 +302,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
                       </button>
 
                       <button
-                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-yellow-700"
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-yellow-700 rounded-b-lg"
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowEditModal(true);
@@ -967,35 +312,6 @@ const TopicContentDetail = ({ topic, onBack }) => {
                         <Edit className="mr-2" size={16} />
                         Chỉnh sửa
                       </button>
-
-                      <button
-                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-green-700"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSetGoals(selectedContent);
-                          setShowActionMenu(false);
-                        }}
-                      >
-                        <Target className="mr-2" size={16} />
-                        Đặt mục tiêu
-                      </button>
-
-                      {selectedContent.goals &&
-                        Object.values(selectedContent.goals).some(
-                          (v) => v > 0
-                        ) && (
-                          <button
-                            className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-blue-700 rounded-b-lg"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewProgress(selectedContent);
-                              setShowActionMenu(false);
-                            }}
-                          >
-                            <BarChart3 className="mr-2" size={16} />
-                            Xem tiến độ
-                          </button>
-                        )}
                     </div>
                   )}
                 </div>
@@ -1047,141 +363,6 @@ const TopicContentDetail = ({ topic, onBack }) => {
                 </div>
               )}
 
-              {/* Hiển thị mục tiêu đã đặt */}
-              {selectedContent.goals &&
-                Object.values(selectedContent.goals).some((v) => v > 0) && (
-                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <h4 className="font-semibold text-green-800 mb-2 flex items-center">
-                      <Target className="mr-2" size={16} />
-                      Mục tiêu đã đặt
-                    </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      {selectedContent.goals.likes > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">👍 Lượt thích:</span>
-                          <span className="font-medium text-green-700">
-                            {selectedContent.goals.likes.toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                      {selectedContent.goals.comments > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">💬 Bình luận:</span>
-                          <span className="font-medium text-green-700">
-                            {selectedContent.goals.comments.toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                      {selectedContent.goals.shares > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">🔄 Chia sẻ:</span>
-                          <span className="font-medium text-green-700">
-                            {selectedContent.goals.shares.toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                      {selectedContent.goals.views > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">👀 Lượt xem:</span>
-                          <span className="font-medium text-green-700">
-                            {selectedContent.goals.views.toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                      {selectedContent.goals.engagement > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">📊 Tương tác:</span>
-                          <span className="font-medium text-green-700">
-                            {selectedContent.goals.engagement}%
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-              {/* Hiển thị thống kê thực tế và tiến độ */}
-              {selectedContent.actualStats &&
-                selectedContent.goals &&
-                Object.values(selectedContent.goals).some((v) => v > 0) && (
-                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="font-semibold text-blue-800 mb-3 flex items-center">
-                      <BarChart3 className="mr-2" size={16} />
-                      Kết quả thực tế & Tiến độ
-                    </h4>
-                    <div className="space-y-3">
-                      {Object.entries(selectedContent.goals)
-                        .filter(([key, value]) => value > 0)
-                        .map(([key, targetValue]) => {
-                          const actualValue =
-                            selectedContent.actualStats[key] || 0;
-                          const percentage =
-                            targetValue > 0
-                              ? Math.min((actualValue / targetValue) * 100, 100)
-                              : 0;
-
-                          const labels = {
-                            likes: { label: "Lượt thích", icon: "👍" },
-                            comments: { label: "Bình luận", icon: "💬" },
-                            shares: { label: "Chia sẻ", icon: "🔄" },
-                            views: { label: "Lượt xem", icon: "👀" },
-                            engagement: { label: "Tương tác", icon: "📊" },
-                          };
-
-                          return (
-                            <div
-                              key={key}
-                              className="bg-white p-3 rounded border"
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="font-medium text-gray-700 flex items-center text-sm">
-                                  <span className="mr-2">
-                                    {labels[key].icon}
-                                  </span>
-                                  {labels[key].label}
-                                </span>
-                                <span
-                                  className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                    percentage >= 100
-                                      ? "text-green-600 bg-green-100"
-                                      : percentage >= 70
-                                      ? "text-yellow-600 bg-yellow-100"
-                                      : percentage >= 40
-                                      ? "text-orange-600 bg-orange-100"
-                                      : "text-red-600 bg-red-100"
-                                  }`}
-                                >
-                                  {percentage.toFixed(1)}%
-                                </span>
-                              </div>
-                              <div className="text-xs text-gray-600 mb-1">
-                                Thực tế: {actualValue.toLocaleString()}
-                                {key === "engagement" ? "%" : ""} / Mục tiêu:{" "}
-                                {targetValue.toLocaleString()}
-                                {key === "engagement" ? "%" : ""}
-                              </div>
-                              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                <div
-                                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                                    percentage >= 100
-                                      ? "bg-green-500"
-                                      : percentage >= 70
-                                      ? "bg-yellow-500"
-                                      : percentage >= 40
-                                      ? "bg-orange-500"
-                                      : "bg-red-500"
-                                  }`}
-                                  style={{
-                                    width: `${Math.min(percentage, 100)}%`,
-                                  }}
-                                ></div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-                )}
               {/* Ảnh ở dưới cùng */}
               {Array.isArray(selectedContent.imageUrls) &&
                 selectedContent.imageUrls.length > 0 && (
@@ -1206,7 +387,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
           </div>
         ) : contents.length > 0 ? (
           <>
-            {/* Bộ lọc và thống kê mục tiêu */}
+            {/* Thống kê tổng quan */}
             <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4 text-sm">
@@ -1218,77 +399,6 @@ const TopicContentDetail = ({ topic, onBack }) => {
                       {contents.length}
                     </span>
                   </div>
-                  <div className="flex items-center">
-                    <Target className="mr-1 text-green-500" size={16} />
-                    <span className="text-gray-700 font-medium">
-                      Đã đặt mục tiêu:{" "}
-                    </span>
-                    <span className="ml-1 font-bold text-green-600">
-                      {
-                        contents.filter(
-                          (c) =>
-                            c.goals && Object.values(c.goals).some((v) => v > 0)
-                        ).length
-                      }
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-3 h-3 bg-gray-300 rounded-full mr-2"></span>
-                    <span className="text-gray-700 font-medium">
-                      Chưa đặt mục tiêu:{" "}
-                    </span>
-                    <span className="ml-1 font-bold text-gray-600">
-                      {
-                        contents.filter(
-                          (c) =>
-                            !c.goals ||
-                            !Object.values(c.goals).some((v) => v > 0)
-                        ).length
-                      }
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors flex items-center"
-                    onClick={() => {
-                      // Lọc chỉ hiển thị những content đã đặt mục tiêu
-                      const withGoals = contents.filter(
-                        (c) =>
-                          c.goals && Object.values(c.goals).some((v) => v > 0)
-                      );
-                      if (withGoals.length > 0) {
-                        setContents(withGoals);
-                      }
-                    }}
-                  >
-                    <Target className="mr-1" size={12} />
-                    Đã có mục tiêu
-                  </button>
-                  <button
-                    className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
-                    onClick={() => {
-                      // Lọc chỉ hiển thị những content chưa đặt mục tiêu
-                      const withoutGoals = contents.filter(
-                        (c) =>
-                          !c.goals || !Object.values(c.goals).some((v) => v > 0)
-                      );
-                      if (withoutGoals.length > 0) {
-                        setContents(withoutGoals);
-                      }
-                    }}
-                  >
-                    Chưa có mục tiêu
-                  </button>
-                  <button
-                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
-                    onClick={() => {
-                      // Reset về hiển thị tất cả
-                      window.location.reload();
-                    }}
-                  >
-                    Tất cả
-                  </button>
                 </div>
               </div>
             </div>
@@ -1304,34 +414,17 @@ const TopicContentDetail = ({ topic, onBack }) => {
                 const isLong =
                   (content.text || content.body || content.content || "")
                     .length > 100;
-                const hasGoals =
-                  content.goals &&
-                  Object.values(content.goals).some((v) => v > 0);
                 return (
                   <div
                     key={content.id || idx}
-                    className={`bg-white border-2 rounded-2xl p-8 shadow hover:shadow-lg cursor-pointer flex flex-col relative h-full transition-all duration-300 ${
-                      hasGoals
-                        ? "border-green-300 bg-gradient-to-br from-white to-green-50"
-                        : "border-gray-200 hover:border-blue-300"
-                    }`}
+                    className="bg-white border-2 border-gray-200 hover:border-blue-300 rounded-2xl p-8 shadow hover:shadow-lg cursor-pointer flex flex-col relative h-full transition-all duration-300"
                     onClick={() => setSelectedContent(content)}
                   >
-                    {/* Badge trạng thái mục tiêu */}
+                    {/* Badge mới */}
                     <div className="absolute top-2 right-2 flex gap-1">
                       {content.isNew && (
                         <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow z-20">
                           Mới
-                        </span>
-                      )}
-                      {hasGoals ? (
-                        <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow flex items-center">
-                          <Target className="mr-1" size={10} />
-                          Có mục tiêu
-                        </span>
-                      ) : (
-                        <span className="bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
-                          Chưa đặt mục tiêu
                         </span>
                       )}
                     </div>
@@ -1349,35 +442,8 @@ const TopicContentDetail = ({ topic, onBack }) => {
                       </div>
                     )}
                     <div className="mb-2">
-                      <span className="font-semibold text-gray-800 break-words flex items-center">
+                      <span className="font-semibold text-gray-800 break-words">
                         {content.title || `Content #${idx + 1}`}
-                        {hasGoals && (
-                          <div className="ml-2 flex items-center">
-                            <Target
-                              className="text-green-500"
-                              size={16}
-                              title="Đã đặt mục tiêu"
-                            />
-                            <span className="ml-1 text-xs text-green-600 font-medium">
-                              {Object.entries(content.goals)
-                                .filter(([key, value]) => value > 0)
-                                .map(([key, value]) => {
-                                  const icons = {
-                                    likes: "👍",
-                                    comments: "💬",
-                                    shares: "🔄",
-                                    views: "👀",
-                                    engagement: "📊",
-                                  };
-                                  return `${icons[key]}${value}${
-                                    key === "engagement" ? "%" : ""
-                                  }`;
-                                })
-                                .slice(0, 2)
-                                .join(" ")}
-                            </span>
-                          </div>
-                        )}
                       </span>
                     </div>
                     <div className="text-sm text-gray-600 mb-2 break-words">
@@ -1396,28 +462,6 @@ const TopicContentDetail = ({ topic, onBack }) => {
                           <Eye className="inline mr-1" size={12} />
                           Chi tiết
                         </button>
-                        <button
-                          className="text-green-600 text-xs font-semibold hover:underline px-2 py-1 rounded"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSetGoals(content);
-                          }}
-                        >
-                          <Target className="inline mr-1" size={12} />
-                          Mục tiêu
-                        </button>
-                        {hasGoals && (
-                          <button
-                            className="text-purple-600 text-xs font-semibold hover:underline px-2 py-1 rounded"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewProgress(content);
-                            }}
-                          >
-                            <BarChart3 className="inline mr-1" size={12} />
-                            Tiến độ
-                          </button>
-                        )}
                       </div>
                       <span className="text-xs text-gray-500 whitespace-nowrap">
                         {content.createdAt
@@ -1425,124 +469,6 @@ const TopicContentDetail = ({ topic, onBack }) => {
                           : ""}
                       </span>
                     </div>
-
-                    {/* Hiển thị mục tiêu mini trong grid - chỉ hiển thị khi có mục tiêu */}
-                    {hasGoals && (
-                      <div className="mt-2 p-3 bg-green-100 border border-green-300 rounded-lg shadow-sm">
-                        <div className="flex items-center text-green-800 font-semibold mb-2 text-sm">
-                          <Target className="mr-1" size={12} />
-                          Mục tiêu đã đặt
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          {content.goals.likes > 0 && (
-                            <div className="flex items-center justify-between bg-white px-2 py-1 rounded">
-                              <span className="text-gray-600">👍</span>
-                              <span className="font-medium text-green-700">
-                                {content.goals.likes.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                          {content.goals.comments > 0 && (
-                            <div className="flex items-center justify-between bg-white px-2 py-1 rounded">
-                              <span className="text-gray-600">💬</span>
-                              <span className="font-medium text-green-700">
-                                {content.goals.comments.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                          {content.goals.shares > 0 && (
-                            <div className="flex items-center justify-between bg-white px-2 py-1 rounded">
-                              <span className="text-gray-600">🔄</span>
-                              <span className="font-medium text-green-700">
-                                {content.goals.shares.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                          {content.goals.views > 0 && (
-                            <div className="flex items-center justify-between bg-white px-2 py-1 rounded">
-                              <span className="text-gray-600">👀</span>
-                              <span className="font-medium text-green-700">
-                                {content.goals.views.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                          {content.goals.engagement > 0 && (
-                            <div className="flex items-center justify-between bg-white px-2 py-1 rounded col-span-2">
-                              <span className="text-gray-600">
-                                📊 Tương tác
-                              </span>
-                              <span className="font-medium text-green-700">
-                                {content.goals.engagement}%
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Hiển thị tiến độ mini trong grid */}
-                    {hasGoals &&
-                      content.actualStats &&
-                      Object.values(content.actualStats).some((v) => v > 0) && (
-                        <div className="mt-2 p-3 bg-blue-100 border border-blue-300 rounded-lg shadow-sm">
-                          <div className="flex items-center text-blue-800 font-semibold mb-2 text-sm">
-                            <BarChart3 className="mr-1" size={12} />
-                            Tiến độ thực tế
-                          </div>
-                          <div className="space-y-1">
-                            {Object.entries(content.goals)
-                              .filter(([key, value]) => value > 0)
-                              .slice(0, 3)
-                              .map(([key, targetValue]) => {
-                                const actualValue =
-                                  content.actualStats[key] || 0;
-                                const percentage =
-                                  targetValue > 0
-                                    ? Math.min(
-                                        (actualValue / targetValue) * 100,
-                                        100
-                                      )
-                                    : 0;
-
-                                const labels = {
-                                  likes: "👍",
-                                  comments: "💬",
-                                  shares: "🔄",
-                                  views: "👀",
-                                  engagement: "📊",
-                                };
-
-                                return (
-                                  <div
-                                    key={key}
-                                    className="flex items-center justify-between text-xs"
-                                  >
-                                    <span className="flex items-center">
-                                      <span className="mr-1">
-                                        {labels[key]}
-                                      </span>
-                                      {actualValue.toLocaleString()}
-                                      {key === "engagement" ? "%" : ""}
-                                    </span>
-                                    <span
-                                      className={`px-1 py-0.5 rounded text-xs font-bold ${
-                                        percentage >= 100
-                                          ? "text-green-600 bg-green-200"
-                                          : percentage >= 70
-                                          ? "text-yellow-600 bg-yellow-200"
-                                          : percentage >= 40
-                                          ? "text-orange-600 bg-orange-200"
-                                          : "text-red-600 bg-red-200"
-                                      }`}
-                                    >
-                                      {percentage.toFixed(0)}%
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        </div>
-                      )}
                   </div>
                 );
               })}

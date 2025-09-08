@@ -8,84 +8,100 @@ const config = {
   },
 };
 
-// Đặt mục tiêu cho post
-export const setPostGoals = async (postId, goalsData) => {
+// Đặt mục tiêu cho post target (fanpage)
+export const setPostGoals = async (postTargetId, goalsData) => {
   try {
-    console.log("Setting goals for post:", postId, "with data:", goalsData);
+    console.log(
+      "Setting goals for postTarget:",
+      postTargetId,
+      "with data:",
+      goalsData
+    );
     const response = await api.post(
-      `/v1/posts/${postId}/goals`,
+      `/v1/post-targets/${postTargetId}/goals`,
       goalsData,
       config
     );
     console.log("Goals set successfully:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error setting post goals:", error);
+    console.error("Error setting post target goals:", error);
     console.error("Error details:", error.response?.data);
     throw error;
   }
 };
 
-// Lấy mục tiêu của post
-export const getPostGoals = async (postId) => {
+// Lấy mục tiêu của post target (fanpage)
+export const getPostGoals = async (postTargetId) => {
   try {
-    console.log("Getting goals for post:", postId);
-    const response = await api.get(`/v1/posts/${postId}/goals`, config);
+    console.log("Getting goals for postTarget:", postTargetId);
+    const response = await api.get(
+      `/v1/post-targets/${postTargetId}/goals`,
+      config
+    );
     console.log("Goals retrieved:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error getting post goals:", error);
+    console.error("Error getting post target goals:", error);
     console.error("Error details:", error.response?.data);
     throw error;
   }
 };
 
-// Xóa mục tiêu của post
-export const deletePostGoals = async (postId) => {
+// Xóa mục tiêu của post target
+export const deletePostGoals = async (postTargetId) => {
   try {
-    await api.delete(`/v1/posts/${postId}/goals`, config);
+    await api.delete(`/v1/post-targets/${postTargetId}/goals`, config);
   } catch (error) {
-    console.error("Error deleting post goals:", error);
+    console.error("Error deleting post target goals:", error);
     throw error;
   }
 };
 
-// Cập nhật thống kê thực tế
-export const updatePostActualStats = async (postId, statsData) => {
+// Cập nhật thống kê thực tế cho post target
+export const updatePostActualStats = async (postTargetId, statsData) => {
   try {
     const response = await api.post(
-      `/v1/posts/${postId}/actual-stats`,
+      `/v1/post-targets/${postTargetId}/actual-stats`,
       statsData,
       config
     );
     return response.data;
   } catch (error) {
-    console.error("Error updating post actual stats:", error);
+    console.error("Error updating post target actual stats:", error);
     throw error;
   }
 };
 
-// Lấy thống kê thực tế
-export const getPostActualStats = async (postId) => {
+// Lấy thống kê thực tế của post target
+export const getPostActualStats = async (postTargetId) => {
   try {
-    const response = await api.get(`/v1/posts/${postId}/actual-stats`, config);
+    const response = await api.get(
+      `/v1/post-targets/${postTargetId}/actual-stats`,
+      config
+    );
     return response.data;
   } catch (error) {
-    console.error("Error getting post actual stats:", error);
+    console.error("Error getting post target actual stats:", error);
     throw error;
   }
 };
 
-// Lấy tiến độ của post
-export const getPostProgress = async (postId) => {
+// Lấy tiến độ của post target
+export const getPostProgress = async (postTargetId) => {
   try {
-    const response = await api.get(`/v1/posts/${postId}/progress`, config);
+    const response = await api.get(
+      `/v1/post-targets/${postTargetId}/progress`,
+      config
+    );
     return response.data;
   } catch (error) {
-    console.error("Error getting post progress:", error);
+    console.error("Error getting post target progress:", error);
     throw error;
   }
 };
+
+// ===== Các functions cũ vẫn giữ cho backward compatibility =====
 
 // Lấy tiến độ theo topic
 export const getProgressByTopic = async (topicId) => {
