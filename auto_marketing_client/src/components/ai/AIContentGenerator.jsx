@@ -33,7 +33,7 @@ const AIContentGenerator = ({
     tone: "professional",
     includeHashtags: true,
     includeCTA: true,
-    model: "gpt", // mặc định GPT
+    model: "gpt",
   });
   const [additionalInstructions, setAdditionalInstructions] = useState("");
   const [previewContent, setPreviewContent] = useState([]);
@@ -42,6 +42,9 @@ const AIContentGenerator = ({
   // Lưu và lấy lại content từ localStorage
   const LOCAL_KEY = selectedTopic?.id
     ? `ai_preview_content_${selectedTopic.id}`
+    : null;
+  const CACHE_KEY = selectedTopic?.id
+    ? `ai_gen_cache_${selectedTopic.id}`
     : null;
 
   // Khi gen xong thì lưu vào localStorage
@@ -53,7 +56,7 @@ const AIContentGenerator = ({
     }
   }, [showResults, previewContent, LOCAL_KEY]);
 
-  // Khi mở modal thì lấy lại nếu có
+  // Khi mở modal thì lấy lại nếu có kết quả đã gen
   useEffect(() => {
     if (isOpen && LOCAL_KEY) {
       const saved = localStorage.getItem(LOCAL_KEY);
@@ -70,6 +73,46 @@ const AIContentGenerator = ({
     }
     // Khi đóng modal thì không xóa dữ liệu, chỉ xóa khi tạo lại hoặc quay lại settings
   }, [isOpen, LOCAL_KEY]);
+
+  // ----- BẮT ĐẦU PATCH: Lưu lại state khi modal đóng hoặc unmount -----
+  // Lưu trạng thái form vào localStorage khi đang gen
+  useEffect(() => {
+    if (generating && CACHE_KEY) {
+      const cache = {
+        generating,
+        contentSettings,
+        additionalInstructions,
+        previewContent,
+        showResults,
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+    }
+  }, [
+    generating,
+    contentSettings,
+    additionalInstructions,
+    previewContent,
+    showResults,
+    CACHE_KEY,
+  ]);
+
+  useEffect(() => {
+    if (isOpen && LOCAL_KEY) {
+      const saved = localStorage.getItem(LOCAL_KEY);
+      if (saved) {
+        try {
+          const arr = JSON.parse(saved);
+          if (Array.isArray(arr) && arr.length > 0) {
+            setPreviewContent(arr);
+            setShowResults(true);
+            setGenerating(false); // <- reset trạng thái loading!
+            setSelectedContentIds(arr.map((c) => c.id));
+          }
+        } catch (e) {}
+      }
+    }
+  }, [isOpen, LOCAL_KEY]);
+  // ----- KẾT THÚC PATCH -----
 
   // Notify parent when showResults changes
   useEffect(() => {
@@ -99,8 +142,6 @@ const AIContentGenerator = ({
       }
     }
   }, [isOpen]);
-
-  // Đã bỏ loại nội dung
 
   const toneOptions = [
     { value: "casual", label: "Thân thiện", description: "Gần gũi, dễ hiểu" },
@@ -169,26 +210,79 @@ const AIContentGenerator = ({
       setSelectedContentIds(safeContent.map((c) => c.id));
       setShowResults(true);
       setGenerating(false);
+
+      // Hiển thị SweetAlert khi gen thành công (chỉ ở đây, không ở nút lưu)
+      Swal.fire({
+        icon: "success",
+        title: "Tạo nội dung AI thành công!",
+        text: `Đã tạo thành công ${safeContent.length} bài viết cho chủ đề này.`,
+        confirmButtonText: "OK",
+        timer: 2500,
+        didOpen: () => {
+          const swal = document.querySelector(".swal2-container");
+          if (swal) swal.style.zIndex = "999999";
+        },
+      });
+
+      // Xoá cache khi gen xong
+      if (LOCAL_KEY) {
+        try {
+          localStorage.setItem(LOCAL_KEY, JSON.stringify(safeContent));
+        } catch (e) {}
+      }
+
       // Thông báo thành công qua chuông
       const postCountDisplay =
-        contentSettings.postCount === -1
-          ? contentSettings.customPostCount
-          : contentSettings.postCount;
-      addNotification &&
-        addNotification({
-          type: "success",
-          message: `Đã tạo thành công ${postCountDisplay} bài viết cho chủ đề "${
+        // Hiển thị SweetAlert khi gen thành công (chỉ ở đây, không ở nút lưu)
+        Swal.fire({
+          icon: "success",
+          title: "Tạo nội dung AI thành công!",
+          html: `Đã tạo thành công <b>${
+            safeContent.length
+          }</b> bài viết cho chủ đề <b>"${
             selectedTopic?.title || selectedTopic?.name || ""
-          }"!`,
-          createdAt: new Date(),
+          }"</b>!<br/><br/>👉 <b>Hướng dẫn:</b> Vui lòng chuyển sang tab <b>Chủ đề</b> và chọn lại chủ đề <b>"${
+            selectedTopic?.title || selectedTopic?.name || ""
+          }"</b> để xem các nội dung vừa được tạo.`,
+          confirmButtonText: "OK",
+          allowOutsideClick: false,
+          didOpen: () => {
+            const swal = document.querySelector(".swal2-container");
+            if (swal) {
+              swal.style.zIndex = 120001;
+            }
+            // Thông báo thành công qua chuông và phát âm thanh ngay khi hiện alert
+            const postCountDisplay =
+              contentSettings.postCount === -1
+                ? contentSettings.customPostCount
+                : contentSettings.postCount;
+            if (addNotification) {
+              addNotification({
+                type: "success",
+                message: `Đã tạo thành công ${postCountDisplay} bài viết cho chủ đề "${
+                  selectedTopic?.title || selectedTopic?.name || ""
+                }"!`,
+                createdAt: new Date(),
+              });
+            }
+            if (typeof playNotificationSound === "function") {
+              playNotificationSound();
+            }
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            if (typeof onClose === "function") {
+              onClose();
+            }
+          }
         });
-      // Phát âm thanh
       playNotificationSound && playNotificationSound();
-      // toast.success("Tạo nội dung thành công!", { style: TOAST_STYLE });
     } catch (err) {
       setError("Không thể tạo nội dung. Vui lòng thử lại.");
       setGenerating(false);
-      // toast.error("Tạo nội dung thất bại!", { style: TOAST_STYLE });
+
+      // Xoá cache khi có lỗi
+      if (CACHE_KEY) localStorage.removeItem(CACHE_KEY);
     }
   };
 
@@ -277,20 +371,18 @@ const AIContentGenerator = ({
       setShowPublisher(false);
       toast.success("Lưu nội dung thành công!");
       setGenerating(false);
-      setShowResults(false); // Nếu muốn ẩn kết quả sau khi lưu
+      setShowResults(false);
 
       // Xoá localStorage sau khi lưu thành công
-      const LOCAL_KEY = selectedTopic?.id
-        ? `ai_preview_content_${selectedTopic.id}`
-        : null;
       if (LOCAL_KEY) localStorage.removeItem(LOCAL_KEY);
+
+      // Xoá cache khi lưu thành công
+      if (CACHE_KEY) localStorage.removeItem(CACHE_KEY);
 
       // Gọi callback để cập nhật danh sách content ở component cha
       if (typeof onContentSaved === "function") {
-        // Truyền về mảng content mới đã được duyệt
         onContentSaved(approvedPosts);
       }
-      // Đóng modal sau khi lưu thành công
       if (typeof onClose === "function") {
         onClose();
       }
@@ -309,8 +401,12 @@ const AIContentGenerator = ({
     setEditingContent(null);
     setSelectedContentIds([]);
     setShowPublisher(false);
+
     // Xóa dữ liệu local khi quay lại settings
     if (LOCAL_KEY) localStorage.removeItem(LOCAL_KEY);
+
+    // Xoá cache khi quay lại settings
+    if (CACHE_KEY) localStorage.removeItem(CACHE_KEY);
   };
 
   useEffect(() => {

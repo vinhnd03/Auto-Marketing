@@ -44,16 +44,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
 
-//        if (token != null && jwtService.validateToken(token)) {
-//            String username = jwtService.getUsernameFromToken(token);
-//            UserDetails user = userDetailsService.loadUserByUsername(username);
-//
-//            UsernamePasswordAuthenticationToken auth =
-//                    new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-//            SecurityContextHolder.getContext().setAuthentication(auth);
-//
-//
-//        }
+        if (token != null && jwtService.validateToken(token)) {
+            String username = jwtService.getUsernameFromToken(token);
+            UserDetails user = userDetailsService.loadUserByUsername(username);
+
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+
+        }
 
         if (token != null) { // Chỉ kiểm tra nếu token có
             try {

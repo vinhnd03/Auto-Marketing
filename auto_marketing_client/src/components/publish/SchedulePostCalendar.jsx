@@ -88,7 +88,7 @@ export default function SchedulePostCalendar() {
         setUserPages(data);
       })
       .catch((err) => console.log("Lỗi tải fanpage: " + err.message));
-  }, [user]);
+  }, [user, isModalOpen]);
 
   // ✅ Check giờ còn hợp lệ không
   const isHourAvailable = (day, hour) => {
@@ -105,6 +105,7 @@ export default function SchedulePostCalendar() {
     setSelectedContentId("");
     setSelectedFanpageIds([]);
     setIsModalOpen(true);
+
   };
 
   const savePost = async () => {

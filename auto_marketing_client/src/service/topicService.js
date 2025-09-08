@@ -1,53 +1,31 @@
 import axios from "axios";
-import { data } from "react-router-dom";
+import toast from "react-hot-toast";
+import api from "../context/api";
 
 // Base URL for topic API
-const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}/api/v1`;
-// const BASE_URL = `/v1`;
+// const BASE_URL = `${process.env.REACT_APP_BACKEND_URL}/api/v1`;
+const BASE_URL = `/v1`;
 
 // Configure axios with default timeout
 // const apiClient = axios.create({
-const apiClient = axios.create({
+// const apiClient = axios.create({
+//   withCredentials: true,
+//   baseURL: BASE_URL,
+//   timeout: 30000, // 30 seconds for AI generation
+//   headers: {
+//     "Content-Type": "application/json",
+//     Accept: "application/json",
+//   },
+// });
+
+const config = {
   withCredentials: true,
-  baseURL: BASE_URL,
   timeout: 30000, // 30 seconds for AI generation
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-});
-
-// Response interceptor for error handling
-apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.code === "ECONNABORTED") {
-      error.message = "Request timeout - AI generation mất quá nhiều thời gian";
-    } else if (error.code === "ERR_NETWORK") {
-      error.message = "Network Error - Không thể kết nối đến server";
-    } else if (error.response) {
-      switch (error.response.status) {
-        case 400:
-          error.message = "Dữ liệu không hợp lệ";
-          break;
-        case 404:
-          error.message = "Chiến dịch không tồn tại";
-          break;
-        case 500:
-          error.message = "AI generation failed - Lỗi server";
-          break;
-        default:
-          error.message = `Server Error ${error.response.status}: ${
-            error.response.data?.message || error.response.statusText
-          }`;
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
+};
 
 /**
  * Generate topics using AI for a specific campaign
@@ -61,7 +39,8 @@ apiClient.interceptors.response.use(
  */
 export async function generateTopicsWithAI(requestData) {
   try {
-    const response = await apiClient.post("/topics/generate", requestData);
+    // const response = await apiClient.post("/topics/generate", requestData);
+    const response = await api.post("/v1/topics/generate", requestData, config);
     return response.data;
   } catch (error) {
     throw error;
@@ -75,7 +54,7 @@ export async function generateTopicsWithAI(requestData) {
  */
 export async function getTopicsByCampaign(campaignId) {
   try {
-    const response = await apiClient.get(`/topics/campaign/${campaignId}`);
+    const response = await api.get(`/v1/topics/campaign/${campaignId}`, config);
     return response.data;
   } catch (error) {
     throw error;
@@ -84,9 +63,10 @@ export async function getTopicsByCampaign(campaignId) {
 
 export const getTopicsByCampaignId = async (campaignId) => {
   try {
-    const resp = await apiClient.get(`${BASE_URL}/topics/campaignId`, {
+    const resp = await api.get(`${BASE_URL}/topics/campaignId`, {
       params: { campaignId },
       withCredentials: true,
+      ...config,
     });
     console.log(resp.data);
 
@@ -105,8 +85,9 @@ export const getTopicsByCampaignId = async (campaignId) => {
  */
 export async function getTopicsByCampaignAndStatus(campaignId, status) {
   try {
-    const response = await apiClient.get(
-      `/topics/campaign/${campaignId}/status/${status}`
+    const response = await api.get(
+      `/v1/topics/campaign/${campaignId}/status/${status}`,
+      config
     );
     return response.data;
   } catch (error) {
@@ -121,7 +102,11 @@ export async function getTopicsByCampaignAndStatus(campaignId, status) {
  */
 export async function approveTopic(topicId) {
   try {
-    const response = await apiClient.put(`/topics/${topicId}/approve`);
+    const response = await api.put(
+      `/v1/topics/${topicId}/approve`,
+      null,
+      config
+    );
     return response.data;
   } catch (error) {
     console.log(error);
@@ -136,7 +121,11 @@ export async function approveTopic(topicId) {
  */
 export async function rejectTopic(topicId) {
   try {
-    const response = await apiClient.put(`/topics/${topicId}/reject`);
+    const response = await api.put(
+      `/v1/topics/${topicId}/reject`,
+      null,
+      config
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -145,7 +134,7 @@ export async function rejectTopic(topicId) {
 
 export async function deleteTopic(topicId) {
   try {
-    const response = await apiClient.delete(`/topics/${topicId}`);
+    const response = await api.delete(`/v1/topics/${topicId}`, config);
     return response.data;
   } catch (error) {
     throw error;
@@ -161,7 +150,10 @@ export async function deleteTopic(topicId) {
 export async function deleteTopicsByCampaignAndStatus(campaignId, status) {
   try {
     // status nên là 'PENDING'
-    await apiClient.delete(`/topics/campaign/${campaignId}/status/${status}`);
+    await api.delete(
+      `/v1/topics/campaign/${campaignId}/status/${status}`,
+      config
+    );
   } catch (error) {
     throw error;
   }
@@ -170,8 +162,9 @@ export async function deleteTopicsByCampaignAndStatus(campaignId, status) {
 // Đếm số topic APPROVED của một campaign
 export async function countApprovedTopicsByCampaign(campaignId) {
   try {
-    const response = await apiClient.get(
-      `/topics/count/approved/campaign/${campaignId}`
+    const response = await api.get(
+      `/v1/topics/count/approved/campaign/${campaignId}`,
+      config
     );
     return response.data;
   } catch (error) {

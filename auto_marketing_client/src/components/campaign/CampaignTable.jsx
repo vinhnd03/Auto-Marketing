@@ -215,7 +215,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4 sm:p-8 rounded-xl shadow-inner font-sans antialiased text-gray-900">
+    <div className="bg-gray-50 p-1 sm:p-2 rounded-md shadow-inner font-sans antialiased text-gray-900 max-h-fit">
       {showForm ? (
         <CreateCampaignForm
           onSubmit={handleCreateCampaign}
@@ -225,33 +225,33 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
         />
       ) : (
         <>
-          <div className="max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-5xl mx-auto px-2 sm:px-6 lg:px-12">
-            <div className="space-y-8">
+          <div className="max-w-full mx-auto px-1">
+            <div className="space-y-2">
               {/* Phần tiêu đề và nút tạo mới */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
-                  <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
                     Chiến dịch trong workspace
                   </h3>
-                  <p className="text-base sm:text-lg text-gray-600 mt-1">
+                  <p className="text-xs sm:text-sm text-gray-600">
                     Quản lý và theo dõi các chiến dịch marketing của bạn một
                     cách dễ dàng và trực quan hơn.
                   </p>
                 </div>
                 <button
-                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition-colors"
                   onClick={() => setShowForm(true)}
                 >
-                  <FilePlus size={18} />
-                  <span className="text-sm font-medium">
+                  <FilePlus size={14} />
+                  <span className="text-xs font-medium">
                     Tạo chiến dịch mới
                   </span>
                 </button>
               </div>
 
               {/* Phần tìm kiếm và lọc */}
-              <div className="flex flex-col gap-6 lg:flex-row lg:justify-between">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex gap-6 w-full">
+              <div className="flex flex-col gap-3 lg:flex-row lg:justify-between">
+                <div className="grid grid-cols-1 sm:grid-cols-3 lg:flex gap-3 w-full">
                   <div className="flex flex-col w-full">
                     <label className="text-xs text-gray-500 mb-1">
                       Chiến dịch
@@ -261,7 +261,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                       placeholder="Tìm kiếm chiến dịch..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="px-4 py-3 border rounded-xl shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                      className="px-2 py-1.5 border rounded-md shadow-sm text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
                     />
                   </div>
                   <div className="flex flex-col w-full">
@@ -272,7 +272,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="px-4 py-3 border rounded-xl shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                      className="px-2 py-1.5 border rounded-md shadow-sm text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
                     />
                   </div>
                   {/* <div className="flex flex-col w-full">
@@ -297,7 +297,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                         setRecordsPerPage(Number(e.target.value));
                         setCurrentPage(1);
                       }}
-                      className="border rounded-xl px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="border rounded-md px-2 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                     >
                       <option value={5}>5 bản ghi</option>
                       <option value={10}>10 bản ghi</option>
@@ -308,32 +308,32 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
               </div>
 
               {/* Phần bảng hiển thị chính */}
-              <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+              <div className="bg-white rounded-md shadow-sm border overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 text-base">
+                  <table className="min-w-full divide-y divide-gray-200 text-xs">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                           Tên chiến dịch
                         </th>
 
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                           Mô tả
                         </th>
 
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                           Từ ngày
                         </th>
 
-                        {/* <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        {/* <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                           Đến ngày
                         </th> */}
 
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                           Trạng thái
                         </th>
 
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                           Hành động
                         </th>
                       </tr>
@@ -341,7 +341,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {isLoading ? (
                         <tr>
-                          <td colSpan="6" className="px-6 py-8 text-center">
+                          <td colSpan="6" className="px-4 py-6 text-center">
                             <div className="flex flex-col items-center justify-center text-gray-500">
                               <svg
                                 className="animate-spin h-8 w-8 text-blue-500"
@@ -371,16 +371,16 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                         </tr>
                       ) : processedCampaigns.length === 0 ? (
                         <tr>
-                          <td colSpan="6" className="px-6 py-8 text-center">
+                          <td colSpan="6" className="px-4 py-6 text-center">
                             <div className="flex flex-col items-center justify-center text-gray-500">
                               <FilePlus
-                                size={48}
+                                size={40}
                                 className="mb-2 text-gray-300"
                               />
-                              <p className="text-lg font-medium">
+                              <p className="text-base font-medium">
                                 Không tìm thấy chiến dịch nào
                               </p>
-                              <p className="text-sm mt-1">
+                              <p className="text-xs mt-1">
                                 Hãy thử tìm kiếm với từ khóa khác
                               </p>
                             </div>
@@ -389,57 +389,57 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                       ) : (
                         processedCampaigns.map((campaign) => (
                           <tr key={campaign.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-5">
-                              <div className="text-sm font-medium text-gray-900">
+                            <td className="px-4 py-3">
+                              <div className="text-xs font-medium text-gray-900">
                                 {campaign.name}
                               </div>
                             </td>
-                            <td className="px-6 py-5">
-                              <div className="text-sm text-gray-600 max-w-xs truncate">
+                            <td className="px-4 py-3">
+                              <div className="text-xs text-gray-600 max-w-xs truncate">
                                 {campaign.description}
                               </div>
                             </td>
-                            <td className="px-6 py-5 text-base text-gray-600">
+                            <td className="px-4 py-3 text-xs text-gray-600">
                               {new Date(campaign.startDate).toLocaleDateString(
                                 "vi-VN"
                               )}
                             </td>
-                            {/* <td className="px-6 py-5 text-base text-gray-600">
+                            {/* <td className="px-4 py-3 text-xs text-gray-600">
                               {new Date(campaign.endDate).toLocaleDateString(
                                 "vi-VN"
                               )}
                             </td> */}
-                            <td className="px-6 py-5">
+                            <td className="px-4 py-3">
                               {renderStatusBadge(campaign.status)}
                             </td>
-                            <td className="px-6 py-5 text-base font-medium">
-                              <div className="flex items-center gap-2">
+                            <td className="px-4 py-3 text-xs font-medium">
+                              <div className="flex items-center gap-1">
                                 <button
-                                  className="text-blue-600 hover:text-blue-800 transition-colors"
+                                  className="text-blue-600 hover:text-blue-800 transition-colors p-1"
                                   title="Xem chi tiết"
                                   onClick={() => {
                                     setCampaignToView(campaign);
                                     setShowDetailModal(true);
                                   }}
                                 >
-                                  <Eye size={16} />
+                                  <Eye size={14} />
                                 </button>
                                 <button
-                                  className="text-green-600 hover:text-green-800 transition-colors"
+                                  className="text-green-600 hover:text-green-800 transition-colors p-1"
                                   title="Chỉnh sửa"
                                   onClick={() => handleEditClick(campaign.id)}
                                 >
-                                  <Pencil size={16} />
+                                  <Pencil size={14} />
                                 </button>
                                 <button
-                                  className="text-red-600 hover:text-red-800 transition-colors"
+                                  className="text-red-600 hover:text-red-800 transition-colors p-1"
                                   title="Xóa"
                                   onClick={() => {
                                     setCampaignToDelete(campaign);
                                     setShowDeleteModal(true);
                                   }}
                                 >
-                                  <Trash2 size={16} />
+                                  <Trash2 size={14} />
                                 </button>
                               </div>
                             </td>
@@ -452,9 +452,9 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
 
                 {/* Phần phân trang */}
                 {totalRecords > 0 && (
-                  <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
+                  <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
                     <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="text-sm text-gray-600">
+                      <div className="text-xs text-gray-600">
                         Hiển thị{" "}
                         <span className="font-medium">
                           {(currentPage - 1) * recordsPerPage + 1}
@@ -467,11 +467,11 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                         <span className="font-medium">{totalRecords}</span> kết
                         quả
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => setCurrentPage(1)}
                           disabled={currentPage === 1}
-                          className={`px-3 py-1 rounded-md text-sm border ${
+                          className={`px-2 py-1 rounded-md text-xs border ${
                             currentPage === 1
                               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                               : "bg-white text-gray-700 hover:bg-gray-100"
@@ -482,7 +482,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                         <button
                           onClick={() => setCurrentPage(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className={`px-3 py-1 rounded-md text-sm border ${
+                          className={`px-2 py-1 rounded-md text-xs border ${
                             currentPage === 1
                               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                               : "bg-white text-gray-700 hover:bg-gray-100"
@@ -490,13 +490,13 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                         >
                           ‹
                         </button>
-                        <span className="px-3 py-1 text-sm text-gray-700">
+                        <span className="px-2 py-1 text-xs text-gray-700">
                           {currentPage} / {totalPages}
                         </span>
                         <button
                           onClick={() => setCurrentPage(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className={`px-3 py-1 rounded-md text-sm border ${
+                          className={`px-2 py-1 rounded-md text-xs border ${
                             currentPage === totalPages
                               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                               : "bg-white text-gray-700 hover:bg-gray-100"
@@ -507,7 +507,7 @@ const CampaignTable = ({ campaigns = [], onTotalCampaignChange }) => {
                         <button
                           onClick={() => setCurrentPage(totalPages)}
                           disabled={currentPage === totalPages}
-                          className={`px-3 py-1 rounded-md text-sm border ${
+                          className={`px-2 py-1 rounded-md text-xs border ${
                             currentPage === totalPages
                               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                               : "bg-white text-gray-700 hover:bg-gray-100"

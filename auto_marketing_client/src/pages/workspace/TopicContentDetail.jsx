@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import AIContentGenerator from "../../components/ai/AIContentGenerator";
-import { Wand2 } from "lucide-react";
+import { Wand2, Eye, MoreVertical, Edit, Image } from "lucide-react";
 import { getApprovedPostsByTopic } from "../../service/postService";
 import dayjs from "dayjs";
 import ImageGenModal from "../../components/modal/ImageGenModal";
@@ -24,6 +24,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
   const [hasGeneratedResults, setHasGeneratedResults] = useState(false);
   const [zoomedImage, setZoomedImage] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showActionMenu, setShowActionMenu] = useState(false);
 
   // Kiểm tra localStorage khi mount để xác định trạng thái nút
   useEffect(() => {
@@ -104,8 +105,38 @@ const TopicContentDetail = ({ topic, onBack }) => {
     setImageGenTarget(null);
   };
 
+  // Component Modal đặt mục tiêu
+  // REMOVED - Goals functionality removed
+
+  // Component Modal xem tiến độ mục tiêu
+  // REMOVED - Progress functionality removed
+
+  // REMOVED - Goals and Progress handlers removed from TopicContentDetail
+
+  // Đóng dropdown menu khi click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showActionMenu) {
+        setShowActionMenu(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [showActionMenu]);
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-8 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+    <div
+      className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-8 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto"
+      onClick={(e) => {
+        // Chỉ đóng menu khi click vào container chính, không phải các element con
+        if (e.target === e.currentTarget) {
+          setShowActionMenu(false);
+        }
+      }}
+    >
       {/* Modal zoom ảnh */}
       {zoomedImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
@@ -136,15 +167,16 @@ const TopicContentDetail = ({ topic, onBack }) => {
       )}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
         <button
-          className="px-4 py-2 w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all"
+          className="px-4 py-2 w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all flex items-center justify-center"
           onClick={onBack}
         >
           ← Quay lại danh sách chủ đề
         </button>
         <button
-          className="px-4 py-2 w-full sm:w-auto bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all"
+          className="px-4 py-2 w-full sm:w-auto bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all flex items-center justify-center"
           onClick={() => setShowGenContentModal(true)}
         >
+          <Wand2 className="mr-2" size={16} />
           {hasGeneratedResults ? "Xem nội dung đã tạo" : "Tạo thêm nội dung"}
         </button>
       </div>
@@ -241,25 +273,48 @@ const TopicContentDetail = ({ topic, onBack }) => {
                 >
                   ← Quay lại danh sách content
                 </button>
-                <button
-                  className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold hover:bg-purple-200"
-                  onClick={() => handleGenerateImage(selectedContent)}
-                >
-                  Generate hình ảnh
-                </button>
-                <button
-                  className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg font-semibold hover:bg-yellow-200"
-                  onClick={() => {
-                    console.log(
-                      "👉 selectedContent khi mở edit:",
-                      selectedContent
-                    );
 
-                    setShowEditModal(true);
-                  }}
-                >
-                  ✏️ Chỉnh sửa
-                </button>
+                {/* Menu Actions Dropdown */}
+                <div className="relative">
+                  <button
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 flex items-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowActionMenu(!showActionMenu);
+                    }}
+                  >
+                    <MoreVertical className="mr-1" size={16} />
+                    Thao tác
+                  </button>
+
+                  {showActionMenu && (
+                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-48">
+                      <button
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-purple-700 rounded-t-lg"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleGenerateImage(selectedContent);
+                          setShowActionMenu(false);
+                        }}
+                      >
+                        <Image className="mr-2" size={16} />
+                        Generate hình ảnh
+                      </button>
+
+                      <button
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center text-yellow-700 rounded-b-lg"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowEditModal(true);
+                          setShowActionMenu(false);
+                        }}
+                      >
+                        <Edit className="mr-2" size={16} />
+                        Chỉnh sửa
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
               <span className="text-xs text-gray-500 sm:ml-4">
                 Ngày tạo:{" "}
@@ -307,6 +362,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
                   </div>
                 </div>
               )}
+
               {/* Ảnh ở dưới cùng */}
               {Array.isArray(selectedContent.imageUrls) &&
                 selectedContent.imageUrls.length > 0 && (
@@ -331,6 +387,22 @@ const TopicContentDetail = ({ topic, onBack }) => {
           </div>
         ) : contents.length > 0 ? (
           <>
+            {/* Thống kê tổng quan */}
+            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center">
+                    <span className="text-gray-700 font-medium">
+                      Tổng cộng:{" "}
+                    </span>
+                    <span className="ml-1 font-bold text-blue-600">
+                      {contents.length}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
               {contents.slice(0, contentPageSize).map((content, idx) => {
                 const preview = (
@@ -345,18 +417,17 @@ const TopicContentDetail = ({ topic, onBack }) => {
                 return (
                   <div
                     key={content.id || idx}
-                    className="bg-white border border-gray-200 rounded-2xl p-8 shadow hover:shadow-lg cursor-pointer flex flex-col relative h-full"
+                    className="bg-white border-2 border-gray-200 hover:border-blue-300 rounded-2xl p-8 shadow hover:shadow-lg cursor-pointer flex flex-col relative h-full transition-all duration-300"
                     onClick={() => setSelectedContent(content)}
                   >
-                    {/* Badge Mới luôn nổi trên cùng */}
-                    {content.isNew && (
-                      <span
-                        className="absolute z-20 top-2 right-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow"
-                        style={{ pointerEvents: "none" }}
-                      >
-                        Mới
-                      </span>
-                    )}
+                    {/* Badge mới */}
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      {content.isNew && (
+                        <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow z-20">
+                          Mới
+                        </span>
+                      )}
+                    </div>
                     {/* Hiển thị ảnh nếu có */}
                     {content.imageUrl && (
                       <div className="mb-3 flex justify-center relative z-10">
@@ -371,7 +442,7 @@ const TopicContentDetail = ({ topic, onBack }) => {
                       </div>
                     )}
                     <div className="mb-2">
-                      <span className="font-semibold text-gray-800 block break-words">
+                      <span className="font-semibold text-gray-800 break-words">
                         {content.title || `Content #${idx + 1}`}
                       </span>
                     </div>
@@ -380,19 +451,21 @@ const TopicContentDetail = ({ topic, onBack }) => {
                       {isLong ? "..." : ""}
                     </div>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-auto gap-2">
-                      <button
-                        className="text-blue-600 text-xs font-semibold hover:underline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedContent(content);
-                        }}
-                      >
-                        Xem chi tiết
-                      </button>
-                      <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">
-                        Ngày tạo:{" "}
+                      <div className="flex gap-1">
+                        <button
+                          className="text-blue-600 text-xs font-semibold hover:underline px-2 py-1 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedContent(content);
+                          }}
+                        >
+                          <Eye className="inline mr-1" size={12} />
+                          Chi tiết
+                        </button>
+                      </div>
+                      <span className="text-xs text-gray-500 whitespace-nowrap">
                         {content.createdAt
-                          ? dayjs(content.createdAt).format("DD-MM-YYYY")
+                          ? dayjs(content.createdAt).format("DD/MM")
                           : ""}
                       </span>
                     </div>

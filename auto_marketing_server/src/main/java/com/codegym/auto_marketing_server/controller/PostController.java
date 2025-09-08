@@ -116,19 +116,37 @@ public class PostController {
 
     // Update JSON (chỉ nội dung, hashtag, topic, không upload file)
     @PutMapping(value = "/{postId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PostResponseDTO> updatePostJsonV2(
-            @PathVariable Long postId,
-            @RequestBody PostUpdateDTO requestDto) throws Exception {
+    public ResponseEntity<PostResponseDTO> updatePostJsonV2(@PathVariable Long postId, @RequestBody PostUpdateDTO requestDto) throws Exception {
         return ResponseEntity.ok(postService.updatePostV2(postId, requestDto, null));
     }
 
     // Update Multipart (có upload file)
     @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PostResponseDTO> updatePostMultipartV2(
-            @PathVariable Long postId,
-            @RequestPart("data") PostUpdateDTO requestDto,
-            @RequestPart(value = "files", required = false) MultipartFile[] files) throws Exception {
+    public ResponseEntity<PostResponseDTO> updatePostMultipartV2(@PathVariable Long postId, @RequestPart("data") PostUpdateDTO requestDto, @RequestPart(value = "files", required = false) MultipartFile[] files) throws Exception {
         return ResponseEntity.ok(postService.updatePostV2(postId, requestDto, files));
     }
 
+    @GetMapping("/campaign/{campaignId}/approved")
+    @Operation(summary = "Get all APPROVED posts by campaign", description = "Retrieve all posts with status APPROVED for a specific campaign")
+    public ResponseEntity<List<PostResponseDTO>> getApprovedPostsByCampaign(@Parameter(description = "Campaign ID") @PathVariable Long campaignId) {
+        List<PostResponseDTO> posts = postService.getApprovedPostsByCampaign(campaignId);
+        return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("/workspace/{workspaceId}/approved")
+    @Operation(summary = "Get all APPROVED posts by workspace", description = "Retrieve all posts with status APPROVED for a specific workspace")
+    public ResponseEntity<List<PostResponseDTO>> getApprovedPostsByWorkspace(@Parameter(description = "Workspace ID") @PathVariable Long workspaceId) {
+        List<PostResponseDTO> posts = postService.getApprovedPostsByWorkspace(workspaceId);
+        return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("/workspace/{workspaceId}/count/approved")
+    @Operation(
+            summary = "Count APPROVED posts by workspace",
+            description = "Get total number of posts with status APPROVED for a specific workspace"
+    )
+    public ResponseEntity<Long> countApprovedPostsByWorkspace(@PathVariable Long workspaceId) {
+        long count = postService.countPostsByWorkspaceAndStatus(workspaceId, PostStatus.APPROVED);
+        return ResponseEntity.ok(count);
+    }
 }

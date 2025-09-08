@@ -94,6 +94,28 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    public void sendPostFailedEmail(String to, String name, String pageName, String postTitle, LocalDateTime publishedDate)
+            throws MessagingException, UnsupportedEncodingException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String formattedDate = publishedDate.format(formatter);
+        Context context = new Context();
+        context.setVariable("name", name);
+        context.setVariable("postTitle", postTitle);
+        context.setVariable("failedDate", formattedDate);
+        context.setVariable("pageName", pageName);
+        String htmlContent = templateEngine.process("post-failed", context);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom(fromEmail, "Auto Marketing System");
+        helper.setTo(to);
+        helper.setSubject("Thất bại khi đăng bài viết \"" + postTitle + "\" do lỗi");
+        helper.setText(htmlContent, true);
+
+        mailSender.send(message);
+    }
+
     public void sendUserVerificationEmail(String to, String name, String token) throws MessagingException{
         try {
             Context context = new Context();

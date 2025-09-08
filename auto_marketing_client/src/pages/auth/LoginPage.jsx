@@ -6,6 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import authService from "../../service/authService";
 import { useAuth } from "../../context/AuthContext";
+import EnableAccountModal from "../../components/modal/EnableAccountModal";
 
 // Validation schema
 const loginSchema = Yup.object({
@@ -23,6 +24,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const shownRef = useRef(false);
+  const [showReminderModal, setShowReminderModal] = useState(false);
 
   const initialValues = {
     email: "",
@@ -52,12 +54,16 @@ const LoginPage = () => {
           navigate("/workspace");
         }
       } else {
+        if(result.code && result.code === "EMAIL_NOT_VERIFIED"){
+          setShowReminderModal(true)
+        }
         toast.error(result.error || "Sai tài khoản hoặc mật khẩu");
       }
     } catch (error) {
       toast.error("Có lỗi xảy ra, vui lòng thử lại");
     } finally {
       setSubmitting(false);
+      // setShowReminderModal(false)
     }
   };
 
@@ -72,6 +78,7 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {showReminderModal && <EnableAccountModal onClose={() => setShowReminderModal(false)} />}
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">

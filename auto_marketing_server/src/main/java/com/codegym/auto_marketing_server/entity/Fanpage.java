@@ -25,6 +25,7 @@ public class Fanpage {
     private String pageName;
     private String avatarUrl;
     private LocalDateTime tokenExpireAt;
+    private Boolean active;
 
     @ManyToOne
     @JoinColumn(name = "social_account_id")

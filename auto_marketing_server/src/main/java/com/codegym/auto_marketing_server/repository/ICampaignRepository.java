@@ -18,6 +18,7 @@ public interface ICampaignRepository extends JpaRepository<Campaign, Long> {
     where (:name is null or c.name like concat('%', :name, '%'))
     and (:startDate is null or c.startDate >= :startDate)
     and w.id = :workspaceId
+    order by c.id desc
     """)
     Page<Campaign> findCampaignByName(@Param("name") String name,
                                       @Param("startDate") LocalDate startDate,

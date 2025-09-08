@@ -154,7 +154,7 @@ const UpdateWorkspaceModal = ({
                                                     className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                     <div className="flex space-x-2">
                                                         <Camera className="w-6 h-6 text-white"/>
-                                                        <button
+                                                        <span
                                                             type="button"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
@@ -167,7 +167,7 @@ const UpdateWorkspaceModal = ({
                                                             className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                                                         >
                                                             <X className="w-4 h-4 text-white"/>
-                                                        </button>
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </>
