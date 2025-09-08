@@ -58,7 +58,6 @@ const WorkspaceDetailPage = () => {
   };
   const { workspaceId } = useParams();
   const [workspace, setWorkspace] = useState(null);
-  const [loadingWorkspace, setLoadingWorkspace] = useState(true);
   const [activeTab, setActiveTab] = useState("campaigns");
   const [showTopicGenerator, setShowTopicGenerator] = useState(false);
   // Persist AI generated topics so section remains after reload
@@ -221,12 +220,13 @@ const WorkspaceDetailPage = () => {
     },
   ];
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
-  };
+  // Unused currency formatter
+  // const formatCurrency = (amount) => {
+  //   return new Intl.NumberFormat("vi-VN", {
+  //     style: "currency",
+  //     currency: "VND",
+  //   }).format(amount);
+  // };
 
   const getStatGradient = (color) => {
     const gradients = {
@@ -337,25 +337,26 @@ const WorkspaceDetailPage = () => {
 
       // Reload workspace to ensure new campaigns/topics are shown
       if (typeof fetchWorkspaceData === "function") {
-        fetchWorkspaceData();
+        fetchWorkspaceData(false);
       }
     } catch (err) {
       toast.error("Không thể lấy danh sách topic mới từ server!");
     }
   };
 
-  const handleHideAITopics = () => {
-    setNewlyCreatedTopics([]);
-    setApprovedTopics(new Set()); // Reset approved topics
-    toast.dismiss();
-    toast.success("Đã ẩn section AI Topics!", {
-      duration: 2000,
-      style: {
-        background: "#10B981",
-        color: "white",
-      },
-    });
-  };
+  // Unused function to hide AI topics
+  // const handleHideAITopics = () => {
+  //   setNewlyCreatedTopics([]);
+  //   setApprovedTopics(new Set()); // Reset approved topics
+  //   toast.dismiss();
+  //   toast.success("Đã ẩn section AI Topics!", {
+  //     duration: 2000,
+  //     style: {
+  //       background: "#10B981",
+  //       color: "white",
+  //     },
+  //   });
+  // };
 
   // Function để tự động generate thêm topics
   const handleAutoGenerateMoreTopics = async () => {
@@ -661,40 +662,49 @@ const WorkspaceDetailPage = () => {
 
   // const handleDeletePost = () => {};
 
-  const fetchWorkspaceData = useCallback(async () => {
-    setLoadingWorkspace(true);
-    try {
-      // 1. Lấy workspace từ API
-      const wsData = await getWorkspaceDetail(workspaceId); // bạn cần có hàm này
+  const fetchWorkspaceData = useCallback(
+    async (showLoading = true) => {
+      try {
+        // 1. Lấy workspace từ API
+        const wsData = await getWorkspaceDetail(workspaceId); // bạn cần có hàm này
 
-      // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
-      const campaignsData =
-        wsData.campaigns ??
-        (await campaignService.findAllCampaign(0, 10, "", "", workspaceId))
-          .content;
-      // 3. Với mỗi campaign => lấy topics
-      const campaignsWithTopics = await Promise.all(
-        campaignsData.map(async (campaign) => {
-          const topicsList = await getTopicsByCampaign(campaign.id);
-          return { ...campaign, topicsList: topicsList || [] };
-        })
-      );
+        // 2. Lấy campaign theo workspace (nếu chưa có endpoint riêng bạn dùng getAllCampaigns() cũng tạm ok)
+        const campaignsData =
+          wsData.campaigns ??
+          (await campaignService.findAllCampaign(0, 10, "", "", workspaceId))
+            .content;
+        // 3. Với mỗi campaign => lấy topics
+        const campaignsWithTopics = await Promise.all(
+          campaignsData.map(async (campaign) => {
+            const topicsList = await getTopicsByCampaign(campaign.id);
+            return { ...campaign, topicsList: topicsList || [] };
+          })
+        );
 
-      setWorkspace({
-        ...wsData,
-        campaigns: campaignsWithTopics,
-      });
-    } catch (err) {
-      toast.error("Không thể tải dữ liệu workspace từ API");
-      setWorkspace(null);
-    } finally {
-      setLoadingWorkspace(false);
-    }
-  }, [workspaceId]);
+        setWorkspace({
+          ...wsData,
+          campaigns: campaignsWithTopics,
+        });
+      } catch (err) {
+        toast.error("Không thể tải dữ liệu workspace từ API");
+        setWorkspace(null);
+      }
+    },
+    [workspaceId]
+  );
 
   useEffect(() => {
-    fetchWorkspaceData();
-  }, [fetchWorkspaceData]);
+    // Tạo workspace fallback ngay lập tức để tránh loading flash
+    setWorkspace({
+      id: parseInt(workspaceId),
+      name: "Auto Marketing Workspace",
+      description: "Đang tải thông tin workspace...",
+      status: "active",
+      campaigns: [],
+    });
+
+    fetchWorkspaceData(false); // Không hiển thị loading overlay
+  }, [fetchWorkspaceData, workspaceId]);
 
   // Fetch content counts for visible topics when tab = topics
   useEffect(() => {
@@ -732,12 +742,11 @@ const WorkspaceDetailPage = () => {
   // Khi người dùng chuyển tab sang "Chủ đề", tự động refetch workspace/campaigns
   useEffect(() => {
     if (activeTab === "topics") {
-      // Phát tín hiệu cho các trang khác nếu cần và làm mới dữ liệu tại chỗ
       try {
         window.dispatchEvent(new CustomEvent("campaign:refresh-active"));
       } catch (_) {}
-      fetchWorkspaceData();
-      // Scroll tới phần đầu của tab Chủ đề
+      // Chỉ fetch lại workspace khi thực sự cần, không set loadingWorkspace true để tránh flash
+      fetchWorkspaceData(false);
       requestAnimationFrame(() => {
         if (topicsTopRef.current) {
           const el = topicsTopRef.current;
@@ -746,7 +755,7 @@ const WorkspaceDetailPage = () => {
         }
       });
     }
-  }, [activeTab]);
+  }, [activeTab, fetchWorkspaceData]);
 
   // Lọc campaign theo tên khi search
   useEffect(() => {
@@ -829,28 +838,22 @@ const WorkspaceDetailPage = () => {
     });
   }, [activeTab, workspace, topicPostCounts]);
 
-  if (loadingWorkspace) {
-    return <div>Đang tải workspace...</div>;
-  }
-  if (!workspace || !workspace.campaigns) {
-    return <div>Không có dữ liệu workspace</div>;
-  }
+  // Render ngay mà không cần loading screen
 
-  // Đã thay thế bằng totalApprovedTopicsCount từ API
-
-  const totalContentCount = Array.isArray(workspace?.campaigns)
-    ? workspace.campaigns.reduce((sum, c) => {
-        if (Array.isArray(c.topicsList)) {
-          const approved = c.topicsList.filter((t) =>
-            ["APPROVED", "ACTIVE", "active"].includes(
-              String(t.status).toUpperCase()
-            )
-          ).length;
-          return sum + approved;
-        }
-        return sum + (c.content || 0);
-      }, 0)
-    : 0;
+  // Tính tổng số approved topics từ workspace campaigns (unused for now)
+  // const totalContentCount = Array.isArray(workspace?.campaigns)
+  //   ? workspace.campaigns.reduce((sum, c) => {
+  //       if (Array.isArray(c.topicsList)) {
+  //         const approved = c.topicsList.filter((t) =>
+  //           ["APPROVED", "ACTIVE", "active"].includes(
+  //             String(t.status).toUpperCase()
+  //           )
+  //         ).length;
+  //         return sum + approved;
+  //       }
+  //       return sum + (c.content || 0);
+  //     }, 0)
+  //   : 0;
 
   // Helper: try to infer number of contents/posts for a topic coming from various shapes
 
@@ -947,13 +950,15 @@ const WorkspaceDetailPage = () => {
               </Link>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {workspace.name}
+                  {workspace?.name || "Auto Marketing Workspace"}
                 </h1>
-                <p className="text-gray-600">{workspace.description}</p>
+                <p className="text-gray-600">
+                  {workspace?.description || "Đang tải thông tin workspace..."}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-2 md:space-x-3 mt-2 md:mt-0">
-              {getStatusBadge(workspace.status)}
+              {getStatusBadge(workspace?.status)}
               <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <MoreHorizontal size={20} className="text-gray-600" />
               </button>
@@ -1042,7 +1047,7 @@ const WorkspaceDetailPage = () => {
                     id: "postedManager",
                     label: "Lịch sử bài đăng",
                     icon: <Table size={14} />,
-                  }
+                  },
                 ].map((tab) => (
                   <button
                     key={tab.id}
