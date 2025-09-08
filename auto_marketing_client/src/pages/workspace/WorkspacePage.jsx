@@ -48,12 +48,12 @@ const WorkspacePage = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await getUserFanpages(user.id);
-    }
-    fetchData();
-  }, [])
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     await getUserFanpages(user.id);
+  //   }
+  //   fetchData();
+  // }, [])
 
 
 

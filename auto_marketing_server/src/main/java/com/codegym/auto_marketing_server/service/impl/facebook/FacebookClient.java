@@ -13,7 +13,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -230,4 +232,40 @@ public class FacebookClient {
         );
         return restTemplate.getForObject(url, FacebookTokenResponse.class);
     }
+
+    //Lượt like, bình luận, share
+    public Map<String, Integer> getPostInsights(String postId, String pageToken) {
+        String url = String.format(
+                "https://graph.facebook.com/.v210/%s?fields=shares.summary(true),likes.summary(true),comments.summary(true)&access_token=%s",
+                postId, pageToken
+        );
+
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+
+        Map<String, Integer> result = new HashMap<>();
+        if (response.containsKey("shares")) {
+            Map shares = (Map) response.get("shares");
+            result.put("shares", (Integer) shares.getOrDefault("count", 0));
+        } else {
+            result.put("shares", 0);
+        }
+
+        if (response.containsKey("likes")) {
+            Map likes = (Map) ((Map) response.get("likes")).get("summary");
+            result.put("likes", (Integer) likes.getOrDefault("total_count", 0));
+        } else {
+            result.put("likes", 0);
+        }
+
+        if (response.containsKey("comments")) {
+            Map comments = (Map) ((Map) response.get("comments")).get("summary");
+            result.put("comments", (Integer) comments.getOrDefault("total_count", 0));
+        } else {
+            result.put("comments", 0);
+        }
+
+        return result;
+    }
+
 }

@@ -75,11 +75,11 @@ const PostedPostsList = () => {
       dataIndex: ["post", "title"],
       ellipsis: true,
     },
-    {
-      title: "Nội dung",
-      dataIndex: ["post", "content"],
-      ellipsis: true,
-    },
+    // {
+    //   title: "Nội dung",
+    //   dataIndex: ["post", "content"],
+    //   ellipsis: true,
+    // },
     {
       title: "Hashtag",
       dataIndex: ["post", "hashtag"],
